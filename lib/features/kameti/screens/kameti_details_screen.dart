@@ -13,6 +13,8 @@ import '../../member/providers/member_controller.dart';
 import '../../member/widgets/member_count_summary_card.dart';
 import '../../member/widgets/member_role_badge.dart';
 import '../../member/widgets/member_status_badge.dart';
+import '../../payment/providers/payment_controller.dart';
+import '../../payment/widgets/payment_summary_card.dart';
 import '../models/kameti_model.dart';
 import '../providers/kameti_controller.dart';
 
@@ -45,7 +47,9 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
   Widget build(BuildContext context) {
     final kametis = ref.watch(kametiControllerProvider);
     ref.watch(memberControllerProvider);
+    ref.watch(paymentControllerProvider);
     final memberController = ref.read(memberControllerProvider.notifier);
+    final paymentController = ref.read(paymentControllerProvider.notifier);
     final kameti = _findKameti(kametis, widget.kametiId);
     final selectedKameti = kameti;
     if (selectedKameti == null) {
@@ -59,6 +63,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     final remainingSlots = (selectedKameti.totalMembers - activeMembersCount).clamp(0, selectedKameti.totalMembers);
     final previewMembers = members.take(3).toList();
     final slotsFilled = activeMembersCount >= selectedKameti.totalMembers;
+    final currentCycle = paymentController.getCurrentCycle(selectedKameti.id);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Kameti Details')),
@@ -160,6 +165,53 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
               ),
             ),
             const SizedBox(height: 12),
+            if (selectedKameti.status == KametiStatus.active && currentCycle != null) ...[
+              PaymentSummaryCard(
+                title: 'Current Cycle: Month ${currentCycle.cycleNumber} - ${currentCycle.monthLabel}',
+                expectedAmount: currentCycle.expectedAmount,
+                collectedAmount: currentCycle.collectedAmount,
+                pendingAmount: currentCycle.pendingAmount,
+                paidCount: paymentController.getPaidMembersCount(currentCycle.id),
+                pendingCount: paymentController.getPendingMembersCount(currentCycle.id),
+                lateCount: paymentController.getLateMembersCount(currentCycle.id),
+                rejectedCount: paymentController.getRejectedMembersCount(currentCycle.id),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton(
+                      label: 'View Payments',
+                      icon: Icons.receipt_long_outlined,
+                      isOutlined: true,
+                      onPressed: () => Navigator.of(context).pushNamed(AppRoutes.cyclePayments, arguments: currentCycle.id),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: AppButton(
+                      label: 'View Cycles',
+                      icon: Icons.calendar_month_outlined,
+                      onPressed: () => Navigator.of(context).pushNamed(AppRoutes.paymentCycles, arguments: selectedKameti.id),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ] else if (selectedKameti.status == KametiStatus.active) ...[
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.receipt_long_outlined),
+                  title: const Text('Payments'),
+                  subtitle: const Text('No payment cycles generated yet.'),
+                  trailing: TextButton(
+                    onPressed: () => Navigator.of(context).pushNamed(AppRoutes.paymentCycles, arguments: selectedKameti.id),
+                    child: const Text('View'),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
             Row(
               children: [
                 Expanded(
@@ -179,7 +231,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
-            ...['Payments', 'Cycles', 'Ledger', 'Bidding', 'Lucky Draw'].map(
+            ...['Ledger', 'Bidding', 'Lucky Draw', 'Reports'].map(
               (title) => Card(
                 child: ListTile(
                   leading: const Icon(Icons.lock_clock_outlined),
@@ -207,12 +259,18 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
       context: context,
       builder: (context) => const ConfirmationDialog(
         title: 'Start Kameti?',
-        message: 'Once started, members cannot be removed. You can manage payments in the next phase.',
+        message: 'Once started, members cannot be removed and monthly payment cycles will be created.',
         confirmLabel: 'Start',
       ),
     );
     if (confirmed != true) return;
     ref.read(kametiControllerProvider.notifier).updateStatus(kameti.id, KametiStatus.active);
+    final activeKameti = kameti.copyWith(status: KametiStatus.active);
+    final members = ref.read(memberControllerProvider.notifier).getMembersByKametiId(kameti.id);
+    ref.read(paymentControllerProvider.notifier).generatePaymentCycles(
+          kameti: activeKameti,
+          members: members,
+        );
     if (context.mounted) {
       SnackbarHelper.showSuccess(context, 'Kameti started successfully.');
     }

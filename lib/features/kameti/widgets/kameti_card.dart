@@ -8,12 +8,22 @@ class KametiCard extends StatelessWidget {
     required this.kameti,
     required this.onTap,
     this.activeMembersCount,
+    this.currentCycleLabel,
+    this.paidCount,
+    this.pendingCount,
+    this.collectedAmount,
+    this.expectedAmount,
     super.key,
   });
 
   final KametiModel kameti;
   final VoidCallback onTap;
   final int? activeMembersCount;
+  final String? currentCycleLabel;
+  final int? paidCount;
+  final int? pendingCount;
+  final double? collectedAmount;
+  final double? expectedAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +63,14 @@ class KametiCard extends StatelessWidget {
                     text: 'Members: ${activeMembersCount ?? 0} / ${kameti.totalMembers}',
                   ),
                   _Meta(icon: Icons.calendar_month_outlined, text: '${kameti.durationMonths} months'),
+                  if (currentCycleLabel != null) _Meta(icon: Icons.event_repeat_outlined, text: 'Current: $currentCycleLabel'),
+                  if (paidCount != null && pendingCount != null)
+                    _Meta(icon: Icons.fact_check_outlined, text: 'Paid: $paidCount / ${(paidCount ?? 0) + (pendingCount ?? 0)}'),
+                  if (collectedAmount != null && expectedAmount != null)
+                    _Meta(
+                      icon: Icons.trending_up_outlined,
+                      text: 'Collected: ${CurrencyFormatter.pkr(collectedAmount!)} / ${CurrencyFormatter.pkr(expectedAmount!)}',
+                    ),
                 ],
               ),
             ],

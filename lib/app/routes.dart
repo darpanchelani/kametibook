@@ -12,6 +12,8 @@ import '../features/member/screens/member_details_screen.dart';
 import '../features/member/screens/members_list_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/onboarding/screens/splash_screen.dart';
+import '../features/payment/screens/cycle_payments_screen.dart';
+import '../features/payment/screens/payment_cycles_screen.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -26,6 +28,8 @@ class AppRoutes {
   static const addMember = '/add-member';
   static const editMember = '/edit-member';
   static const memberDetails = '/member-details';
+  static const paymentCycles = '/payment-cycles';
+  static const cyclePayments = '/cycle-payments';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     return MaterialPageRoute(
@@ -58,6 +62,10 @@ class AppRoutes {
             return EditMemberScreen(kametiId: args['kametiId']!, memberId: args['memberId']!);
           case memberDetails:
             return MemberDetailsScreen(memberId: settings.arguments! as String);
+          case paymentCycles:
+            return PaymentCyclesScreen(kametiId: settings.arguments! as String);
+          case cyclePayments:
+            return CyclePaymentsScreen(cycleId: settings.arguments! as String);
           default:
             return const SplashScreen();
         }

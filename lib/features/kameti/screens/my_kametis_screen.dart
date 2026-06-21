@@ -5,6 +5,7 @@ import '../../../app/routes.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../member/providers/member_controller.dart';
+import '../../payment/providers/payment_controller.dart';
 import '../providers/kameti_controller.dart';
 import '../widgets/kameti_card.dart';
 
@@ -15,7 +16,9 @@ class MyKametisScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final kametis = ref.watch(kametiControllerProvider);
     ref.watch(memberControllerProvider);
+    ref.watch(paymentControllerProvider);
     final memberController = ref.read(memberControllerProvider.notifier);
+    final paymentController = ref.read(paymentControllerProvider.notifier);
     return Scaffold(
       appBar: AppBar(title: const Text('My Kametis')),
       body: SafeArea(
@@ -33,9 +36,15 @@ class MyKametisScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 itemBuilder: (context, index) {
                   final kameti = kametis[index];
+                  final cycle = paymentController.getCurrentCycle(kameti.id);
                   return KametiCard(
                     kameti: kameti,
                     activeMembersCount: memberController.getActiveMembersCount(kameti.id),
+                    currentCycleLabel: cycle == null ? null : 'Month ${cycle.cycleNumber}',
+                    paidCount: cycle == null ? null : paymentController.getPaidMembersCount(cycle.id),
+                    pendingCount: cycle == null ? null : paymentController.getPendingMembersCount(cycle.id),
+                    collectedAmount: cycle?.collectedAmount,
+                    expectedAmount: cycle?.expectedAmount,
                     onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiDetails, arguments: kameti.id),
                   );
                 },
