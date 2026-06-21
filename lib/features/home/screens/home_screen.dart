@@ -11,6 +11,7 @@ import '../../kameti/models/kameti_model.dart';
 import '../../kameti/providers/kameti_controller.dart';
 import '../../kameti/widgets/kameti_card.dart';
 import '../../member/providers/member_controller.dart';
+import '../../lucky_draw/providers/lucky_draw_controller.dart';
 import '../../payment/providers/payment_controller.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -22,12 +23,19 @@ class HomeScreen extends ConsumerWidget {
     final kametis = ref.watch(kametiControllerProvider);
     ref.watch(memberControllerProvider);
     ref.watch(paymentControllerProvider);
+    ref.watch(luckyDrawControllerProvider);
     final activeCount = kametis.where((kameti) => kameti.status == KametiStatus.active).length;
     final draftCount = kametis.where((kameti) => kameti.status == KametiStatus.draft).length;
     final memberController = ref.read(memberControllerProvider.notifier);
     final paymentController = ref.read(paymentControllerProvider.notifier);
+    final drawController = ref.read(luckyDrawControllerProvider.notifier);
     final pendingPayments = paymentController.pendingPaymentsInCurrentCycles(kametis);
     final collectedThisMonth = paymentController.collectedInCurrentCycles(kametis);
+    final pendingDraws = drawController.getPendingDrawsCount(
+      kametis: kametis,
+      cycles: ref.watch(paymentControllerProvider).cycles,
+    );
+    final completedDraws = drawController.getCompletedDrawsCount();
     final recent = kametis.take(3).toList();
 
     return Scaffold(
@@ -58,10 +66,22 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 SummaryCard(title: 'Pending Payments', value: '$pendingPayments', icon: Icons.pending_actions_outlined),
                 SummaryCard(
+                  title: 'Pending Draws',
+                  value: '$pendingDraws',
+                  icon: Icons.casino_outlined,
+                  color: Colors.blue.shade700,
+                ),
+                SummaryCard(
+                  title: 'Completed Draws',
+                  value: '$completedDraws',
+                  icon: Icons.emoji_events_outlined,
+                  color: Colors.indigo.shade700,
+                ),
+                SummaryCard(
                   title: 'Collected This Month',
                   value: CurrencyFormatter.pkr(collectedThisMonth),
                   icon: Icons.payments_outlined,
-                  color: Colors.blue.shade700,
+                  color: Colors.green.shade700,
                 ),
               ],
             ),
@@ -86,6 +106,7 @@ class HomeScreen extends ConsumerWidget {
               ...recent.map(
                 (kameti) {
                   final cycle = paymentController.getCurrentCycle(kameti.id);
+                  final draw = cycle == null ? null : drawController.getDrawByCycleId(cycle.id);
                   return KametiCard(
                     kameti: kameti,
                     activeMembersCount: memberController.getActiveMembersCount(kameti.id),
@@ -94,6 +115,11 @@ class HomeScreen extends ConsumerWidget {
                     pendingCount: cycle == null ? null : paymentController.getPendingMembersCount(cycle.id),
                     collectedAmount: cycle?.collectedAmount,
                     expectedAmount: cycle?.expectedAmount,
+                    drawStatusText: kameti.type == KametiType.luckyDraw && cycle != null
+                        ? draw == null
+                            ? 'Draw: Pending'
+                            : 'Winner: ${draw.winnerName}'
+                        : null,
                     onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiDetails, arguments: kameti.id),
                   );
                 },

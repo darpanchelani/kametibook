@@ -13,6 +13,8 @@ import '../../member/providers/member_controller.dart';
 import '../../member/widgets/member_count_summary_card.dart';
 import '../../member/widgets/member_role_badge.dart';
 import '../../member/widgets/member_status_badge.dart';
+import '../../lucky_draw/providers/lucky_draw_controller.dart';
+import '../../lucky_draw/widgets/winner_card.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../../payment/widgets/payment_summary_card.dart';
 import '../models/kameti_model.dart';
@@ -48,8 +50,10 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     final kametis = ref.watch(kametiControllerProvider);
     ref.watch(memberControllerProvider);
     ref.watch(paymentControllerProvider);
+    ref.watch(luckyDrawControllerProvider);
     final memberController = ref.read(memberControllerProvider.notifier);
     final paymentController = ref.read(paymentControllerProvider.notifier);
+    final drawController = ref.read(luckyDrawControllerProvider.notifier);
     final kameti = _findKameti(kametis, widget.kametiId);
     final selectedKameti = kameti;
     if (selectedKameti == null) {
@@ -64,6 +68,8 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     final previewMembers = members.take(3).toList();
     final slotsFilled = activeMembersCount >= selectedKameti.totalMembers;
     final currentCycle = paymentController.getCurrentCycle(selectedKameti.id);
+    final currentDraw = currentCycle == null ? null : drawController.getDrawByCycleId(currentCycle.id);
+    final receivedCount = members.where((member) => member.hasReceivedKameti).length;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Kameti Details')),
@@ -212,6 +218,74 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
               ),
               const SizedBox(height: 12),
             ],
+            if (selectedKameti.type == KametiType.luckyDraw) ...[
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Lucky Draw', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 8),
+                      if (selectedKameti.status == KametiStatus.draft)
+                        const Text('Start this kameti before running lucky draw.')
+                      else if (currentCycle == null)
+                        const Text('No active payment cycle found.')
+                      else ...[
+                        Text('Current Cycle: Month ${currentCycle.cycleNumber} - ${currentCycle.monthLabel}'),
+                        Text('Draw Status: ${currentDraw == null ? 'Pending' : 'Completed'}'),
+                        const Text('Eligible check uses active members and current cycle payment records.'),
+                        Text('Already Received: $receivedCount'),
+                        Text('Remaining Members: ${activeMembersCount - receivedCount}'),
+                        if (currentDraw == null)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 8),
+                            child: Text('Lucky draw pending for current cycle.'),
+                          )
+                        else
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: WinnerCard(draw: currentDraw),
+                          ),
+                      ],
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: AppButton(
+                              label: 'Open Lucky Draw',
+                              icon: Icons.casino_outlined,
+                              isOutlined: true,
+                              onPressed: selectedKameti.status == KametiStatus.active
+                                  ? () => Navigator.of(context).pushNamed(AppRoutes.luckyDraw, arguments: selectedKameti.id)
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: AppButton(
+                              label: 'Draw History',
+                              icon: Icons.history_outlined,
+                              onPressed: () => Navigator.of(context).pushNamed(AppRoutes.drawHistory, arguments: selectedKameti.id),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ] else ...[
+              const Card(
+                child: ListTile(
+                  leading: Icon(Icons.casino_outlined),
+                  title: Text('Lucky Draw'),
+                  subtitle: Text('Lucky draw is only available for Khulli Chhutti kametis.'),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
             Row(
               children: [
                 Expanded(
@@ -231,7 +305,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
-            ...['Ledger', 'Bidding', 'Lucky Draw', 'Reports'].map(
+            ...['Ledger', 'Bidding', 'Reports'].map(
               (title) => Card(
                 child: ListTile(
                   leading: const Icon(Icons.lock_clock_outlined),

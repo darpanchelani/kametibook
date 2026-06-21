@@ -6,6 +6,8 @@ import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../kameti/models/kameti_model.dart';
 import '../../kameti/providers/kameti_controller.dart';
+import '../../lucky_draw/providers/lucky_draw_controller.dart';
+import '../models/payment_models.dart';
 import '../providers/payment_controller.dart';
 import '../widgets/payment_cycle_card.dart';
 
@@ -18,7 +20,9 @@ class PaymentCyclesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final kameti = _findKameti(ref.watch(kametiControllerProvider), kametiId);
     ref.watch(paymentControllerProvider);
+    ref.watch(luckyDrawControllerProvider);
     final paymentController = ref.read(paymentControllerProvider.notifier);
+    final drawController = ref.read(luckyDrawControllerProvider.notifier);
     final cycles = paymentController.getCyclesByKametiId(kametiId);
 
     return Scaffold(
@@ -36,10 +40,21 @@ class PaymentCyclesScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(16),
                     itemBuilder: (context, index) {
                       final cycle = cycles[index];
+                      final draw = drawController.getDrawByCycleId(cycle.id);
                       return PaymentCycleCard(
                         cycle: cycle,
                         paidCount: paymentController.getPaidMembersCount(cycle.id),
                         pendingCount: paymentController.getPendingMembersCount(cycle.id),
+                        drawStatusText: kameti.type == KametiType.luckyDraw
+                            ? draw == null
+                                ? 'Draw: Pending'
+                                : 'Winner: ${draw.winnerName}'
+                            : null,
+                        drawWarning: kameti.type == KametiType.luckyDraw &&
+                                cycle.status == PaymentCycleStatus.completed &&
+                                draw == null
+                            ? 'Cycle completed but lucky draw is pending.'
+                            : null,
                         onOpen: () => Navigator.of(context).pushNamed(AppRoutes.cyclePayments, arguments: cycle.id),
                         onMarkCurrent: () {
                           paymentController.markCycleCurrent(cycle.id);

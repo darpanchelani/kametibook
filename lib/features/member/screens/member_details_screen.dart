@@ -99,6 +99,30 @@ class MemberDetailsScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
+                      selectedMember.hasReceivedKameti ? 'Kameti Received' : 'Kameti not received yet.',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                    ),
+                    if (selectedMember.hasReceivedKameti) ...[
+                      const SizedBox(height: 8),
+                      Text('Cycle: Month ${selectedMember.receivedCycleNumber ?? '-'}'),
+                      Text(
+                        'Received Date: ${selectedMember.receivedAt == null ? '-' : DateFormatter.display(selectedMember.receivedAt!)}',
+                      ),
+                      Text('Received Amount: ${CurrencyFormatter.pkr(selectedMember.receivedAmount)}'),
+                      const Text('Draw Type: Lucky Draw'),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
                       'Payment History',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
                     ),

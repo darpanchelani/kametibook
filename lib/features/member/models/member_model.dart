@@ -32,6 +32,10 @@ class MemberModel {
     required this.joinedAt,
     required this.createdAt,
     required this.updatedAt,
+    this.receivedCycleId = '',
+    this.receivedCycleNumber,
+    this.receivedAt,
+    this.receivedAmount = 0,
   });
 
   final String id;
@@ -49,6 +53,10 @@ class MemberModel {
   final DateTime joinedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String receivedCycleId;
+  final int? receivedCycleNumber;
+  final DateTime? receivedAt;
+  final double receivedAmount;
 
   bool get isOrganizer => role == MemberRole.organizer;
   bool get isActiveForCount => status == MemberStatus.active;
@@ -69,6 +77,10 @@ class MemberModel {
     DateTime? joinedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? receivedCycleId,
+    int? receivedCycleNumber,
+    DateTime? receivedAt,
+    double? receivedAmount,
   }) {
     return MemberModel(
       id: id ?? this.id,
@@ -86,6 +98,10 @@ class MemberModel {
       joinedAt: joinedAt ?? this.joinedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      receivedCycleId: receivedCycleId ?? this.receivedCycleId,
+      receivedCycleNumber: receivedCycleNumber ?? this.receivedCycleNumber,
+      receivedAt: receivedAt ?? this.receivedAt,
+      receivedAmount: receivedAmount ?? this.receivedAmount,
     );
   }
 }

@@ -13,6 +13,7 @@ class KametiCard extends StatelessWidget {
     this.pendingCount,
     this.collectedAmount,
     this.expectedAmount,
+    this.drawStatusText,
     super.key,
   });
 
@@ -24,6 +25,7 @@ class KametiCard extends StatelessWidget {
   final int? pendingCount;
   final double? collectedAmount;
   final double? expectedAmount;
+  final String? drawStatusText;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +73,7 @@ class KametiCard extends StatelessWidget {
                       icon: Icons.trending_up_outlined,
                       text: 'Collected: ${CurrencyFormatter.pkr(collectedAmount!)} / ${CurrencyFormatter.pkr(expectedAmount!)}',
                     ),
+                  if (drawStatusText != null) _Meta(icon: Icons.casino_outlined, text: drawStatusText!),
                 ],
               ),
             ],

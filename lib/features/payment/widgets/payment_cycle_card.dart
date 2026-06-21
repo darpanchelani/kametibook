@@ -13,6 +13,8 @@ class PaymentCycleCard extends StatelessWidget {
     required this.onOpen,
     required this.onMarkCurrent,
     required this.onComplete,
+    this.drawStatusText,
+    this.drawWarning,
     super.key,
   });
 
@@ -22,6 +24,8 @@ class PaymentCycleCard extends StatelessWidget {
   final VoidCallback onOpen;
   final VoidCallback onMarkCurrent;
   final VoidCallback onComplete;
+  final String? drawStatusText;
+  final String? drawWarning;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +63,14 @@ class PaymentCycleCard extends StatelessWidget {
                 _Meta(icon: Icons.hourglass_empty_outlined, text: 'Pending Members: $pendingCount'),
               ],
             ),
+            if (drawStatusText != null) ...[
+              const SizedBox(height: 10),
+              Text(drawStatusText!, style: const TextStyle(fontWeight: FontWeight.w800)),
+            ],
+            if (drawWarning != null) ...[
+              const SizedBox(height: 6),
+              Text(drawWarning!, style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.w800)),
+            ],
             const SizedBox(height: 14),
             Wrap(
               spacing: 8,

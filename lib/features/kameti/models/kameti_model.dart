@@ -34,6 +34,7 @@ class KametiModel {
     required this.totalPoolAmount,
     required this.status,
     required this.createdAt,
+    this.requirePaymentBeforeDraw = true,
   });
 
   final String id;
@@ -49,6 +50,7 @@ class KametiModel {
   final double totalPoolAmount;
   final KametiStatus status;
   final DateTime createdAt;
+  final bool requirePaymentBeforeDraw;
 
   KametiModel copyWith({
     String? id,
@@ -64,6 +66,7 @@ class KametiModel {
     double? totalPoolAmount,
     KametiStatus? status,
     DateTime? createdAt,
+    bool? requirePaymentBeforeDraw,
   }) {
     return KametiModel(
       id: id ?? this.id,
@@ -79,6 +82,7 @@ class KametiModel {
       totalPoolAmount: totalPoolAmount ?? this.totalPoolAmount,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      requirePaymentBeforeDraw: requirePaymentBeforeDraw ?? this.requirePaymentBeforeDraw,
     );
   }
 }

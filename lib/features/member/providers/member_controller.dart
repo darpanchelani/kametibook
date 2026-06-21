@@ -136,6 +136,29 @@ class MemberController extends StateNotifier<List<MemberModel>> {
     return null;
   }
 
+  void markMemberReceived({
+    required String memberId,
+    required String cycleId,
+    required int cycleNumber,
+    required DateTime receivedAt,
+    required double receivedAmount,
+  }) {
+    state = [
+      for (final member in state)
+        if (member.id == memberId)
+          member.copyWith(
+            hasReceivedKameti: true,
+            receivedCycleId: cycleId,
+            receivedCycleNumber: cycleNumber,
+            receivedAt: receivedAt,
+            receivedAmount: receivedAmount,
+            updatedAt: DateTime.now(),
+          )
+        else
+          member,
+    ];
+  }
+
   StartKametiCheck canStartKameti(KametiModel kameti) {
     final activeMembersCount = getActiveMembersCount(kameti.id);
     final remaining = kameti.totalMembers - activeMembersCount;

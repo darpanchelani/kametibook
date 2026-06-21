@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/routes.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../models/kameti_model.dart';
 import '../../member/providers/member_controller.dart';
+import '../../lucky_draw/providers/lucky_draw_controller.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../providers/kameti_controller.dart';
 import '../widgets/kameti_card.dart';
@@ -17,8 +19,10 @@ class MyKametisScreen extends ConsumerWidget {
     final kametis = ref.watch(kametiControllerProvider);
     ref.watch(memberControllerProvider);
     ref.watch(paymentControllerProvider);
+    ref.watch(luckyDrawControllerProvider);
     final memberController = ref.read(memberControllerProvider.notifier);
     final paymentController = ref.read(paymentControllerProvider.notifier);
+    final drawController = ref.read(luckyDrawControllerProvider.notifier);
     return Scaffold(
       appBar: AppBar(title: const Text('My Kametis')),
       body: SafeArea(
@@ -37,6 +41,7 @@ class MyKametisScreen extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   final kameti = kametis[index];
                   final cycle = paymentController.getCurrentCycle(kameti.id);
+                  final draw = cycle == null ? null : drawController.getDrawByCycleId(cycle.id);
                   return KametiCard(
                     kameti: kameti,
                     activeMembersCount: memberController.getActiveMembersCount(kameti.id),
@@ -45,6 +50,11 @@ class MyKametisScreen extends ConsumerWidget {
                     pendingCount: cycle == null ? null : paymentController.getPendingMembersCount(cycle.id),
                     collectedAmount: cycle?.collectedAmount,
                     expectedAmount: cycle?.expectedAmount,
+                    drawStatusText: kameti.type == KametiType.luckyDraw && cycle != null
+                        ? draw == null
+                            ? 'Draw: Pending'
+                            : 'Winner: ${draw.winnerName}'
+                        : null,
                     onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiDetails, arguments: kameti.id),
                   );
                 },

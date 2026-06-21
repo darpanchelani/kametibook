@@ -22,6 +22,13 @@ class KametiController extends StateNotifier<List<KametiModel>> {
         if (kameti.id == id) kameti.copyWith(status: status) else kameti,
     ];
   }
+
+  void updateRequirePaymentBeforeDraw(String id, bool value) {
+    state = [
+      for (final kameti in state)
+        if (kameti.id == id) kameti.copyWith(requirePaymentBeforeDraw: value) else kameti,
+    ];
+  }
 }
 
 final kametiControllerProvider =
