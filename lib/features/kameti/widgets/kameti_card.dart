@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/currency_formatter.dart';
-import '../../../core/utils/date_formatter.dart';
 import '../models/kameti_model.dart';
 
 class KametiCard extends StatelessWidget {
   const KametiCard({
     required this.kameti,
     required this.onTap,
+    this.activeMembersCount,
     super.key,
   });
 
   final KametiModel kameti;
   final VoidCallback onTap;
+  final int? activeMembersCount;
 
   @override
   Widget build(BuildContext context) {
@@ -46,9 +47,12 @@ class KametiCard extends StatelessWidget {
                 runSpacing: 8,
                 children: [
                   _Meta(icon: Icons.payments_outlined, text: CurrencyFormatter.pkr(kameti.monthlyAmount)),
-                  _Meta(icon: Icons.group_outlined, text: '${kameti.totalMembers} members'),
+                  _Meta(icon: Icons.savings_outlined, text: 'Pool: ${CurrencyFormatter.pkr(kameti.totalPoolAmount)}'),
+                  _Meta(
+                    icon: Icons.group_outlined,
+                    text: 'Members: ${activeMembersCount ?? 0} / ${kameti.totalMembers}',
+                  ),
                   _Meta(icon: Icons.calendar_month_outlined, text: '${kameti.durationMonths} months'),
-                  _Meta(icon: Icons.event_outlined, text: DateFormatter.display(kameti.startDate)),
                 ],
               ),
             ],

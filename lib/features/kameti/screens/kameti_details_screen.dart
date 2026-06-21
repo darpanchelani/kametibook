@@ -6,24 +6,47 @@ import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/confirmation_dialog.dart';
+import '../../auth/providers/auth_controller.dart';
+import '../../member/models/member_model.dart';
+import '../../member/providers/member_controller.dart';
+import '../../member/widgets/member_count_summary_card.dart';
+import '../../member/widgets/member_role_badge.dart';
+import '../../member/widgets/member_status_badge.dart';
 import '../models/kameti_model.dart';
 import '../providers/kameti_controller.dart';
 
-class KametiDetailsScreen extends ConsumerWidget {
+class KametiDetailsScreen extends ConsumerStatefulWidget {
   const KametiDetailsScreen({required this.kametiId, super.key});
 
   final String kametiId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<KametiDetailsScreen> createState() => _KametiDetailsScreenState();
+}
+
+class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _ensureOrganizer());
+  }
+
+  void _ensureOrganizer() {
+    final kameti = _findKameti(ref.read(kametiControllerProvider), widget.kametiId);
+    if (kameti == null) return;
+    ref.read(memberControllerProvider.notifier).ensureOrganizerMember(
+          kameti: kameti,
+          currentUser: ref.read(authControllerProvider).user,
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final kametis = ref.watch(kametiControllerProvider);
-    KametiModel? kameti;
-    for (final item in kametis) {
-      if (item.id == kametiId) {
-        kameti = item;
-        break;
-      }
-    }
+    ref.watch(memberControllerProvider);
+    final memberController = ref.read(memberControllerProvider.notifier);
+    final kameti = _findKameti(kametis, widget.kametiId);
     final selectedKameti = kameti;
     if (selectedKameti == null) {
       return Scaffold(
@@ -31,6 +54,11 @@ class KametiDetailsScreen extends ConsumerWidget {
         body: const Center(child: Text('Kameti not found')),
       );
     }
+    final members = memberController.getMembersByKametiId(selectedKameti.id);
+    final activeMembersCount = memberController.getActiveMembersCount(selectedKameti.id);
+    final remainingSlots = (selectedKameti.totalMembers - activeMembersCount).clamp(0, selectedKameti.totalMembers);
+    final previewMembers = members.take(3).toList();
+    final slotsFilled = activeMembersCount >= selectedKameti.totalMembers;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Kameti Details')),
@@ -77,23 +105,69 @@ class KametiDetailsScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
+            MemberCountSummaryCard(addedCount: activeMembersCount, totalCount: selectedKameti.totalMembers),
+            const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Members',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                        Text('Remaining Slots: $remainingSlots'),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (members.where((member) => member.role != MemberRole.organizer && member.status != MemberStatus.removed).isEmpty)
+                      const Text('No members added yet.')
+                    else
+                      ...previewMembers.map((member) => _MemberPreview(member: member)),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AppButton(
+                            label: 'View Members',
+                            icon: Icons.groups_2_outlined,
+                            isOutlined: true,
+                            onPressed: () => Navigator.of(context).pushNamed(AppRoutes.members, arguments: selectedKameti.id),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: AppButton(
+                            label: slotsFilled ? 'Slots Filled' : 'Add Member',
+                            icon: Icons.group_add_outlined,
+                            onPressed: slotsFilled
+                                ? null
+                                : () => Navigator.of(context).pushNamed(AppRoutes.addMember, arguments: selectedKameti.id),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (slotsFilled) ...[
+                      const SizedBox(height: 10),
+                      const Text('All member slots are filled.', style: TextStyle(fontWeight: FontWeight.w800)),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: AppButton(
-                    label: 'Add Members',
-                    icon: Icons.group_add_outlined,
-                    isOutlined: true,
-                    onPressed: () => Navigator.of(context).pushNamed(AppRoutes.addMembers),
-                  ),
-                ),
-                const SizedBox(width: 10),
                 Expanded(
                   child: AppButton(
                     label: 'Start Kameti',
                     icon: Icons.play_arrow,
                     onPressed: selectedKameti.status == KametiStatus.draft
-                        ? () => _confirmStart(context, ref, selectedKameti.id)
+                        ? () => _confirmStart(context, ref, selectedKameti)
                         : null,
                   ),
                 ),
@@ -105,7 +179,7 @@ class KametiDetailsScreen extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
-            ...['Members', 'Payments', 'Cycles', 'Ledger', 'Bidding', 'Lucky Draw'].map(
+            ...['Payments', 'Cycles', 'Ledger', 'Bidding', 'Lucky Draw'].map(
               (title) => Card(
                 child: ListTile(
                   leading: const Icon(Icons.lock_clock_outlined),
@@ -120,23 +194,35 @@ class KametiDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmStart(BuildContext context, WidgetRef ref, String id) async {
+  Future<void> _confirmStart(BuildContext context, WidgetRef ref, KametiModel kameti) async {
+    final startCheck = ref.read(memberControllerProvider.notifier).canStartKameti(kameti);
+    if (!startCheck.canStart) {
+      SnackbarHelper.showError(
+        context,
+        startCheck.message ?? 'Please add all required members before starting this kameti.',
+      );
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Start Kameti?'),
-        content: const Text('This will change the status from Draft to Active.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Start')),
-        ],
+      builder: (context) => const ConfirmationDialog(
+        title: 'Start Kameti?',
+        message: 'Once started, members cannot be removed. You can manage payments in the next phase.',
+        confirmLabel: 'Start',
       ),
     );
     if (confirmed != true) return;
-    ref.read(kametiControllerProvider.notifier).updateStatus(id, KametiStatus.active);
+    ref.read(kametiControllerProvider.notifier).updateStatus(kameti.id, KametiStatus.active);
     if (context.mounted) {
-      SnackbarHelper.showSuccess(context, 'Kameti status changed to Active.');
+      SnackbarHelper.showSuccess(context, 'Kameti started successfully.');
     }
+  }
+
+  KametiModel? _findKameti(List<KametiModel> kametis, String id) {
+    for (final kameti in kametis) {
+      if (kameti.id == id) return kameti;
+    }
+    return null;
   }
 }
 
@@ -158,6 +244,35 @@ class _DetailLine extends StatelessWidget {
             child: Text(label, style: const TextStyle(color: Colors.black54)),
           ),
           Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w700))),
+        ],
+      ),
+    );
+  }
+}
+
+class _MemberPreview extends StatelessWidget {
+  const _MemberPreview({required this.member});
+
+  final MemberModel member;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(member.fullName, style: const TextStyle(fontWeight: FontWeight.w800)),
+                Text(member.phone, style: const TextStyle(color: Colors.black54)),
+              ],
+            ),
+          ),
+          MemberRoleBadge(role: member.role),
+          const SizedBox(width: 6),
+          MemberStatusBadge(status: member.status),
         ],
       ),
     );

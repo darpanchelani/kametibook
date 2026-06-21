@@ -9,6 +9,7 @@ import '../../../core/utils/validators.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../auth/providers/auth_controller.dart';
+import '../../member/providers/member_controller.dart';
 import '../models/kameti_model.dart';
 import '../providers/kameti_controller.dart';
 
@@ -105,6 +106,10 @@ class _CreateKametiScreenState extends ConsumerState<CreateKametiScreen> {
     );
 
     ref.read(kametiControllerProvider.notifier).createKameti(kameti);
+    ref.read(memberControllerProvider.notifier).ensureOrganizerMember(
+          kameti: kameti,
+          currentUser: ref.read(authControllerProvider).user,
+        );
     SnackbarHelper.showSuccess(context, 'Kameti created successfully.');
     Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.main, (_) => false, arguments: 1);
   }

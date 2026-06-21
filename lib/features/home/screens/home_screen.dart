@@ -10,6 +10,7 @@ import '../../auth/providers/auth_controller.dart';
 import '../../kameti/models/kameti_model.dart';
 import '../../kameti/providers/kameti_controller.dart';
 import '../../kameti/widgets/kameti_card.dart';
+import '../../member/providers/member_controller.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -18,11 +19,14 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
     final kametis = ref.watch(kametiControllerProvider);
+    ref.watch(memberControllerProvider);
     final activeCount = kametis.where((kameti) => kameti.status == KametiStatus.active).length;
-    final completedCount = kametis.where((kameti) => kameti.status == KametiStatus.completed).length;
-    final monthlyPayable = kametis
-        .where((kameti) => kameti.status == KametiStatus.active)
-        .fold<double>(0, (total, kameti) => total + kameti.monthlyAmount);
+    final draftCount = kametis.where((kameti) => kameti.status == KametiStatus.draft).length;
+    final memberController = ref.read(memberControllerProvider.notifier);
+    final totalMembers = kametis.fold<int>(
+      0,
+      (total, kameti) => total + memberController.getActiveMembersCount(kameti.id),
+    );
     final recent = kametis.take(3).toList();
 
     return Scaffold(
@@ -46,16 +50,16 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 SummaryCard(title: 'Active Kametis', value: '$activeCount', icon: Icons.play_circle_outline),
                 SummaryCard(
-                  title: 'Monthly Payable',
-                  value: CurrencyFormatter.pkr(monthlyPayable),
-                  icon: Icons.payments_outlined,
+                  title: 'Draft Kametis',
+                  value: '$draftCount',
+                  icon: Icons.edit_note_outlined,
                   color: Colors.teal.shade700,
                 ),
-                const SummaryCard(title: 'Pending Payments', value: '0', icon: Icons.pending_actions_outlined),
+                SummaryCard(title: 'Total Members', value: '$totalMembers', icon: Icons.groups_2_outlined),
                 SummaryCard(
-                  title: 'Completed Kametis',
-                  value: '$completedCount',
-                  icon: Icons.check_circle_outline,
+                  title: 'Monthly Payable',
+                  value: CurrencyFormatter.pkr(0),
+                  icon: Icons.payments_outlined,
                   color: Colors.blue.shade700,
                 ),
               ],
@@ -81,6 +85,7 @@ class HomeScreen extends ConsumerWidget {
               ...recent.map(
                 (kameti) => KametiCard(
                   kameti: kameti,
+                  activeMembersCount: memberController.getActiveMembersCount(kameti.id),
                   onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiDetails, arguments: kameti.id),
                 ),
               ),

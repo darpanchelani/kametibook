@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/routes.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../member/providers/member_controller.dart';
 import '../providers/kameti_controller.dart';
 import '../widgets/kameti_card.dart';
 
@@ -13,6 +14,8 @@ class MyKametisScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final kametis = ref.watch(kametiControllerProvider);
+    ref.watch(memberControllerProvider);
+    final memberController = ref.read(memberControllerProvider.notifier);
     return Scaffold(
       appBar: AppBar(title: const Text('My Kametis')),
       body: SafeArea(
@@ -32,6 +35,7 @@ class MyKametisScreen extends ConsumerWidget {
                   final kameti = kametis[index];
                   return KametiCard(
                     kameti: kameti,
+                    activeMembersCount: memberController.getActiveMembersCount(kameti.id),
                     onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiDetails, arguments: kameti.id),
                   );
                 },

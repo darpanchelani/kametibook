@@ -8,7 +8,22 @@ class Validators {
 
   static String? phone(String? value) {
     if (value == null || value.trim().isEmpty) return 'Phone number is required';
-    if (value.trim().length < 10) return 'Enter a valid phone number';
+    final digits = value.replaceAll(RegExp(r'\D'), '');
+    if (digits.length < 10 || digits.length > 13) return 'Enter a valid phone number';
+    return null;
+  }
+
+  static String? optionalCnic(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    final digits = value.replaceAll(RegExp(r'\D'), '');
+    if (digits.length != 13) return 'CNIC must be 13 digits';
+    return null;
+  }
+
+  static String? optionalEmail(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    final email = value.trim();
+    if (!email.contains('@') || !email.contains('.')) return 'Enter a valid email';
     return null;
   }
 
