@@ -14,6 +14,7 @@ import '../../member/providers/member_controller.dart';
 import '../../lucky_draw/providers/lucky_draw_controller.dart';
 import '../../bidding/models/bidding_models.dart';
 import '../../bidding/providers/bidding_controller.dart';
+import '../../ledger/providers/ledger_controller.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../../receiver/providers/receiver_controller.dart';
 
@@ -29,6 +30,7 @@ class HomeScreen extends ConsumerWidget {
     ref.watch(luckyDrawControllerProvider);
     ref.watch(biddingControllerProvider);
     ref.watch(receiverControllerProvider);
+    ref.watch(ledgerControllerProvider);
     final activeCount = kametis.where((kameti) => kameti.status == KametiStatus.active).length;
     final draftCount = kametis.where((kameti) => kameti.status == KametiStatus.draft).length;
     final memberController = ref.read(memberControllerProvider.notifier);
@@ -36,6 +38,7 @@ class HomeScreen extends ConsumerWidget {
     final drawController = ref.read(luckyDrawControllerProvider.notifier);
     final biddingController = ref.read(biddingControllerProvider.notifier);
     final receiverController = ref.read(receiverControllerProvider.notifier);
+    final ledgerController = ref.read(ledgerControllerProvider.notifier);
     final pendingPayments = paymentController.pendingPaymentsInCurrentCycles(kametis);
     final collectedThisMonth = paymentController.collectedInCurrentCycles(kametis);
     final pendingDraws = drawController.getPendingDrawsCount(
@@ -53,6 +56,22 @@ class HomeScreen extends ConsumerWidget {
     );
     final confirmedReceivers = receiverController.getConfirmedReceiversCount();
     final completedAllocationCycles = receiverController.getCompletedAllocationCyclesCount(ref.watch(paymentControllerProvider).cycles);
+    final allSummary = kametis.fold(
+      0.0,
+      (total, kameti) => total + ledgerController.calculateGroupLedgerSummary(kameti.id).groupBalance,
+    );
+    final totalCollected = kametis.fold(
+      0.0,
+      (total, kameti) => total + ledgerController.calculateGroupLedgerSummary(kameti.id).totalContributions,
+    );
+    final totalPayouts = kametis.fold(
+      0.0,
+      (total, kameti) => total + ledgerController.calculateGroupLedgerSummary(kameti.id).totalPayouts,
+    );
+    final pendingPayoutProofs = kametis.fold(
+      0,
+      (total, kameti) => total + receiverController.getPendingPayoutProofs(kameti.id),
+    );
     final recent = kametis.take(3).toList();
 
     return Scaffold(
@@ -112,6 +131,10 @@ class HomeScreen extends ConsumerWidget {
                 SummaryCard(title: 'Pending Receivers', value: '$pendingReceivers', icon: Icons.person_search_outlined),
                 SummaryCard(title: 'Confirmed Receivers', value: '$confirmedReceivers', icon: Icons.person_pin_circle_outlined),
                 SummaryCard(title: 'Allocation Cycles', value: '$completedAllocationCycles', icon: Icons.task_alt_outlined),
+                SummaryCard(title: 'Pending Payout Proofs', value: '$pendingPayoutProofs', icon: Icons.upload_file_outlined),
+                SummaryCard(title: 'Total Collected', value: CurrencyFormatter.pkr(totalCollected), icon: Icons.add_card_outlined),
+                SummaryCard(title: 'Total Payouts', value: CurrencyFormatter.pkr(totalPayouts), icon: Icons.outbound_outlined),
+                SummaryCard(title: 'Group Balance', value: CurrencyFormatter.pkr(allSummary), icon: Icons.account_balance_outlined),
               ],
             ),
             const SizedBox(height: 18),

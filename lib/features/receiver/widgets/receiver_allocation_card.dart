@@ -7,9 +7,10 @@ import 'allocation_type_badge.dart';
 import 'receiver_status_badge.dart';
 
 class ReceiverAllocationCard extends StatelessWidget {
-  const ReceiverAllocationCard({required this.allocation, super.key});
+  const ReceiverAllocationCard({required this.allocation, this.onMarkPayoutPaid, super.key});
 
   final ReceiverAllocationModel allocation;
+  final VoidCallback? onMarkPayoutPaid;
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +36,18 @@ class ReceiverAllocationCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text('Amount: ${CurrencyFormatter.pkr(allocation.amount)}'),
             Text('Cycle: Month ${allocation.cycleNumber}'),
+            Text('Payout: ${allocation.payoutStatus.label}'),
+            Text(allocation.payoutProofPath.isEmpty ? 'No proof' : 'Proof attached'),
             if (allocation.confirmedAt != null) Text('Confirmed: ${DateFormatter.display(allocation.confirmedAt!)}'),
             if (allocation.notes.isNotEmpty) Text('Notes: ${allocation.notes}'),
+            if (onMarkPayoutPaid != null && allocation.payoutStatus != PayoutStatus.confirmed) ...[
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: onMarkPayoutPaid,
+                icon: const Icon(Icons.payments_outlined),
+                label: const Text('Mark Payout Paid'),
+              ),
+            ],
           ],
         ),
       ),

@@ -5,6 +5,9 @@ import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../bidding/providers/bidding_controller.dart';
 import '../../bidding/widgets/discount_adjustment_card.dart';
+import '../../ledger/providers/ledger_controller.dart';
+import '../../ledger/widgets/ledger_entry_card.dart';
+import '../../ledger/widgets/ledger_summary_card.dart';
 import '../../payment/models/payment_models.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../../payment/widgets/payment_status_badge.dart';
@@ -26,6 +29,7 @@ class MemberDetailsScreen extends ConsumerWidget {
     ref.watch(paymentControllerProvider);
     ref.watch(biddingControllerProvider);
     ref.watch(receiverControllerProvider);
+    ref.watch(ledgerControllerProvider);
     MemberModel? member;
     for (final item in ref.watch(memberControllerProvider)) {
       if (item.id == memberId) {
@@ -43,6 +47,7 @@ class MemberDetailsScreen extends ConsumerWidget {
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final biddingController = ref.read(biddingControllerProvider.notifier);
     final receiverController = ref.read(receiverControllerProvider.notifier);
+    final ledgerController = ref.read(ledgerControllerProvider.notifier);
     final payments = paymentController.getPaymentsByMemberId(selectedMember.id);
     final paidCycles = payments.where((payment) => payment.paymentStatus == PaymentStatus.paid).length;
     final pendingCycles = payments.where((payment) => payment.paymentStatus == PaymentStatus.pending).length;
@@ -54,6 +59,8 @@ class MemberDetailsScreen extends ConsumerWidget {
     );
     final adjustments = biddingController.getAdjustmentsByMemberId(selectedMember.id);
     final allocations = receiverController.getAllocationsByMemberId(selectedMember.id);
+    final memberLedgerSummary = ledgerController.calculateMemberLedgerSummary(selectedMember.id);
+    final memberLedgerEntries = ledgerController.getLedgerEntriesByMemberId(selectedMember.id);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Member Details')),
@@ -99,6 +106,25 @@ class MemberDetailsScreen extends ConsumerWidget {
                       MemberInfoTile(label: 'Notes', value: selectedMember.notes, icon: Icons.notes_outlined),
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('Financial Summary', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                  LedgerSummaryCard(summary: memberLedgerSummary),
+                  Text(
+                    'Net Position: ${CurrencyFormatter.pkr(selectedMember.receivedAmount + memberLedgerSummary.totalDiscounts - memberLedgerSummary.totalContributions - memberLedgerSummary.totalPenalties)}',
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 8),
+                  if (memberLedgerEntries.isEmpty)
+                    const Text('No member ledger entries yet.')
+                  else
+                    ...memberLedgerEntries.take(5).map((entry) => LedgerEntryCard(entry: entry, member: selectedMember, onTap: () {})),
+                ]),
               ),
             ),
             const SizedBox(height: 12),

@@ -11,6 +11,9 @@ import '../../auth/providers/auth_controller.dart';
 import '../../bidding/models/bidding_models.dart';
 import '../../bidding/providers/bidding_controller.dart';
 import '../../bidding/widgets/bidding_status_badge.dart';
+import '../../ledger/providers/ledger_controller.dart';
+import '../../ledger/widgets/payout_paid_bottom_sheet.dart';
+import '../../ledger/widgets/ledger_summary_card.dart';
 import '../../member/models/member_model.dart';
 import '../../member/providers/member_controller.dart';
 import '../../member/widgets/member_count_summary_card.dart';
@@ -19,6 +22,7 @@ import '../../member/widgets/member_status_badge.dart';
 import '../../lucky_draw/providers/lucky_draw_controller.dart';
 import '../../lucky_draw/widgets/winner_card.dart';
 import '../../payment/providers/payment_controller.dart';
+import '../../payment/models/payment_models.dart';
 import '../../payment/widgets/payment_summary_card.dart';
 import '../../receiver/models/receiver_allocation_model.dart';
 import '../../receiver/providers/receiver_controller.dart';
@@ -60,11 +64,13 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     ref.watch(luckyDrawControllerProvider);
     ref.watch(biddingControllerProvider);
     ref.watch(receiverControllerProvider);
+    ref.watch(ledgerControllerProvider);
     final memberController = ref.read(memberControllerProvider.notifier);
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final drawController = ref.read(luckyDrawControllerProvider.notifier);
     final biddingController = ref.read(biddingControllerProvider.notifier);
     final receiverController = ref.read(receiverControllerProvider.notifier);
+    final ledgerController = ref.read(ledgerControllerProvider.notifier);
     final kameti = _findKameti(kametis, widget.kametiId);
     final selectedKameti = kameti;
     if (selectedKameti == null) {
@@ -84,6 +90,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     final lowestBid = currentBidding == null ? null : biddingController.getLowestActiveBid(currentBidding.id);
     final currentAllocation = currentCycle == null ? null : receiverController.getCurrentCycleAllocation(selectedKameti.id, currentCycle.id);
     final receivedCount = members.where((member) => member.hasReceivedKameti).length;
+    final ledgerSummary = ledgerController.calculateGroupLedgerSummary(selectedKameti.id);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Kameti Details')),
@@ -232,6 +239,36 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
               ),
               const SizedBox(height: 12),
             ],
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('Financial Overview', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 10),
+                  LedgerSummaryCard(summary: ledgerSummary),
+                  const SizedBox(height: 10),
+                  Row(children: [
+                    Expanded(
+                      child: AppButton(
+                        label: 'View Ledger',
+                        icon: Icons.menu_book_outlined,
+                        isOutlined: true,
+                        onPressed: () => Navigator.of(context).pushNamed(AppRoutes.groupLedger, arguments: selectedKameti.id),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: AppButton(
+                        label: 'Financial Summary',
+                        icon: Icons.summarize_outlined,
+                        onPressed: () => Navigator.of(context).pushNamed(AppRoutes.financialSummary, arguments: selectedKameti.id),
+                      ),
+                    ),
+                  ]),
+                ]),
+              ),
+            ),
+            const SizedBox(height: 12),
             if (selectedKameti.type == KametiType.luckyDraw) ...[
               Card(
                 child: Padding(
@@ -381,7 +418,10 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
                     if (currentCycle == null)
                       const Text('No active payment cycle found.')
                     else if (currentAllocation != null)
-                      ReceiverAllocationCard(allocation: currentAllocation)
+                      ReceiverAllocationCard(
+                        allocation: currentAllocation,
+                        onMarkPayoutPaid: () => _markPayoutPaid(context, ref, currentAllocation),
+                      )
                     else ...[
                       Text('Current Cycle: Month ${currentCycle.cycleNumber}'),
                       const Text('Receiver not selected for current cycle.'),
@@ -537,6 +577,47 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
           receivedVia: ReceiverAllocationType.fixedOrder.name,
         );
     SnackbarHelper.showSuccess(context, 'Receiver confirmed successfully.');
+  }
+
+  Future<void> _markPayoutPaid(BuildContext context, WidgetRef ref, ReceiverAllocationModel allocation) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => PayoutPaidBottomSheet(
+        allocation: allocation,
+        onSubmit: (data) {
+          ref.read(receiverControllerProvider.notifier).markPayoutPaid(
+                allocationId: allocation.id,
+                method: data.method,
+                proofPath: data.proofPath,
+                note: data.note,
+                paidAt: data.paidAt,
+                confirmedBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+              );
+          ref.read(ledgerControllerProvider.notifier).markPayoutLedgerPaid(
+                allocation: allocation,
+                method: _payoutMethodToPaymentMethod(data.method),
+                proofPath: data.proofPath,
+                note: data.note,
+                paidAt: data.paidAt,
+              );
+          Navigator.of(sheetContext).pop();
+          SnackbarHelper.showSuccess(context, 'Payout marked as paid.');
+        },
+      ),
+    );
+  }
+
+  PaymentMethod _payoutMethodToPaymentMethod(PayoutMethod method) {
+    return switch (method) {
+      PayoutMethod.cash => PaymentMethod.cash,
+      PayoutMethod.bankTransfer => PaymentMethod.bankTransfer,
+      PayoutMethod.easypaisa => PaymentMethod.easypaisa,
+      PayoutMethod.jazzcash => PaymentMethod.jazzcash,
+      PayoutMethod.sadapay => PaymentMethod.sadapay,
+      PayoutMethod.nayapay => PaymentMethod.nayapay,
+      PayoutMethod.other => PaymentMethod.other,
+    };
   }
 }
 

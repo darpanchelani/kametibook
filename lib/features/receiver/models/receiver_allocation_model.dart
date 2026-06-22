@@ -49,6 +49,12 @@ class ReceiverAllocationModel {
     required this.sourceId,
     required this.createdAt,
     required this.updatedAt,
+    this.payoutStatus = PayoutStatus.pending,
+    this.payoutMethod,
+    this.payoutProofPath = '',
+    this.payoutNote = '',
+    this.payoutPaidAt,
+    this.payoutConfirmedBy = '',
   });
 
   final String id;
@@ -68,6 +74,36 @@ class ReceiverAllocationModel {
   final String sourceId;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final PayoutStatus payoutStatus;
+  final PayoutMethod? payoutMethod;
+  final String payoutProofPath;
+  final String payoutNote;
+  final DateTime? payoutPaidAt;
+  final String payoutConfirmedBy;
+}
+
+enum PayoutStatus {
+  pending('Pending'),
+  paid('Paid'),
+  proofUploaded('Proof Uploaded'),
+  confirmed('Confirmed'),
+  rejected('Rejected');
+
+  const PayoutStatus(this.label);
+  final String label;
+}
+
+enum PayoutMethod {
+  cash('Cash'),
+  bankTransfer('Bank Transfer'),
+  easypaisa('Easypaisa'),
+  jazzcash('JazzCash'),
+  sadapay('SadaPay'),
+  nayapay('NayaPay'),
+  other('Other');
+
+  const PayoutMethod(this.label);
+  final String label;
 }
 
 class FixedOrderSlotModel {

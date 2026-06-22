@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/snackbar_helper.dart';
+import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../ledger/providers/ledger_controller.dart';
+import '../../ledger/widgets/penalty_form_bottom_sheet.dart';
 import '../../member/models/member_model.dart';
 import '../../member/providers/member_controller.dart';
 import '../models/payment_models.dart';
@@ -84,6 +87,13 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
             const SizedBox(height: 12),
             PaymentFilterChips(selected: _filter, onChanged: (value) => setState(() => _filter = value)),
             const SizedBox(height: 16),
+            AppButton(
+              label: 'Add Penalty',
+              icon: Icons.warning_amber_outlined,
+              isOutlined: true,
+              onPressed: () => _addPenalty(cycle.id, cycle.kametiId),
+            ),
+            const SizedBox(height: 12),
             if (filtered.isEmpty)
               const EmptyState(icon: Icons.receipt_long_outlined, title: 'No payments found.')
             else
@@ -95,6 +105,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
                   onMarkPaid: () => _openMarkPaid(payment),
                   onMarkPending: () {
                     paymentController.markPaymentPending(payment.id);
+                    _syncPaymentLedger(payment.kametiId);
                     SnackbarHelper.showSuccess(context, 'Payment marked as pending.');
                   },
                   onMarkLate: () => _markLate(payment),
@@ -116,6 +127,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
         payment: payment,
         onSubmit: (data) {
           ref.read(paymentControllerProvider.notifier).markPaymentPaid(payment.id, data);
+          _syncPaymentLedger(payment.kametiId);
           Navigator.of(context).pop();
           SnackbarHelper.showSuccess(this.context, 'Payment marked as paid.');
         },
@@ -127,6 +139,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
     final note = await _noteDialog(title: 'Mark Payment Late', hint: 'Optional note');
     if (!mounted) return;
     ref.read(paymentControllerProvider.notifier).markPaymentLate(payment.id, note ?? '');
+    _syncPaymentLedger(payment.kametiId);
     SnackbarHelper.showSuccess(context, 'Payment marked as late.');
   }
 
@@ -134,7 +147,18 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
     final reason = await _noteDialog(title: 'Reject Payment', hint: 'Rejection reason');
     if (!mounted) return;
     ref.read(paymentControllerProvider.notifier).rejectPayment(payment.id, reason ?? '');
+    _syncPaymentLedger(payment.kametiId);
     SnackbarHelper.showSuccess(context, 'Payment rejected.');
+  }
+
+  void _syncPaymentLedger(String kametiId) {
+    ref.read(ledgerControllerProvider.notifier).syncLedgerForKameti(
+          kametiId: kametiId,
+          payments: ref.read(paymentControllerProvider).payments,
+          allocations: const [],
+          biddingSessions: const [],
+          discountAdjustments: const [],
+        );
   }
 
   Future<String?> _noteDialog({required String title, required String hint}) {
@@ -152,6 +176,29 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
           TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
           FilledButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: const Text('Save')),
         ],
+      ),
+    );
+  }
+
+  Future<void> _addPenalty(String cycleId, String kametiId) async {
+    final members = ref.read(memberControllerProvider.notifier).getMembersByKametiId(kametiId);
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => PenaltyFormBottomSheet(
+        members: members,
+        onSubmit: (member, amount, note) {
+          ref.read(ledgerControllerProvider.notifier).addPenalty(
+                kametiId: kametiId,
+                cycleId: cycleId,
+                memberId: member.id,
+                amount: amount,
+                note: note,
+                createdBy: 'Organizer',
+              );
+          Navigator.of(sheetContext).pop();
+          SnackbarHelper.showSuccess(context, 'Penalty added successfully.');
+        },
       ),
     );
   }

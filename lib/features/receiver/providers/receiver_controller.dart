@@ -293,6 +293,64 @@ class ReceiverController extends StateNotifier<ReceiverState> {
     }
     return count;
   }
+
+  ReceiverAllocationModel? getAllocationById(String allocationId) {
+    for (final allocation in state.allocations) {
+      if (allocation.id == allocationId) return allocation;
+    }
+    return null;
+  }
+
+  void markPayoutPaid({
+    required String allocationId,
+    required PayoutMethod method,
+    required String proofPath,
+    required String note,
+    required DateTime paidAt,
+    required String confirmedBy,
+  }) {
+    state = state.copyWith(
+      allocations: [
+        for (final allocation in state.allocations)
+          if (allocation.id == allocationId)
+            ReceiverAllocationModel(
+              id: allocation.id,
+              kametiId: allocation.kametiId,
+              cycleId: allocation.cycleId,
+              cycleNumber: allocation.cycleNumber,
+              memberId: allocation.memberId,
+              memberName: allocation.memberName,
+              memberPhone: allocation.memberPhone,
+              allocationType: allocation.allocationType,
+              amount: allocation.amount,
+              status: allocation.status,
+              selectedBy: allocation.selectedBy,
+              selectedAt: allocation.selectedAt,
+              confirmedAt: allocation.confirmedAt,
+              notes: allocation.notes,
+              sourceId: allocation.sourceId,
+              createdAt: allocation.createdAt,
+              updatedAt: DateTime.now(),
+              payoutStatus: PayoutStatus.confirmed,
+              payoutMethod: method,
+              payoutProofPath: proofPath,
+              payoutNote: note,
+              payoutPaidAt: paidAt,
+              payoutConfirmedBy: confirmedBy,
+            )
+          else
+            allocation,
+      ],
+    );
+  }
+
+  int getPendingPayoutProofs(String kametiId) {
+    return state.allocations.where((allocation) {
+      return allocation.kametiId == kametiId &&
+          allocation.status == ReceiverAllocationStatus.confirmed &&
+          allocation.payoutStatus != PayoutStatus.confirmed;
+    }).length;
+  }
 }
 
 final receiverControllerProvider =

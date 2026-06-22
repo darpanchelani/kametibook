@@ -9,6 +9,10 @@ import '../features/bidding/screens/bidding_screen.dart';
 import '../features/home/screens/main_layout.dart';
 import '../features/kameti/screens/create_kameti_screen.dart';
 import '../features/kameti/screens/kameti_details_screen.dart';
+import '../features/ledger/screens/financial_summary_screen.dart';
+import '../features/ledger/screens/group_ledger_screen.dart';
+import '../features/ledger/screens/ledger_detail_screen.dart';
+import '../features/ledger/screens/manual_ledger_entry_screen.dart';
 import '../features/lucky_draw/screens/draw_detail_screen.dart';
 import '../features/lucky_draw/screens/draw_history_screen.dart';
 import '../features/lucky_draw/screens/lucky_draw_screen.dart';
@@ -49,6 +53,10 @@ class AppRoutes {
   static const manualReceiver = '/manual-receiver';
   static const fixedOrderSetup = '/fixed-order-setup';
   static const ownerFirstSettings = '/owner-first-settings';
+  static const groupLedger = '/group-ledger';
+  static const ledgerDetail = '/ledger-detail';
+  static const financialSummary = '/financial-summary';
+  static const manualLedgerEntry = '/manual-ledger-entry';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     return MaterialPageRoute(
@@ -107,6 +115,14 @@ class AppRoutes {
             return FixedOrderSetupScreen(kametiId: settings.arguments! as String);
           case ownerFirstSettings:
             return OwnerFirstSettingsScreen(kametiId: settings.arguments! as String);
+          case groupLedger:
+            return GroupLedgerScreen(kametiId: settings.arguments! as String);
+          case ledgerDetail:
+            return LedgerDetailScreen(entryId: settings.arguments! as String);
+          case financialSummary:
+            return FinancialSummaryScreen(kametiId: settings.arguments! as String);
+          case manualLedgerEntry:
+            return ManualLedgerEntryScreen(kametiId: settings.arguments! as String);
           default:
             return const SplashScreen();
         }
