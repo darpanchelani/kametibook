@@ -57,6 +57,25 @@ class KametiController extends StateNotifier<List<KametiModel>> {
           kameti,
     ];
   }
+
+  void updateReceiverSettings({
+    required String id,
+    bool? requirePaymentBeforeReceiving,
+    bool? ownerReceivesFirstCycle,
+    AfterOwnerAllocationMode? afterOwnerAllocationMode,
+  }) {
+    state = [
+      for (final kameti in state)
+        if (kameti.id == id)
+          kameti.copyWith(
+            requirePaymentBeforeReceiving: requirePaymentBeforeReceiving,
+            ownerReceivesFirstCycle: ownerReceivesFirstCycle,
+            afterOwnerAllocationMode: afterOwnerAllocationMode,
+          )
+        else
+          kameti,
+    ];
+  }
 }
 
 final kametiControllerProvider =

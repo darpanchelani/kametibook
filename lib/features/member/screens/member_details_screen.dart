@@ -8,6 +8,8 @@ import '../../bidding/widgets/discount_adjustment_card.dart';
 import '../../payment/models/payment_models.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../../payment/widgets/payment_status_badge.dart';
+import '../../receiver/providers/receiver_controller.dart';
+import '../../receiver/widgets/receiver_allocation_card.dart';
 import '../models/member_model.dart';
 import '../providers/member_controller.dart';
 import '../widgets/member_info_tile.dart';
@@ -23,6 +25,7 @@ class MemberDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(paymentControllerProvider);
     ref.watch(biddingControllerProvider);
+    ref.watch(receiverControllerProvider);
     MemberModel? member;
     for (final item in ref.watch(memberControllerProvider)) {
       if (item.id == memberId) {
@@ -39,6 +42,7 @@ class MemberDetailsScreen extends ConsumerWidget {
     final selectedMember = member;
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final biddingController = ref.read(biddingControllerProvider.notifier);
+    final receiverController = ref.read(receiverControllerProvider.notifier);
     final payments = paymentController.getPaymentsByMemberId(selectedMember.id);
     final paidCycles = payments.where((payment) => payment.paymentStatus == PaymentStatus.paid).length;
     final pendingCycles = payments.where((payment) => payment.paymentStatus == PaymentStatus.pending).length;
@@ -49,6 +53,7 @@ class MemberDetailsScreen extends ConsumerWidget {
       (total, payment) => total + (payment.countsAsPaid ? 0 : payment.amountDue),
     );
     final adjustments = biddingController.getAdjustmentsByMemberId(selectedMember.id);
+    final allocations = receiverController.getAllocationsByMemberId(selectedMember.id);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Member Details')),
@@ -92,6 +97,23 @@ class MemberDetailsScreen extends ConsumerWidget {
                     ),
                     if (selectedMember.notes.isNotEmpty)
                       MemberInfoTile(label: 'Notes', value: selectedMember.notes, icon: Icons.notes_outlined),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Receiver Allocation History', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 8),
+                    if (allocations.isEmpty)
+                      const Text('No receiver allocation history yet.')
+                    else
+                      ...allocations.map((allocation) => ReceiverAllocationCard(allocation: allocation)),
                   ],
                 ),
               ),

@@ -15,6 +15,7 @@ import '../../lucky_draw/providers/lucky_draw_controller.dart';
 import '../../bidding/models/bidding_models.dart';
 import '../../bidding/providers/bidding_controller.dart';
 import '../../payment/providers/payment_controller.dart';
+import '../../receiver/providers/receiver_controller.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -27,12 +28,14 @@ class HomeScreen extends ConsumerWidget {
     ref.watch(paymentControllerProvider);
     ref.watch(luckyDrawControllerProvider);
     ref.watch(biddingControllerProvider);
+    ref.watch(receiverControllerProvider);
     final activeCount = kametis.where((kameti) => kameti.status == KametiStatus.active).length;
     final draftCount = kametis.where((kameti) => kameti.status == KametiStatus.draft).length;
     final memberController = ref.read(memberControllerProvider.notifier);
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final drawController = ref.read(luckyDrawControllerProvider.notifier);
     final biddingController = ref.read(biddingControllerProvider.notifier);
+    final receiverController = ref.read(receiverControllerProvider.notifier);
     final pendingPayments = paymentController.pendingPaymentsInCurrentCycles(kametis);
     final collectedThisMonth = paymentController.collectedInCurrentCycles(kametis);
     final pendingDraws = drawController.getPendingDrawsCount(
@@ -44,6 +47,12 @@ class HomeScreen extends ConsumerWidget {
     final pendingBiddingResults = biddingController.getPendingBiddingResultsCount();
     final completedBiddings = biddingController.getCompletedBiddingsCount();
     final totalDiscounts = biddingController.getTotalDiscountsGenerated();
+    final pendingReceivers = receiverController.getPendingReceiverConfirmationsCount(
+      kametis: kametis,
+      cycles: ref.watch(paymentControllerProvider).cycles,
+    );
+    final confirmedReceivers = receiverController.getConfirmedReceiversCount();
+    final completedAllocationCycles = receiverController.getCompletedAllocationCyclesCount(ref.watch(paymentControllerProvider).cycles);
     final recent = kametis.take(3).toList();
 
     return Scaffold(
@@ -100,6 +109,9 @@ class HomeScreen extends ConsumerWidget {
                   icon: Icons.savings_outlined,
                   color: Colors.purple.shade700,
                 ),
+                SummaryCard(title: 'Pending Receivers', value: '$pendingReceivers', icon: Icons.person_search_outlined),
+                SummaryCard(title: 'Confirmed Receivers', value: '$confirmedReceivers', icon: Icons.person_pin_circle_outlined),
+                SummaryCard(title: 'Allocation Cycles', value: '$completedAllocationCycles', icon: Icons.task_alt_outlined),
               ],
             ),
             const SizedBox(height: 18),
@@ -126,6 +138,7 @@ class HomeScreen extends ConsumerWidget {
                   final draw = cycle == null ? null : drawController.getDrawByCycleId(cycle.id);
                   final bidding = cycle == null ? null : biddingController.getBiddingSessionByCycleId(cycle.id);
                   final lowestBid = bidding == null ? null : biddingController.getLowestActiveBid(bidding.id);
+                  final allocation = cycle == null ? null : receiverController.getCurrentCycleAllocation(kameti.id, cycle.id);
                   return KametiCard(
                     kameti: kameti,
                     activeMembersCount: memberController.getActiveMembersCount(kameti.id),
@@ -148,6 +161,11 @@ class HomeScreen extends ConsumerWidget {
                                     ? 'Bidding: ${bidding.status.label}'
                                     : 'Bidding: ${bidding.status.label} | Lowest: ${CurrencyFormatter.pkr(lowestBid.bidAmount)}'
                         : null,
+                    receiverStatusText: cycle == null
+                        ? null
+                        : allocation == null
+                            ? 'Receiver: Pending'
+                            : 'Receiver: ${allocation.memberName}',
                     onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiDetails, arguments: kameti.id),
                   );
                 },

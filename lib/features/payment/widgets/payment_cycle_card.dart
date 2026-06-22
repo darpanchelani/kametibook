@@ -17,6 +17,7 @@ class PaymentCycleCard extends StatelessWidget {
     this.drawWarning,
     this.biddingStatusText,
     this.biddingWarning,
+    this.receiverStatusText,
     super.key,
   });
 
@@ -30,6 +31,7 @@ class PaymentCycleCard extends StatelessWidget {
   final String? drawWarning;
   final String? biddingStatusText;
   final String? biddingWarning;
+  final String? receiverStatusText;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +84,10 @@ class PaymentCycleCard extends StatelessWidget {
             if (biddingWarning != null) ...[
               const SizedBox(height: 6),
               Text(biddingWarning!, style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.w800)),
+            ],
+            if (receiverStatusText != null) ...[
+              const SizedBox(height: 10),
+              Text(receiverStatusText!, style: const TextStyle(fontWeight: FontWeight.w800)),
             ],
             const SizedBox(height: 14),
             Wrap(

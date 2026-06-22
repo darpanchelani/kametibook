@@ -10,6 +10,7 @@ import '../../kameti/providers/kameti_controller.dart';
 import '../../bidding/models/bidding_models.dart';
 import '../../bidding/providers/bidding_controller.dart';
 import '../../lucky_draw/providers/lucky_draw_controller.dart';
+import '../../receiver/providers/receiver_controller.dart';
 import '../models/payment_models.dart';
 import '../providers/payment_controller.dart';
 import '../widgets/payment_cycle_card.dart';
@@ -25,9 +26,11 @@ class PaymentCyclesScreen extends ConsumerWidget {
     ref.watch(paymentControllerProvider);
     ref.watch(luckyDrawControllerProvider);
     ref.watch(biddingControllerProvider);
+    ref.watch(receiverControllerProvider);
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final drawController = ref.read(luckyDrawControllerProvider.notifier);
     final biddingController = ref.read(biddingControllerProvider.notifier);
+    final receiverController = ref.read(receiverControllerProvider.notifier);
     final cycles = paymentController.getCyclesByKametiId(kametiId);
 
     return Scaffold(
@@ -47,6 +50,7 @@ class PaymentCyclesScreen extends ConsumerWidget {
                       final cycle = cycles[index];
                       final draw = drawController.getDrawByCycleId(cycle.id);
                       final bidding = biddingController.getBiddingSessionByCycleId(cycle.id);
+                      final allocation = receiverController.getCurrentCycleAllocation(kameti.id, cycle.id);
                       return PaymentCycleCard(
                         cycle: cycle,
                         paidCount: paymentController.getPaidMembersCount(cycle.id),
@@ -73,6 +77,9 @@ class PaymentCyclesScreen extends ConsumerWidget {
                                 bidding?.status != BiddingSessionStatus.completed
                             ? 'Cycle completed but bidding is pending.'
                             : null,
+                        receiverStatusText: allocation == null
+                            ? 'Receiver: Pending'
+                            : 'Receiver: ${allocation.memberName} | Method: ${allocation.allocationType.label}',
                         onOpen: () => Navigator.of(context).pushNamed(AppRoutes.cyclePayments, arguments: cycle.id),
                         onMarkCurrent: () {
                           paymentController.markCycleCurrent(cycle.id);

@@ -20,6 +20,10 @@ import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/onboarding/screens/splash_screen.dart';
 import '../features/payment/screens/cycle_payments_screen.dart';
 import '../features/payment/screens/payment_cycles_screen.dart';
+import '../features/receiver/models/receiver_allocation_model.dart';
+import '../features/receiver/screens/fixed_order_setup_screen.dart';
+import '../features/receiver/screens/manual_receiver_selection_screen.dart';
+import '../features/receiver/screens/owner_first_settings_screen.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -42,6 +46,9 @@ class AppRoutes {
   static const bidding = '/bidding';
   static const biddingHistory = '/bidding-history';
   static const biddingDetail = '/bidding-detail';
+  static const manualReceiver = '/manual-receiver';
+  static const fixedOrderSetup = '/fixed-order-setup';
+  static const ownerFirstSettings = '/owner-first-settings';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     return MaterialPageRoute(
@@ -90,6 +97,16 @@ class AppRoutes {
             return BiddingHistoryScreen(kametiId: settings.arguments! as String);
           case biddingDetail:
             return BiddingDetailScreen(sessionId: settings.arguments! as String);
+          case manualReceiver:
+            final args = settings.arguments! as Map<String, Object>;
+            return ManualReceiverSelectionScreen(
+              kametiId: args['kametiId']! as String,
+              allocationType: args['allocationType']! as ReceiverAllocationType,
+            );
+          case fixedOrderSetup:
+            return FixedOrderSetupScreen(kametiId: settings.arguments! as String);
+          case ownerFirstSettings:
+            return OwnerFirstSettingsScreen(kametiId: settings.arguments! as String);
           default:
             return const SplashScreen();
         }

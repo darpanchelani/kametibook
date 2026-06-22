@@ -20,6 +20,10 @@ import '../../lucky_draw/providers/lucky_draw_controller.dart';
 import '../../lucky_draw/widgets/winner_card.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../../payment/widgets/payment_summary_card.dart';
+import '../../receiver/models/receiver_allocation_model.dart';
+import '../../receiver/providers/receiver_controller.dart';
+import '../../receiver/widgets/owner_first_info_card.dart';
+import '../../receiver/widgets/receiver_allocation_card.dart';
 import '../models/kameti_model.dart';
 import '../providers/kameti_controller.dart';
 
@@ -55,10 +59,12 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     ref.watch(paymentControllerProvider);
     ref.watch(luckyDrawControllerProvider);
     ref.watch(biddingControllerProvider);
+    ref.watch(receiverControllerProvider);
     final memberController = ref.read(memberControllerProvider.notifier);
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final drawController = ref.read(luckyDrawControllerProvider.notifier);
     final biddingController = ref.read(biddingControllerProvider.notifier);
+    final receiverController = ref.read(receiverControllerProvider.notifier);
     final kameti = _findKameti(kametis, widget.kametiId);
     final selectedKameti = kameti;
     if (selectedKameti == null) {
@@ -76,6 +82,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     final currentDraw = currentCycle == null ? null : drawController.getDrawByCycleId(currentCycle.id);
     final currentBidding = currentCycle == null ? null : biddingController.getBiddingSessionByCycleId(currentCycle.id);
     final lowestBid = currentBidding == null ? null : biddingController.getLowestActiveBid(currentBidding.id);
+    final currentAllocation = currentCycle == null ? null : receiverController.getCurrentCycleAllocation(selectedKameti.id, currentCycle.id);
     final receivedCount = members.where((member) => member.hasReceivedKameti).length;
 
     return Scaffold(
@@ -363,6 +370,35 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
               ),
               const SizedBox(height: 12),
             ],
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Receiver / Kameti lene wala', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 8),
+                    if (currentCycle == null)
+                      const Text('No active payment cycle found.')
+                    else if (currentAllocation != null)
+                      ReceiverAllocationCard(allocation: currentAllocation)
+                    else ...[
+                      Text('Current Cycle: Month ${currentCycle.cycleNumber}'),
+                      const Text('Receiver not selected for current cycle.'),
+                      const SizedBox(height: 12),
+                      _ReceiverActions(
+                        kameti: selectedKameti,
+                        cycleId: currentCycle.id,
+                        cycleNumber: currentCycle.cycleNumber,
+                        onOwnerFirst: () => _confirmOwnerFirst(context, ref, selectedKameti, currentCycle),
+                        onFixedOrder: () => _confirmFixedOrder(context, ref, selectedKameti, currentCycle),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -432,6 +468,140 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
       if (kameti.id == id) return kameti;
     }
     return null;
+  }
+
+  Future<void> _confirmOwnerFirst(BuildContext context, WidgetRef ref, KametiModel kameti, dynamic cycle) async {
+    MemberModel? organizer;
+    for (final member in ref.read(memberControllerProvider.notifier).getMembersByKametiId(kameti.id)) {
+      if (member.role == MemberRole.organizer) {
+        organizer = member;
+        break;
+      }
+    }
+    if (organizer == null) {
+      SnackbarHelper.showError(context, 'Organizer member not found.');
+      return;
+    }
+    final error = ref.read(receiverControllerProvider.notifier).confirmReceiverAllocation(
+          kameti: kameti,
+          cycle: cycle,
+          member: organizer,
+          allocationType: ReceiverAllocationType.ownerFirst,
+          amount: cycle.expectedAmount,
+          selectedBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+        );
+    if (error != null) {
+      SnackbarHelper.showError(context, error);
+      return;
+    }
+    ref.read(memberControllerProvider.notifier).markMemberReceived(
+          memberId: organizer.id,
+          cycleId: cycle.id,
+          cycleNumber: cycle.cycleNumber,
+          receivedAt: DateTime.now(),
+          receivedAmount: cycle.expectedAmount,
+          receivedVia: ReceiverAllocationType.ownerFirst.name,
+        );
+    SnackbarHelper.showSuccess(context, 'Organizer confirmed as receiver.');
+  }
+
+  Future<void> _confirmFixedOrder(BuildContext context, WidgetRef ref, KametiModel kameti, dynamic cycle) async {
+    final slot = ref.read(receiverControllerProvider.notifier).getFixedOrderSlot(kameti.id, cycle.cycleNumber);
+    if (slot == null) {
+      SnackbarHelper.showError(context, 'Fixed order is not set yet.');
+      return;
+    }
+    final member = ref.read(memberControllerProvider.notifier).getMember(slot.memberId);
+    if (member == null) {
+      SnackbarHelper.showError(context, 'Scheduled receiver not found.');
+      return;
+    }
+    final error = ref.read(receiverControllerProvider.notifier).confirmReceiverAllocation(
+          kameti: kameti,
+          cycle: cycle,
+          member: member,
+          allocationType: ReceiverAllocationType.fixedOrder,
+          amount: cycle.expectedAmount,
+          selectedBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+        );
+    if (error != null) {
+      SnackbarHelper.showError(context, error);
+      return;
+    }
+    ref.read(memberControllerProvider.notifier).markMemberReceived(
+          memberId: member.id,
+          cycleId: cycle.id,
+          cycleNumber: cycle.cycleNumber,
+          receivedAt: DateTime.now(),
+          receivedAmount: cycle.expectedAmount,
+          receivedVia: ReceiverAllocationType.fixedOrder.name,
+        );
+    SnackbarHelper.showSuccess(context, 'Receiver confirmed successfully.');
+  }
+}
+
+class _ReceiverActions extends StatelessWidget {
+  const _ReceiverActions({
+    required this.kameti,
+    required this.cycleId,
+    required this.cycleNumber,
+    required this.onOwnerFirst,
+    required this.onFixedOrder,
+  });
+
+  final KametiModel kameti;
+  final String cycleId;
+  final int cycleNumber;
+  final VoidCallback onOwnerFirst;
+  final VoidCallback onFixedOrder;
+
+  @override
+  Widget build(BuildContext context) {
+    if (kameti.type == KametiType.ownerFirst && cycleNumber == 1 && kameti.ownerReceivesFirstCycle) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const OwnerFirstInfoCard(message: 'Organizer is scheduled to receive first kameti.'),
+          AppButton(label: 'Confirm Organizer as Receiver', icon: Icons.lock_outline, onPressed: onOwnerFirst),
+          TextButton(
+            onPressed: () => Navigator.of(context).pushNamed(AppRoutes.ownerFirstSettings, arguments: kameti.id),
+            child: const Text('Owner First Settings'),
+          ),
+        ],
+      );
+    }
+    if (kameti.type == KametiType.fixedOrder ||
+        (kameti.type == KametiType.ownerFirst && kameti.afterOwnerAllocationMode == AfterOwnerAllocationMode.fixedOrder)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppButton(
+            label: 'Set Fixed Order',
+            icon: Icons.format_list_numbered_outlined,
+            isOutlined: true,
+            onPressed: () => Navigator.of(context).pushNamed(AppRoutes.fixedOrderSetup, arguments: kameti.id),
+          ),
+          const SizedBox(height: 8),
+          AppButton(
+            label: 'Confirm Fixed Order Receiver',
+            icon: Icons.lock_outline,
+            onPressed: onFixedOrder,
+          ),
+        ],
+      );
+    }
+    final allocationType = kameti.type == KametiType.mutualDecision ||
+            (kameti.type == KametiType.ownerFirst && kameti.afterOwnerAllocationMode == AfterOwnerAllocationMode.mutualDecision)
+        ? ReceiverAllocationType.mutualDecision
+        : ReceiverAllocationType.manual;
+    return AppButton(
+      label: kameti.type == KametiType.mutualDecision ? 'Select Receiver' : 'Manual Receiver Selection',
+      icon: Icons.person_search_outlined,
+      onPressed: () => Navigator.of(context).pushNamed(
+        AppRoutes.manualReceiver,
+        arguments: {'kametiId': kameti.id, 'allocationType': allocationType},
+      ),
+    );
   }
 }
 

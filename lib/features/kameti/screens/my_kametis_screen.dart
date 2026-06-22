@@ -10,6 +10,7 @@ import '../../lucky_draw/providers/lucky_draw_controller.dart';
 import '../../bidding/models/bidding_models.dart';
 import '../../bidding/providers/bidding_controller.dart';
 import '../../payment/providers/payment_controller.dart';
+import '../../receiver/providers/receiver_controller.dart';
 import '../providers/kameti_controller.dart';
 import '../widgets/kameti_card.dart';
 
@@ -23,10 +24,12 @@ class MyKametisScreen extends ConsumerWidget {
     ref.watch(paymentControllerProvider);
     ref.watch(luckyDrawControllerProvider);
     ref.watch(biddingControllerProvider);
+    ref.watch(receiverControllerProvider);
     final memberController = ref.read(memberControllerProvider.notifier);
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final drawController = ref.read(luckyDrawControllerProvider.notifier);
     final biddingController = ref.read(biddingControllerProvider.notifier);
+    final receiverController = ref.read(receiverControllerProvider.notifier);
     return Scaffold(
       appBar: AppBar(title: const Text('My Kametis')),
       body: SafeArea(
@@ -48,6 +51,7 @@ class MyKametisScreen extends ConsumerWidget {
                   final draw = cycle == null ? null : drawController.getDrawByCycleId(cycle.id);
                   final bidding = cycle == null ? null : biddingController.getBiddingSessionByCycleId(cycle.id);
                   final lowestBid = bidding == null ? null : biddingController.getLowestActiveBid(bidding.id);
+                  final allocation = cycle == null ? null : receiverController.getCurrentCycleAllocation(kameti.id, cycle.id);
                   return KametiCard(
                     kameti: kameti,
                     activeMembersCount: memberController.getActiveMembersCount(kameti.id),
@@ -70,6 +74,11 @@ class MyKametisScreen extends ConsumerWidget {
                                     ? 'Bidding: ${bidding.status.label}'
                                     : 'Bidding: ${bidding.status.label} | Lowest: ${lowestBid.bidAmount.toStringAsFixed(0)}'
                         : null,
+                    receiverStatusText: cycle == null
+                        ? null
+                        : allocation == null
+                            ? 'Receiver: Pending'
+                            : 'Receiver: ${allocation.memberName}',
                     onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiDetails, arguments: kameti.id),
                   );
                 },

@@ -13,6 +13,7 @@ import '../../member/models/member_model.dart';
 import '../../member/providers/member_controller.dart';
 import '../../payment/models/payment_models.dart';
 import '../../payment/providers/payment_controller.dart';
+import '../../receiver/providers/receiver_controller.dart';
 import '../../payment/widgets/payment_summary_card.dart';
 import '../models/bidding_models.dart';
 import '../providers/bidding_controller.dart';
@@ -37,6 +38,7 @@ class BiddingScreen extends ConsumerWidget {
     ref.watch(memberControllerProvider);
     ref.watch(paymentControllerProvider);
     ref.watch(biddingControllerProvider);
+    ref.watch(receiverControllerProvider);
     if (kameti == null) {
       return Scaffold(appBar: AppBar(title: const Text('Bidding')), body: const Center(child: Text('Kameti not found')));
     }
@@ -291,6 +293,17 @@ class BiddingScreen extends ConsumerWidget {
     if (error != null) {
       if (context.mounted) SnackbarHelper.showError(context, error);
       return;
+    }
+    final winner = ref.read(memberControllerProvider.notifier).getMember(preview.winningBid.memberId);
+    if (winner != null) {
+      ref.read(receiverControllerProvider.notifier).createAllocationFromBiddingSession(
+            kameti: _findKameti(ref.read(kametiControllerProvider), session.kametiId)!,
+            cycle: ref.read(paymentControllerProvider.notifier).getCycle(session.cycleId)!,
+            winner: winner,
+            sessionId: session.id,
+            amount: preview.winningBid.bidAmount,
+            selectedBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+          );
     }
     ref.read(memberControllerProvider.notifier).markMemberReceived(
           memberId: preview.winningBid.memberId,

@@ -15,6 +15,7 @@ class KametiCard extends StatelessWidget {
     this.expectedAmount,
     this.drawStatusText,
     this.biddingStatusText,
+    this.receiverStatusText,
     super.key,
   });
 
@@ -28,6 +29,7 @@ class KametiCard extends StatelessWidget {
   final double? expectedAmount;
   final String? drawStatusText;
   final String? biddingStatusText;
+  final String? receiverStatusText;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +79,7 @@ class KametiCard extends StatelessWidget {
                     ),
                   if (drawStatusText != null) _Meta(icon: Icons.casino_outlined, text: drawStatusText!),
                   if (biddingStatusText != null) _Meta(icon: Icons.gavel_outlined, text: biddingStatusText!),
+                  if (receiverStatusText != null) _Meta(icon: Icons.person_pin_circle_outlined, text: receiverStatusText!),
                 ],
               ),
             ],

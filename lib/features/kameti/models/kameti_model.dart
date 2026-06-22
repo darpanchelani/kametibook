@@ -39,6 +39,9 @@ class KametiModel {
     this.discountDistributionType = DiscountDistributionType.equalToAllNonWinners,
     this.minimumBidAmount,
     this.biddingRules = '',
+    this.requirePaymentBeforeReceiving = true,
+    this.ownerReceivesFirstCycle = true,
+    this.afterOwnerAllocationMode = AfterOwnerAllocationMode.manualSelection,
   });
 
   final String id;
@@ -59,6 +62,9 @@ class KametiModel {
   final DiscountDistributionType discountDistributionType;
   final double? minimumBidAmount;
   final String biddingRules;
+  final bool requirePaymentBeforeReceiving;
+  final bool ownerReceivesFirstCycle;
+  final AfterOwnerAllocationMode afterOwnerAllocationMode;
 
   KametiModel copyWith({
     String? id,
@@ -79,6 +85,9 @@ class KametiModel {
     DiscountDistributionType? discountDistributionType,
     double? minimumBidAmount,
     String? biddingRules,
+    bool? requirePaymentBeforeReceiving,
+    bool? ownerReceivesFirstCycle,
+    AfterOwnerAllocationMode? afterOwnerAllocationMode,
   }) {
     return KametiModel(
       id: id ?? this.id,
@@ -99,6 +108,9 @@ class KametiModel {
       discountDistributionType: discountDistributionType ?? this.discountDistributionType,
       minimumBidAmount: minimumBidAmount ?? this.minimumBidAmount,
       biddingRules: biddingRules ?? this.biddingRules,
+      requirePaymentBeforeReceiving: requirePaymentBeforeReceiving ?? this.requirePaymentBeforeReceiving,
+      ownerReceivesFirstCycle: ownerReceivesFirstCycle ?? this.ownerReceivesFirstCycle,
+      afterOwnerAllocationMode: afterOwnerAllocationMode ?? this.afterOwnerAllocationMode,
     );
   }
 }
@@ -110,5 +122,14 @@ enum DiscountDistributionType {
   manualLater('Manual later');
 
   const DiscountDistributionType(this.label);
+  final String label;
+}
+
+enum AfterOwnerAllocationMode {
+  manualSelection('Manual Selection'),
+  fixedOrder('Fixed Order'),
+  mutualDecision('Mutual Decision');
+
+  const AfterOwnerAllocationMode(this.label);
   final String label;
 }

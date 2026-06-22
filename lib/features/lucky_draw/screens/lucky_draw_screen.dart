@@ -13,6 +13,8 @@ import '../../member/models/member_model.dart';
 import '../../member/providers/member_controller.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../../payment/models/payment_models.dart';
+import '../../receiver/models/receiver_allocation_model.dart';
+import '../../receiver/providers/receiver_controller.dart';
 import '../../payment/widgets/payment_summary_card.dart';
 import '../models/lucky_draw_model.dart';
 import '../providers/lucky_draw_controller.dart';
@@ -44,6 +46,7 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
     ref.watch(memberControllerProvider);
     ref.watch(paymentControllerProvider);
     ref.watch(luckyDrawControllerProvider);
+    ref.watch(receiverControllerProvider);
     if (kameti == null) {
       return Scaffold(appBar: AppBar(title: const Text('Lucky Draw')), body: const Center(child: Text('Kameti not found')));
     }
@@ -197,12 +200,21 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
       SnackbarHelper.showError(context, error);
       return;
     }
+    ref.read(receiverControllerProvider.notifier).createAllocationFromLuckyDraw(
+          kameti: kameti,
+          cycle: cycle,
+          winner: winner,
+          drawId: '${cycle.id}-draw',
+          amount: cycle.expectedAmount,
+          selectedBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+        );
     ref.read(memberControllerProvider.notifier).markMemberReceived(
           memberId: winner.id,
           cycleId: cycle.id,
           cycleNumber: cycle.cycleNumber,
           receivedAt: DateTime.now(),
           receivedAmount: cycle.expectedAmount,
+          receivedVia: ReceiverAllocationType.luckyDraw.name,
         );
     setState(() {
       _drawnWinner = null;
