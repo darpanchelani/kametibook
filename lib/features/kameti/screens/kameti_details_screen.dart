@@ -269,6 +269,26 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
               ),
             ),
             const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Reports', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 8),
+                    const Text('Generate monthly, full kameti, member, payment, payout, ledger, bidding, and lucky draw reports.'),
+                    const SizedBox(height: 12),
+                    AppButton(
+                      label: 'Open Reports',
+                      icon: Icons.description_outlined,
+                      onPressed: () => Navigator.of(context).pushNamed(AppRoutes.reportsDashboard, arguments: selectedKameti.id),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             if (selectedKameti.type == KametiType.luckyDraw) ...[
               Card(
                 child: Padding(
@@ -458,7 +478,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
-            ...['Ledger', 'Reports'].map(
+            ...['Notifications'].map(
               (title) => Card(
                 child: ListTile(
                   leading: const Icon(Icons.lock_clock_outlined),

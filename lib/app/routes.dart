@@ -28,6 +28,10 @@ import '../features/receiver/models/receiver_allocation_model.dart';
 import '../features/receiver/screens/fixed_order_setup_screen.dart';
 import '../features/receiver/screens/manual_receiver_selection_screen.dart';
 import '../features/receiver/screens/owner_first_settings_screen.dart';
+import '../features/reports/models/report_model.dart';
+import '../features/reports/screens/report_history_screen.dart';
+import '../features/reports/screens/report_preview_screen.dart';
+import '../features/reports/screens/reports_dashboard_screen.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -57,6 +61,9 @@ class AppRoutes {
   static const ledgerDetail = '/ledger-detail';
   static const financialSummary = '/financial-summary';
   static const manualLedgerEntry = '/manual-ledger-entry';
+  static const reportsDashboard = '/reports-dashboard';
+  static const reportPreview = '/report-preview';
+  static const reportHistory = '/report-history';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     return MaterialPageRoute(
@@ -123,6 +130,12 @@ class AppRoutes {
             return FinancialSummaryScreen(kametiId: settings.arguments! as String);
           case manualLedgerEntry:
             return ManualLedgerEntryScreen(kametiId: settings.arguments! as String);
+          case reportsDashboard:
+            return ReportsDashboardScreen(kametiId: settings.arguments! as String);
+          case reportPreview:
+            return ReportPreviewScreen(data: settings.arguments! as ReportData);
+          case reportHistory:
+            return ReportHistoryScreen(kametiId: settings.arguments! as String);
           default:
             return const SplashScreen();
         }
