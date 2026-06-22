@@ -12,6 +12,8 @@ import '../../kameti/providers/kameti_controller.dart';
 import '../../kameti/widgets/kameti_card.dart';
 import '../../member/providers/member_controller.dart';
 import '../../lucky_draw/providers/lucky_draw_controller.dart';
+import '../../bidding/models/bidding_models.dart';
+import '../../bidding/providers/bidding_controller.dart';
 import '../../payment/providers/payment_controller.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -24,11 +26,13 @@ class HomeScreen extends ConsumerWidget {
     ref.watch(memberControllerProvider);
     ref.watch(paymentControllerProvider);
     ref.watch(luckyDrawControllerProvider);
+    ref.watch(biddingControllerProvider);
     final activeCount = kametis.where((kameti) => kameti.status == KametiStatus.active).length;
     final draftCount = kametis.where((kameti) => kameti.status == KametiStatus.draft).length;
     final memberController = ref.read(memberControllerProvider.notifier);
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final drawController = ref.read(luckyDrawControllerProvider.notifier);
+    final biddingController = ref.read(biddingControllerProvider.notifier);
     final pendingPayments = paymentController.pendingPaymentsInCurrentCycles(kametis);
     final collectedThisMonth = paymentController.collectedInCurrentCycles(kametis);
     final pendingDraws = drawController.getPendingDrawsCount(
@@ -36,6 +40,10 @@ class HomeScreen extends ConsumerWidget {
       cycles: ref.watch(paymentControllerProvider).cycles,
     );
     final completedDraws = drawController.getCompletedDrawsCount();
+    final openBiddings = biddingController.getOpenBiddingsCount();
+    final pendingBiddingResults = biddingController.getPendingBiddingResultsCount();
+    final completedBiddings = biddingController.getCompletedBiddingsCount();
+    final totalDiscounts = biddingController.getTotalDiscountsGenerated();
     final recent = kametis.take(3).toList();
 
     return Scaffold(
@@ -83,6 +91,15 @@ class HomeScreen extends ConsumerWidget {
                   icon: Icons.payments_outlined,
                   color: Colors.green.shade700,
                 ),
+                SummaryCard(title: 'Open Biddings', value: '$openBiddings', icon: Icons.gavel_outlined),
+                SummaryCard(title: 'Pending Bidding Results', value: '$pendingBiddingResults', icon: Icons.pending_outlined),
+                SummaryCard(title: 'Completed Biddings', value: '$completedBiddings', icon: Icons.lock_outline),
+                SummaryCard(
+                  title: 'Total Discounts',
+                  value: CurrencyFormatter.pkr(totalDiscounts),
+                  icon: Icons.savings_outlined,
+                  color: Colors.purple.shade700,
+                ),
               ],
             ),
             const SizedBox(height: 18),
@@ -107,6 +124,8 @@ class HomeScreen extends ConsumerWidget {
                 (kameti) {
                   final cycle = paymentController.getCurrentCycle(kameti.id);
                   final draw = cycle == null ? null : drawController.getDrawByCycleId(cycle.id);
+                  final bidding = cycle == null ? null : biddingController.getBiddingSessionByCycleId(cycle.id);
+                  final lowestBid = bidding == null ? null : biddingController.getLowestActiveBid(bidding.id);
                   return KametiCard(
                     kameti: kameti,
                     activeMembersCount: memberController.getActiveMembersCount(kameti.id),
@@ -119,6 +138,15 @@ class HomeScreen extends ConsumerWidget {
                         ? draw == null
                             ? 'Draw: Pending'
                             : 'Winner: ${draw.winnerName}'
+                        : null,
+                    biddingStatusText: kameti.type == KametiType.bidding && cycle != null
+                        ? bidding == null
+                            ? 'Bidding: Not Started'
+                            : bidding.status == BiddingSessionStatus.completed
+                                ? 'Winner: ${biddingController.getBidsBySessionId(bidding.id).where((bid) => bid.id == bidding.winningBidId).map((bid) => bid.memberName).join()} | Discount: ${CurrencyFormatter.pkr(bidding.discountAmount)}'
+                                : lowestBid == null
+                                    ? 'Bidding: ${bidding.status.label}'
+                                    : 'Bidding: ${bidding.status.label} | Lowest: ${CurrencyFormatter.pkr(lowestBid.bidAmount)}'
                         : null,
                     onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiDetails, arguments: kameti.id),
                   );

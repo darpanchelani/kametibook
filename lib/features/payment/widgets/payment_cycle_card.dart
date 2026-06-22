@@ -15,6 +15,8 @@ class PaymentCycleCard extends StatelessWidget {
     required this.onComplete,
     this.drawStatusText,
     this.drawWarning,
+    this.biddingStatusText,
+    this.biddingWarning,
     super.key,
   });
 
@@ -26,6 +28,8 @@ class PaymentCycleCard extends StatelessWidget {
   final VoidCallback onComplete;
   final String? drawStatusText;
   final String? drawWarning;
+  final String? biddingStatusText;
+  final String? biddingWarning;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +74,14 @@ class PaymentCycleCard extends StatelessWidget {
             if (drawWarning != null) ...[
               const SizedBox(height: 6),
               Text(drawWarning!, style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.w800)),
+            ],
+            if (biddingStatusText != null) ...[
+              const SizedBox(height: 10),
+              Text(biddingStatusText!, style: const TextStyle(fontWeight: FontWeight.w800)),
+            ],
+            if (biddingWarning != null) ...[
+              const SizedBox(height: 6),
+              Text(biddingWarning!, style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.w800)),
             ],
             const SizedBox(height: 14),
             Wrap(

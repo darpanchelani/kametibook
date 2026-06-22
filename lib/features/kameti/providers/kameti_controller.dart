@@ -29,6 +29,34 @@ class KametiController extends StateNotifier<List<KametiModel>> {
         if (kameti.id == id) kameti.copyWith(requirePaymentBeforeDraw: value) else kameti,
     ];
   }
+
+  void updateRequirePaymentBeforeBidding(String id, bool value) {
+    state = [
+      for (final kameti in state)
+        if (kameti.id == id) kameti.copyWith(requirePaymentBeforeBidding: value) else kameti,
+    ];
+  }
+
+  void updateDiscountDistributionType(String id, DiscountDistributionType value) {
+    state = [
+      for (final kameti in state)
+        if (kameti.id == id) kameti.copyWith(discountDistributionType: value) else kameti,
+    ];
+  }
+
+  void updateBiddingRules({
+    required String id,
+    double? minimumBidAmount,
+    required String biddingRules,
+  }) {
+    state = [
+      for (final kameti in state)
+        if (kameti.id == id)
+          kameti.copyWith(minimumBidAmount: minimumBidAmount, biddingRules: biddingRules)
+        else
+          kameti,
+    ];
+  }
 }
 
 final kametiControllerProvider =

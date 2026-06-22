@@ -35,6 +35,10 @@ class KametiModel {
     required this.status,
     required this.createdAt,
     this.requirePaymentBeforeDraw = true,
+    this.requirePaymentBeforeBidding = true,
+    this.discountDistributionType = DiscountDistributionType.equalToAllNonWinners,
+    this.minimumBidAmount,
+    this.biddingRules = '',
   });
 
   final String id;
@@ -51,6 +55,10 @@ class KametiModel {
   final KametiStatus status;
   final DateTime createdAt;
   final bool requirePaymentBeforeDraw;
+  final bool requirePaymentBeforeBidding;
+  final DiscountDistributionType discountDistributionType;
+  final double? minimumBidAmount;
+  final String biddingRules;
 
   KametiModel copyWith({
     String? id,
@@ -67,6 +75,10 @@ class KametiModel {
     KametiStatus? status,
     DateTime? createdAt,
     bool? requirePaymentBeforeDraw,
+    bool? requirePaymentBeforeBidding,
+    DiscountDistributionType? discountDistributionType,
+    double? minimumBidAmount,
+    String? biddingRules,
   }) {
     return KametiModel(
       id: id ?? this.id,
@@ -83,6 +95,20 @@ class KametiModel {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       requirePaymentBeforeDraw: requirePaymentBeforeDraw ?? this.requirePaymentBeforeDraw,
+      requirePaymentBeforeBidding: requirePaymentBeforeBidding ?? this.requirePaymentBeforeBidding,
+      discountDistributionType: discountDistributionType ?? this.discountDistributionType,
+      minimumBidAmount: minimumBidAmount ?? this.minimumBidAmount,
+      biddingRules: biddingRules ?? this.biddingRules,
     );
   }
+}
+
+enum DiscountDistributionType {
+  equalToAllNonWinners('Equal to all non-winners'),
+  equalToAllMembers('Equal to all members'),
+  groupWallet('Group wallet'),
+  manualLater('Manual later');
+
+  const DiscountDistributionType(this.label);
+  final String label;
 }

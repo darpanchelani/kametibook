@@ -8,6 +8,9 @@ import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/confirmation_dialog.dart';
 import '../../auth/providers/auth_controller.dart';
+import '../../bidding/models/bidding_models.dart';
+import '../../bidding/providers/bidding_controller.dart';
+import '../../bidding/widgets/bidding_status_badge.dart';
 import '../../member/models/member_model.dart';
 import '../../member/providers/member_controller.dart';
 import '../../member/widgets/member_count_summary_card.dart';
@@ -51,9 +54,11 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     ref.watch(memberControllerProvider);
     ref.watch(paymentControllerProvider);
     ref.watch(luckyDrawControllerProvider);
+    ref.watch(biddingControllerProvider);
     final memberController = ref.read(memberControllerProvider.notifier);
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final drawController = ref.read(luckyDrawControllerProvider.notifier);
+    final biddingController = ref.read(biddingControllerProvider.notifier);
     final kameti = _findKameti(kametis, widget.kametiId);
     final selectedKameti = kameti;
     if (selectedKameti == null) {
@@ -69,6 +74,8 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     final slotsFilled = activeMembersCount >= selectedKameti.totalMembers;
     final currentCycle = paymentController.getCurrentCycle(selectedKameti.id);
     final currentDraw = currentCycle == null ? null : drawController.getDrawByCycleId(currentCycle.id);
+    final currentBidding = currentCycle == null ? null : biddingController.getBiddingSessionByCycleId(currentCycle.id);
+    final lowestBid = currentBidding == null ? null : biddingController.getLowestActiveBid(currentBidding.id);
     final receivedCount = members.where((member) => member.hasReceivedKameti).length;
 
     return Scaffold(
@@ -286,6 +293,76 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
               ),
               const SizedBox(height: 12),
             ],
+            if (selectedKameti.type == KametiType.bidding) ...[
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Bidding', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 8),
+                      if (selectedKameti.status == KametiStatus.draft)
+                        const Text('Start this kameti before running bidding.')
+                      else if (currentCycle == null)
+                        const Text('No active payment cycle found.')
+                      else ...[
+                        Text('Current Cycle: Month ${currentCycle.cycleNumber} - ${currentCycle.monthLabel}'),
+                        if (currentBidding == null)
+                          const Text('Bidding has not started for current cycle.')
+                        else ...[
+                          Row(children: [
+                            BiddingStatusBadge(status: currentBidding.status),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text('Total Pool: ${CurrencyFormatter.pkr(currentBidding.totalPoolAmount)}')),
+                          ]),
+                          Text('Total Bids Submitted: ${biddingController.getBidsBySessionId(currentBidding.id).where((bid) => bid.status == BidStatus.active).length}'),
+                          if (lowestBid != null) Text('Lowest Bid: ${CurrencyFormatter.pkr(lowestBid.bidAmount)} by ${lowestBid.memberName}'),
+                          if (currentBidding.status == BiddingSessionStatus.completed) ...[
+                            Text('Winner: ${memberController.getMember(currentBidding.winnerMemberId)?.fullName ?? '-'}'),
+                            Text('Winning Bid: ${CurrencyFormatter.pkr(currentBidding.winningAmount)}'),
+                            Text('Discount: ${CurrencyFormatter.pkr(currentBidding.discountAmount)}'),
+                          ],
+                        ],
+                      ],
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: AppButton(
+                              label: 'Open Bidding',
+                              icon: Icons.gavel_outlined,
+                              isOutlined: true,
+                              onPressed: selectedKameti.status == KametiStatus.active
+                                  ? () => Navigator.of(context).pushNamed(AppRoutes.bidding, arguments: selectedKameti.id)
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: AppButton(
+                              label: 'Bidding History',
+                              icon: Icons.history_outlined,
+                              onPressed: () => Navigator.of(context).pushNamed(AppRoutes.biddingHistory, arguments: selectedKameti.id),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ] else ...[
+              const Card(
+                child: ListTile(
+                  leading: Icon(Icons.gavel_outlined),
+                  title: Text('Bidding'),
+                  subtitle: Text('Bidding is only available for auction kametis.'),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
             Row(
               children: [
                 Expanded(
@@ -305,7 +382,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
-            ...['Ledger', 'Bidding', 'Reports'].map(
+            ...['Ledger', 'Reports'].map(
               (title) => Card(
                 child: ListTile(
                   leading: const Icon(Icons.lock_clock_outlined),

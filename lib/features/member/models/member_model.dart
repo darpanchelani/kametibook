@@ -36,6 +36,7 @@ class MemberModel {
     this.receivedCycleNumber,
     this.receivedAt,
     this.receivedAmount = 0,
+    this.receivedVia = '',
   });
 
   final String id;
@@ -57,6 +58,7 @@ class MemberModel {
   final int? receivedCycleNumber;
   final DateTime? receivedAt;
   final double receivedAmount;
+  final String receivedVia;
 
   bool get isOrganizer => role == MemberRole.organizer;
   bool get isActiveForCount => status == MemberStatus.active;
@@ -81,6 +83,7 @@ class MemberModel {
     int? receivedCycleNumber,
     DateTime? receivedAt,
     double? receivedAmount,
+    String? receivedVia,
   }) {
     return MemberModel(
       id: id ?? this.id,
@@ -102,6 +105,7 @@ class MemberModel {
       receivedCycleNumber: receivedCycleNumber ?? this.receivedCycleNumber,
       receivedAt: receivedAt ?? this.receivedAt,
       receivedAmount: receivedAmount ?? this.receivedAmount,
+      receivedVia: receivedVia ?? this.receivedVia,
     );
   }
 }

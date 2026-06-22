@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../bidding/providers/bidding_controller.dart';
+import '../../bidding/widgets/discount_adjustment_card.dart';
 import '../../payment/models/payment_models.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../../payment/widgets/payment_status_badge.dart';
@@ -20,6 +22,7 @@ class MemberDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(paymentControllerProvider);
+    ref.watch(biddingControllerProvider);
     MemberModel? member;
     for (final item in ref.watch(memberControllerProvider)) {
       if (item.id == memberId) {
@@ -35,6 +38,7 @@ class MemberDetailsScreen extends ConsumerWidget {
     }
     final selectedMember = member;
     final paymentController = ref.read(paymentControllerProvider.notifier);
+    final biddingController = ref.read(biddingControllerProvider.notifier);
     final payments = paymentController.getPaymentsByMemberId(selectedMember.id);
     final paidCycles = payments.where((payment) => payment.paymentStatus == PaymentStatus.paid).length;
     final pendingCycles = payments.where((payment) => payment.paymentStatus == PaymentStatus.pending).length;
@@ -44,6 +48,7 @@ class MemberDetailsScreen extends ConsumerWidget {
       0,
       (total, payment) => total + (payment.countsAsPaid ? 0 : payment.amountDue),
     );
+    final adjustments = biddingController.getAdjustmentsByMemberId(selectedMember.id);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Member Details')),
@@ -109,7 +114,13 @@ class MemberDetailsScreen extends ConsumerWidget {
                         'Received Date: ${selectedMember.receivedAt == null ? '-' : DateFormatter.display(selectedMember.receivedAt!)}',
                       ),
                       Text('Received Amount: ${CurrencyFormatter.pkr(selectedMember.receivedAmount)}'),
-                      const Text('Draw Type: Lucky Draw'),
+                      Text('Received Via: ${selectedMember.receivedVia.isEmpty ? 'Lucky Draw' : selectedMember.receivedVia}'),
+                      if (selectedMember.receivedVia == 'bidding') ...[
+                        Text('Winning Bid Amount: ${CurrencyFormatter.pkr(selectedMember.receivedAmount)}'),
+                        Text(
+                          'Discount Generated: ${CurrencyFormatter.pkr(biddingController.getBiddingSessionsByKametiId(selectedMember.kametiId).where((session) => session.winnerMemberId == selectedMember.id && session.cycleId == selectedMember.receivedCycleId).fold<double>(0, (total, session) => total + session.discountAmount))}',
+                        ),
+                      ],
                     ],
                   ],
                 ),
@@ -155,6 +166,23 @@ class MemberDetailsScreen extends ConsumerWidget {
                           trailing: PaymentStatusBadge(status: payment.paymentStatus),
                         );
                       }),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Discount Adjustments', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 8),
+                    if (adjustments.isEmpty)
+                      const Text('No discount adjustments yet.')
+                    else
+                      ...adjustments.map((adjustment) => DiscountAdjustmentCard(adjustment: adjustment)),
                   ],
                 ),
               ),

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../features/auth/screens/forgot_password_screen.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/signup_screen.dart';
+import '../features/bidding/screens/bidding_detail_screen.dart';
+import '../features/bidding/screens/bidding_history_screen.dart';
+import '../features/bidding/screens/bidding_screen.dart';
 import '../features/home/screens/main_layout.dart';
 import '../features/kameti/screens/create_kameti_screen.dart';
 import '../features/kameti/screens/kameti_details_screen.dart';
@@ -36,6 +39,9 @@ class AppRoutes {
   static const luckyDraw = '/lucky-draw';
   static const drawHistory = '/draw-history';
   static const drawDetail = '/draw-detail';
+  static const bidding = '/bidding';
+  static const biddingHistory = '/bidding-history';
+  static const biddingDetail = '/bidding-detail';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     return MaterialPageRoute(
@@ -78,6 +84,12 @@ class AppRoutes {
             return DrawHistoryScreen(kametiId: settings.arguments! as String);
           case drawDetail:
             return DrawDetailScreen(drawId: settings.arguments! as String);
+          case bidding:
+            return BiddingScreen(kametiId: settings.arguments! as String);
+          case biddingHistory:
+            return BiddingHistoryScreen(kametiId: settings.arguments! as String);
+          case biddingDetail:
+            return BiddingDetailScreen(sessionId: settings.arguments! as String);
           default:
             return const SplashScreen();
         }

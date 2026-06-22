@@ -142,6 +142,7 @@ class MemberController extends StateNotifier<List<MemberModel>> {
     required int cycleNumber,
     required DateTime receivedAt,
     required double receivedAmount,
+    String receivedVia = 'luckyDraw',
   }) {
     state = [
       for (final member in state)
@@ -152,6 +153,7 @@ class MemberController extends StateNotifier<List<MemberModel>> {
             receivedCycleNumber: cycleNumber,
             receivedAt: receivedAt,
             receivedAmount: receivedAmount,
+            receivedVia: receivedVia,
             updatedAt: DateTime.now(),
           )
         else

@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/routes.dart';
+import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../kameti/models/kameti_model.dart';
 import '../../kameti/providers/kameti_controller.dart';
+import '../../bidding/models/bidding_models.dart';
+import '../../bidding/providers/bidding_controller.dart';
 import '../../lucky_draw/providers/lucky_draw_controller.dart';
 import '../models/payment_models.dart';
 import '../providers/payment_controller.dart';
@@ -21,8 +24,10 @@ class PaymentCyclesScreen extends ConsumerWidget {
     final kameti = _findKameti(ref.watch(kametiControllerProvider), kametiId);
     ref.watch(paymentControllerProvider);
     ref.watch(luckyDrawControllerProvider);
+    ref.watch(biddingControllerProvider);
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final drawController = ref.read(luckyDrawControllerProvider.notifier);
+    final biddingController = ref.read(biddingControllerProvider.notifier);
     final cycles = paymentController.getCyclesByKametiId(kametiId);
 
     return Scaffold(
@@ -41,6 +46,7 @@ class PaymentCyclesScreen extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final cycle = cycles[index];
                       final draw = drawController.getDrawByCycleId(cycle.id);
+                      final bidding = biddingController.getBiddingSessionByCycleId(cycle.id);
                       return PaymentCycleCard(
                         cycle: cycle,
                         paidCount: paymentController.getPaidMembersCount(cycle.id),
@@ -54,6 +60,18 @@ class PaymentCyclesScreen extends ConsumerWidget {
                                 cycle.status == PaymentCycleStatus.completed &&
                                 draw == null
                             ? 'Cycle completed but lucky draw is pending.'
+                            : null,
+                        biddingStatusText: kameti.type == KametiType.bidding
+                            ? bidding == null
+                                ? 'Bidding: Not Started'
+                                : bidding.status == BiddingSessionStatus.completed
+                                    ? 'Winner: ${biddingController.getBidsBySessionId(bidding.id).where((bid) => bid.id == bidding.winningBidId).map((bid) => bid.memberName).join()} | Winning Bid: ${CurrencyFormatter.pkr(bidding.winningAmount)} | Discount: ${CurrencyFormatter.pkr(bidding.discountAmount)}'
+                                    : 'Bidding: ${bidding.status.label}'
+                            : null,
+                        biddingWarning: kameti.type == KametiType.bidding &&
+                                cycle.status == PaymentCycleStatus.completed &&
+                                bidding?.status != BiddingSessionStatus.completed
+                            ? 'Cycle completed but bidding is pending.'
                             : null,
                         onOpen: () => Navigator.of(context).pushNamed(AppRoutes.cyclePayments, arguments: cycle.id),
                         onMarkCurrent: () {
