@@ -12,6 +12,7 @@ class MemberCard extends StatelessWidget {
     required this.onEdit,
     required this.onRemove,
     required this.canRemove,
+    this.trustScore,
     super.key,
   });
 
@@ -20,6 +21,7 @@ class MemberCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onRemove;
   final bool canRemove;
+  final double? trustScore;
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +82,7 @@ class MemberCard extends StatelessWidget {
               children: [
                 MemberRoleBadge(role: member.role),
                 MemberStatusBadge(status: member.status),
+                if (trustScore != null) _SmallInfo(text: 'Trust: ${trustScore!.round()}'),
                 _SmallInfo(text: 'Received: ${member.hasReceivedKameti ? 'Yes' : 'No'}'),
                 _SmallInfo(text: 'Joined: ${DateFormatter.display(member.joinedAt)}'),
               ],

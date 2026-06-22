@@ -11,6 +11,11 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid))
         && get(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid)).data.role in ['organizer', 'coOrganizer'];
     }
+    function notBlocked(kametiId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid)).data.status != 'blocked';
+    }
 
     match /users/{userId} {
       allow read, update: if ownUser(userId);
@@ -22,6 +27,18 @@ service cloud.firestore {
       match /joinedKametis/{kametiId} {
         allow read, write: if ownUser(userId);
       }
+      match /securityLogs/{logId} {
+        allow read: if ownUser(userId);
+        allow create: if signedIn();
+        allow update, delete: if false;
+      }
+      match /trustScores/{scoreId} {
+        allow read: if ownUser(userId);
+        allow write: if false;
+      }
+      match /settings/{settingId} {
+        allow read, write: if ownUser(userId);
+      }
     }
 
     match /kametis/{kametiId} {
@@ -31,14 +48,20 @@ service cloud.firestore {
 
       match /members/{memberId} {
         allow read: if kametiMember(kametiId);
-        allow create, update, delete: if kametiManager(kametiId) || (signedIn() && request.auth.uid == memberId);
+        allow create: if kametiManager(kametiId) || (signedIn() && request.auth.uid == memberId);
+        allow update: if kametiManager(kametiId) || (signedIn() && request.auth.uid == memberId && !('role' in request.resource.data.diff(resource.data).changedKeys()));
+        allow delete: if kametiManager(kametiId);
       }
       match /cycles/{cycleId} {
         allow read: if kametiMember(kametiId);
         allow write: if kametiManager(kametiId);
         match /payments/{paymentId} {
           allow read: if kametiMember(kametiId);
-          allow create, update: if kametiManager(kametiId) || (signedIn() && request.resource.data.memberUserId == request.auth.uid);
+          allow create: if kametiManager(kametiId);
+          allow update: if kametiManager(kametiId)
+            || (notBlocked(kametiId)
+              && request.resource.data.memberUserId == request.auth.uid
+              && request.resource.data.paymentStatus in ['proofSubmitted', 'pendingApproval']);
         }
       }
       match /biddingSessions/{sessionId} {
@@ -46,7 +69,7 @@ service cloud.firestore {
         allow create, update: if kametiManager(kametiId);
         match /bids/{bidId} {
           allow read: if kametiMember(kametiId);
-          allow create, update: if kametiManager(kametiId) || (signedIn() && request.resource.data.userId == request.auth.uid);
+          allow create, update: if kametiManager(kametiId) || (notBlocked(kametiId) && request.resource.data.userId == request.auth.uid);
         }
       }
       match /receiverAllocations/{allocationId} {
@@ -62,18 +85,49 @@ service cloud.firestore {
         allow write: if kametiManager(kametiId);
       }
       match /reports/{reportId} {
-        allow read: if kametiMember(kametiId);
+        allow read: if kametiManager(kametiId)
+          || (kametiMember(kametiId) && resource.data.visibility == 'sharedWithMembers');
         allow write: if kametiManager(kametiId);
       }
-      match /{subcollection}/{docId} {
-        allow read: if kametiMember(kametiId);
-        allow write: if kametiManager(kametiId);
+      match /auditLogs/{auditLogId} {
+        allow read: if kametiManager(kametiId);
+        allow create: if signedIn();
+        allow update, delete: if false;
+      }
+      match /disputes/{disputeId} {
+        allow read: if kametiManager(kametiId)
+          || resource.data.createdBy == request.auth.uid
+          || resource.data.againstUserId == request.auth.uid;
+        allow create: if notBlocked(kametiId);
+        allow update: if kametiManager(kametiId)
+          || resource.data.createdBy == request.auth.uid
+          || resource.data.againstUserId == request.auth.uid;
+        allow delete: if false;
+        match /comments/{commentId} {
+          allow read: if kametiMember(kametiId);
+          allow create: if notBlocked(kametiId);
+          allow update, delete: if false;
+        }
+      }
+      match /trustScores/{scoreId} {
+        allow read: if kametiManager(kametiId);
+        allow write: if false;
+      }
+      match /userReports/{reportId} {
+        allow read, update: if kametiManager(kametiId);
+        allow create: if notBlocked(kametiId);
+        allow delete: if false;
       }
     }
 
     match /kametiInvites/{inviteId} {
       allow read: if signedIn();
       allow create, update: if signedIn();
+    }
+    match /deletionRequests/{requestId} {
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
     }
   }
 }

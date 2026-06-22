@@ -18,6 +18,8 @@ import '../../payment/models/payment_models.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../../receiver/providers/receiver_controller.dart';
 import '../../payment/widgets/payment_summary_card.dart';
+import '../../security/models/security_models.dart';
+import '../../security/providers/security_controller.dart';
 import '../models/bidding_models.dart';
 import '../providers/bidding_controller.dart';
 import '../widgets/bid_card.dart';
@@ -231,6 +233,17 @@ class BiddingScreen extends ConsumerWidget {
                   actionRoute: AppRoutes.bidding,
                 ),
           );
+      ref.read(securityControllerProvider.notifier).createAuditLog(
+            kametiId: kameti.id,
+            userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+            userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+            userRole: 'organizer',
+            actionType: AuditActionType.biddingStarted,
+            entityType: AuditEntityType.biddingSession,
+            entityId: cycle.id,
+            description: 'Bidding started for Cycle ${cycle.cycleNumber}.',
+            severity: AuditSeverity.medium,
+          );
     }
   }
 
@@ -301,6 +314,17 @@ class BiddingScreen extends ConsumerWidget {
                   actionRoute: AppRoutes.bidding,
                 ),
           );
+      ref.read(securityControllerProvider.notifier).createAuditLog(
+            kametiId: session.kametiId,
+            userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+            userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+            userRole: 'organizer',
+            actionType: AuditActionType.biddingClosed,
+            entityType: AuditEntityType.biddingSession,
+            entityId: session.id,
+            description: 'Bidding closed.',
+            severity: AuditSeverity.medium,
+          );
     }
   }
 
@@ -361,6 +385,18 @@ class BiddingScreen extends ConsumerWidget {
                 actionType: NotificationActionType.openBidding,
                 actionRoute: AppRoutes.bidding,
               ),
+        );
+    ref.read(securityControllerProvider.notifier).createAuditLog(
+          kametiId: session.kametiId,
+          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+          userRole: 'organizer',
+          actionType: AuditActionType.biddingCompleted,
+          entityType: AuditEntityType.biddingSession,
+          entityId: session.id,
+          newValue: preview.winningBid.memberId,
+          description: '${preview.winningBid.memberName} won bidding with ${CurrencyFormatter.pkr(preview.winningBid.bidAmount)}.',
+          severity: AuditSeverity.high,
         );
     if (context.mounted) SnackbarHelper.showSuccess(context, 'Bidding completed successfully.');
   }

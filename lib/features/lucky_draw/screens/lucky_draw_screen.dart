@@ -19,6 +19,8 @@ import '../../payment/models/payment_models.dart';
 import '../../receiver/models/receiver_allocation_model.dart';
 import '../../receiver/providers/receiver_controller.dart';
 import '../../payment/widgets/payment_summary_card.dart';
+import '../../security/models/security_models.dart';
+import '../../security/providers/security_controller.dart';
 import '../models/lucky_draw_model.dart';
 import '../providers/lucky_draw_controller.dart';
 import '../widgets/animated_name_selector.dart';
@@ -233,6 +235,18 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
                 actionType: NotificationActionType.openLuckyDraw,
                 actionRoute: AppRoutes.luckyDraw,
               ),
+        );
+    ref.read(securityControllerProvider.notifier).createAuditLog(
+          kametiId: kameti.id,
+          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+          userRole: 'organizer',
+          actionType: AuditActionType.luckyDrawCompleted,
+          entityType: AuditEntityType.luckyDraw,
+          entityId: '${cycle.id}-draw',
+          newValue: winner.id,
+          description: '${winner.fullName} won lucky draw for Cycle ${cycle.cycleNumber}.',
+          severity: AuditSeverity.high,
         );
     setState(() {
       _drawnWinner = null;

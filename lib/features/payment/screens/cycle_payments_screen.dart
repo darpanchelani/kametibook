@@ -14,6 +14,9 @@ import '../../member/models/member_model.dart';
 import '../../member/providers/member_controller.dart';
 import '../../notifications/models/notification_model.dart';
 import '../../notifications/providers/notification_controller.dart';
+import '../../security/models/security_models.dart';
+import '../../security/providers/security_controller.dart';
+import '../../security/screens/create_dispute_screen.dart';
 import '../models/payment_models.dart';
 import '../providers/payment_controller.dart';
 import '../widgets/mark_payment_bottom_sheet.dart';
@@ -111,6 +114,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
                   onMarkPending: () {
                     paymentController.markPaymentPending(payment.id);
                     _syncPaymentLedger(payment.kametiId);
+                    _auditPayment(payment, AuditActionType.paymentStatusChanged, 'Payment marked pending.', oldValue: payment.paymentStatus.name, newValue: PaymentStatus.pending.name);
                     _createPaymentNotification(payment, AppNotificationType.paymentDueReminder, 'Payment Pending', 'Payment marked as pending.');
                     SnackbarHelper.showSuccess(context, 'Payment marked as pending.');
                   },
@@ -118,16 +122,26 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
                   onReject: () => _rejectPayment(payment),
                   onEdit: () => _openMarkPaid(payment),
                   onSubmitProof: () => Navigator.of(context).pushNamed(AppRoutes.submitPaymentProof, arguments: payment.id),
-                  onApproveProof: () {
+	                  onApproveProof: () {
                     ref.read(paymentControllerProvider.notifier).approvePaymentProof(
                           paymentId: payment.id,
                           approvedBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
                         );
                     _syncPaymentLedger(payment.kametiId);
+                    _auditPayment(payment, AuditActionType.paymentApproved, 'Payment proof approved.', oldValue: payment.paymentStatus.name, newValue: PaymentStatus.paid.name);
                     _createPaymentNotification(payment, AppNotificationType.paymentApproved, 'Payment Approved', 'Payment proof approved.');
-                    SnackbarHelper.showSuccess(context, 'Payment proof approved.');
-                  },
-                );
+	                    SnackbarHelper.showSuccess(context, 'Payment proof approved.');
+	                  },
+                  onReportIssue: () => Navigator.of(context).pushNamed(
+                    AppRoutes.createDispute,
+                    arguments: CreateDisputeArgs(
+                      kametiId: payment.kametiId,
+                      relatedEntityType: DisputeRelatedEntityType.payment,
+                      relatedEntityId: payment.id,
+                      defaultType: DisputeType.paymentIssue,
+                    ),
+                  ),
+	                );
               }),
           ],
         ),
@@ -144,6 +158,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
         onSubmit: (data) {
           ref.read(paymentControllerProvider.notifier).markPaymentPaid(payment.id, data);
           _syncPaymentLedger(payment.kametiId);
+          _auditPayment(payment, AuditActionType.paymentApproved, 'Payment marked paid.', oldValue: payment.paymentStatus.name, newValue: PaymentStatus.paid.name);
           _createPaymentNotification(payment, AppNotificationType.paymentMarkedPaid, 'Payment Received', 'Payment marked as paid.');
           Navigator.of(context).pop();
           SnackbarHelper.showSuccess(this.context, 'Payment marked as paid.');
@@ -157,6 +172,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
     if (!mounted) return;
     ref.read(paymentControllerProvider.notifier).markPaymentLate(payment.id, note ?? '');
     _syncPaymentLedger(payment.kametiId);
+    _auditPayment(payment, AuditActionType.paymentStatusChanged, 'Payment marked late.', oldValue: payment.paymentStatus.name, newValue: PaymentStatus.late.name);
     _createPaymentNotification(payment, AppNotificationType.paymentOverdue, 'Payment Overdue', 'Payment marked as late.');
     SnackbarHelper.showSuccess(context, 'Payment marked as late.');
   }
@@ -166,6 +182,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
     if (!mounted) return;
     ref.read(paymentControllerProvider.notifier).rejectPayment(payment.id, reason ?? '');
     _syncPaymentLedger(payment.kametiId);
+    _auditPayment(payment, AuditActionType.paymentRejected, 'Payment rejected.', oldValue: payment.paymentStatus.name, newValue: PaymentStatus.rejected.name);
     _createPaymentNotification(payment, AppNotificationType.paymentRejected, 'Payment Rejected', 'Payment was rejected. Please review.');
     SnackbarHelper.showSuccess(context, 'Payment rejected.');
   }
@@ -204,6 +221,23 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
                 actionType: NotificationActionType.openPayment,
                 actionRoute: AppRoutes.cyclePayments,
               ),
+        );
+  }
+
+  void _auditPayment(MemberPaymentModel payment, AuditActionType action, String description, {String oldValue = '', String newValue = ''}) {
+    final user = ref.read(authControllerProvider).user;
+    ref.read(securityControllerProvider.notifier).createAuditLog(
+          kametiId: payment.kametiId,
+          userId: user?.id ?? 'mock-user',
+          userName: user?.fullName ?? 'Organizer',
+          userRole: 'organizer',
+          actionType: action,
+          entityType: AuditEntityType.payment,
+          entityId: payment.id,
+          oldValue: oldValue,
+          newValue: newValue,
+          description: description,
+          severity: action == AuditActionType.paymentRejected ? AuditSeverity.high : AuditSeverity.medium,
         );
   }
 

@@ -136,6 +136,36 @@ class MemberController extends StateNotifier<List<MemberModel>> {
     return null;
   }
 
+  String? blockMember({
+    required KametiModel kameti,
+    required String memberId,
+    required String reason,
+  }) {
+    final member = getMember(memberId);
+    if (member == null) return 'Member not found.';
+    if (member.role == MemberRole.organizer) return 'Organizer cannot be blocked.';
+    state = [
+      for (final item in state)
+        if (item.id == memberId)
+          item.copyWith(status: MemberStatus.blocked, notes: reason.isEmpty ? item.notes : '${item.notes}\nBlocked: $reason', updatedAt: DateTime.now())
+        else
+          item,
+    ];
+    return null;
+  }
+
+  String? unblockMember({
+    required String memberId,
+  }) {
+    final member = getMember(memberId);
+    if (member == null) return 'Member not found.';
+    state = [
+      for (final item in state)
+        if (item.id == memberId) item.copyWith(status: MemberStatus.active, updatedAt: DateTime.now()) else item,
+    ];
+    return null;
+  }
+
   void markMemberReceived({
     required String memberId,
     required String cycleId,

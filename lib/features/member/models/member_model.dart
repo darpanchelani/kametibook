@@ -1,7 +1,8 @@
 enum MemberStatus {
   pending('Pending'),
   active('Active'),
-  removed('Removed');
+  removed('Removed'),
+  blocked('Blocked');
 
   const MemberStatus(this.label);
   final String label;

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/routes.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/snackbar_helper.dart';
 import '../../member/providers/member_controller.dart';
+import '../../security/models/security_models.dart';
+import '../../security/screens/create_dispute_screen.dart';
 import '../models/ledger_entry_model.dart';
 import '../providers/ledger_controller.dart';
 import '../widgets/ledger_direction_badge.dart';
@@ -28,7 +31,8 @@ class LedgerDetailScreen extends ConsumerWidget {
     if (entry == null) {
       return Scaffold(appBar: AppBar(title: const Text('Ledger Detail')), body: const Center(child: Text('Entry not found')));
     }
-    final member = ref.read(memberControllerProvider.notifier).getMember(entry.memberId);
+    final selectedEntry = entry;
+    final member = ref.read(memberControllerProvider.notifier).getMember(selectedEntry.memberId);
     return Scaffold(
       appBar: AppBar(title: const Text('Ledger Detail')),
       body: SafeArea(
@@ -37,17 +41,17 @@ class LedgerDetailScreen extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(entry.title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                Text(selectedEntry.title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 10),
-                Wrap(spacing: 8, runSpacing: 8, children: [LedgerTypeBadge(type: entry.entryType), LedgerDirectionBadge(direction: entry.direction), Chip(label: Text(entry.status.label))]),
+                Wrap(spacing: 8, runSpacing: 8, children: [LedgerTypeBadge(type: selectedEntry.entryType), LedgerDirectionBadge(direction: selectedEntry.direction), Chip(label: Text(selectedEntry.status.label))]),
                 const SizedBox(height: 12),
-                _Line(label: 'Amount', value: CurrencyFormatter.pkr(entry.amount)),
+                _Line(label: 'Amount', value: CurrencyFormatter.pkr(selectedEntry.amount)),
                 _Line(label: 'Member', value: member?.fullName ?? '-'),
-                _Line(label: 'Payment Method', value: entry.paymentMethod?.label ?? '-'),
-                _Line(label: 'Entry Date', value: DateFormatter.display(entry.entryDate)),
-                _Line(label: 'Created By', value: entry.createdBy),
-                _Line(label: 'Description', value: entry.description.isEmpty ? '-' : entry.description),
-                ProofIndicator(proofPath: entry.proofPath),
+                _Line(label: 'Payment Method', value: selectedEntry.paymentMethod?.label ?? '-'),
+                _Line(label: 'Entry Date', value: DateFormatter.display(selectedEntry.entryDate)),
+                _Line(label: 'Created By', value: selectedEntry.createdBy),
+                _Line(label: 'Description', value: selectedEntry.description.isEmpty ? '-' : selectedEntry.description),
+                ProofIndicator(proofPath: selectedEntry.proofPath),
               ]),
             ),
           ),
@@ -55,6 +59,19 @@ class LedgerDetailScreen extends ConsumerWidget {
           OutlinedButton(
             onPressed: () => SnackbarHelper.showInfo(context, 'Advanced ledger corrections will be available in future phases.'),
             child: const Text('Reverse Entry'),
+          ),
+          TextButton.icon(
+            onPressed: () => Navigator.of(context).pushNamed(
+              AppRoutes.createDispute,
+              arguments: CreateDisputeArgs(
+                kametiId: selectedEntry.kametiId,
+                relatedEntityType: DisputeRelatedEntityType.ledgerEntry,
+                relatedEntityId: selectedEntry.id,
+                defaultType: DisputeType.ledgerIssue,
+              ),
+            ),
+            icon: const Icon(Icons.report_problem_outlined),
+            label: const Text('Report Ledger Issue'),
           ),
         ]),
       ),

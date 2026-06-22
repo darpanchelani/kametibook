@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/routes.dart';
+import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../auth/providers/auth_controller.dart';
 import '../../bidding/providers/bidding_controller.dart';
 import '../../bidding/widgets/discount_adjustment_card.dart';
+import '../../kameti/providers/kameti_controller.dart';
 import '../../ledger/providers/ledger_controller.dart';
 import '../../ledger/widgets/ledger_entry_card.dart';
 import '../../ledger/widgets/ledger_summary_card.dart';
@@ -13,6 +17,10 @@ import '../../payment/providers/payment_controller.dart';
 import '../../payment/widgets/payment_status_badge.dart';
 import '../../receiver/providers/receiver_controller.dart';
 import '../../receiver/widgets/receiver_allocation_card.dart';
+import '../../security/models/security_models.dart';
+import '../../security/providers/security_controller.dart';
+import '../../security/screens/report_user_screen.dart';
+import '../../security/widgets/security_widgets.dart';
 import '../models/member_model.dart';
 import '../providers/member_controller.dart';
 import '../widgets/member_info_tile.dart';
@@ -30,6 +38,7 @@ class MemberDetailsScreen extends ConsumerWidget {
     ref.watch(biddingControllerProvider);
     ref.watch(receiverControllerProvider);
     ref.watch(ledgerControllerProvider);
+    ref.watch(securityControllerProvider);
     MemberModel? member;
     for (final item in ref.watch(memberControllerProvider)) {
       if (item.id == memberId) {
@@ -61,9 +70,39 @@ class MemberDetailsScreen extends ConsumerWidget {
     final allocations = receiverController.getAllocationsByMemberId(selectedMember.id);
     final memberLedgerSummary = ledgerController.calculateMemberLedgerSummary(selectedMember.id);
     final memberLedgerEntries = ledgerController.getLedgerEntriesByMemberId(selectedMember.id);
+    final trustScore = ref.read(securityControllerProvider.notifier).calculateMemberTrustScore(
+          member: selectedMember,
+          payments: ref.watch(paymentControllerProvider).payments,
+          ledgerEntries: ref.watch(ledgerControllerProvider),
+        );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Member Details')),
+      appBar: AppBar(
+        title: const Text('Member Details'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'report') {
+                Navigator.of(context).pushNamed(AppRoutes.reportUser, arguments: ReportUserArgs(kametiId: selectedMember.kametiId, memberId: selectedMember.id));
+              }
+              if (value == 'block') {
+                _blockMember(context, ref, selectedMember);
+              }
+              if (value == 'unblock') {
+                ref.read(memberControllerProvider.notifier).unblockMember(memberId: selectedMember.id);
+                SnackbarHelper.showSuccess(context, 'Member unblocked.');
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'report', child: Text('Report User')),
+              if (selectedMember.status == MemberStatus.blocked)
+                const PopupMenuItem(value: 'unblock', child: Text('Unblock Member'))
+              else
+                const PopupMenuItem(value: 'block', child: Text('Block Member')),
+            ],
+          ),
+        ],
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -108,6 +147,13 @@ class MemberDetailsScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 12),
+            TrustScoreCard(
+              score: trustScore,
+              onTap: () => Navigator.of(context).pushNamed(AppRoutes.trustScore, arguments: selectedMember.id),
+            ),
+            if (trustScore.riskLevel == RiskLevel.risky || trustScore.riskLevel == RiskLevel.highRisk)
+              const SecurityWarningCard(message: 'This member has risk indicators. Review payment and dispute history before sensitive actions.'),
             const SizedBox(height: 12),
             Card(
               child: Padding(
@@ -250,6 +296,34 @@ class MemberDetailsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  void _blockMember(BuildContext context, WidgetRef ref, MemberModel member) {
+    final kameti = ref.read(kametiControllerProvider.notifier).byId(member.kametiId);
+    if (kameti == null) {
+      SnackbarHelper.showError(context, 'Kameti not found.');
+      return;
+    }
+    final error = ref.read(memberControllerProvider.notifier).blockMember(kameti: kameti, memberId: member.id, reason: 'Blocked from member detail');
+    if (error != null) {
+      SnackbarHelper.showError(context, error);
+    } else {
+      ref.read(securityControllerProvider.notifier).createAuditLog(
+            kametiId: member.kametiId,
+            userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+            userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+            userRole: 'organizer',
+            actionType: AuditActionType.memberBlocked,
+            entityType: AuditEntityType.member,
+            entityId: member.id,
+            oldValue: member.status.name,
+            newValue: MemberStatus.blocked.name,
+            description: '${member.fullName} was blocked.',
+            severity: AuditSeverity.high,
+          );
+      SnackbarHelper.showSuccess(context, 'Member blocked.');
+    }
+  }
+
 }
 
 class _HistoryStat extends StatelessWidget {

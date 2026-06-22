@@ -17,6 +17,7 @@ class MemberPaymentCard extends StatelessWidget {
     required this.onEdit,
     this.onSubmitProof,
     this.onApproveProof,
+    this.onReportIssue,
     super.key,
   });
 
@@ -29,6 +30,7 @@ class MemberPaymentCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback? onSubmitProof;
   final VoidCallback? onApproveProof;
+  final VoidCallback? onReportIssue;
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +92,7 @@ class MemberPaymentCard extends StatelessWidget {
                 OutlinedButton(onPressed: onMarkLate, child: const Text('Late')),
                 OutlinedButton(onPressed: onReject, child: const Text('Reject')),
                 TextButton(onPressed: onEdit, child: const Text('View/Edit')),
+                if (onReportIssue != null) TextButton(onPressed: onReportIssue, child: const Text('Report Issue')),
               ],
             ),
           ],

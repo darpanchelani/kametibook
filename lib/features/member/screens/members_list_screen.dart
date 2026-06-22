@@ -9,6 +9,9 @@ import '../../../core/widgets/empty_state.dart';
 import '../../auth/providers/auth_controller.dart';
 import '../../kameti/models/kameti_model.dart';
 import '../../kameti/providers/kameti_controller.dart';
+import '../../ledger/providers/ledger_controller.dart';
+import '../../payment/providers/payment_controller.dart';
+import '../../security/providers/security_controller.dart';
 import '../models/member_model.dart';
 import '../providers/member_controller.dart';
 import '../widgets/member_card.dart';
@@ -59,6 +62,9 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
     }
 
     ref.watch(memberControllerProvider);
+    ref.watch(securityControllerProvider);
+    ref.watch(paymentControllerProvider);
+    ref.watch(ledgerControllerProvider);
     final controller = ref.read(memberControllerProvider.notifier);
     final activeCount = controller.getActiveMembersCount(kameti.id);
     final allMembers = controller.getMembersByKametiId(kameti.id);
@@ -117,6 +123,11 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
                   selected: _filter == MemberStatus.removed,
                   onTap: () => setState(() => _filter = MemberStatus.removed),
                 ),
+                _FilterChip(
+                  label: 'Blocked',
+                  selected: _filter == MemberStatus.blocked,
+                  onTap: () => setState(() => _filter = MemberStatus.blocked),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -142,18 +153,26 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
               const EmptyState(icon: Icons.search_off_outlined, title: 'No members match your search.')
             else
               ...filteredMembers.map(
-                (member) => MemberCard(
-                  member: member,
-                  canRemove: member.role != MemberRole.organizer &&
-                      member.status != MemberStatus.removed &&
-                      kameti.status == KametiStatus.draft,
-                  onView: () => Navigator.of(context).pushNamed(AppRoutes.memberDetails, arguments: member.id),
-                  onEdit: () => Navigator.of(context).pushNamed(
-                    AppRoutes.editMember,
-                    arguments: {'kametiId': kameti.id, 'memberId': member.id},
-                  ),
-                  onRemove: () => _removeMember(kameti, member),
-                ),
+                (member) {
+                  final score = ref.read(securityControllerProvider.notifier).calculateMemberTrustScore(
+                        member: member,
+                        payments: ref.read(paymentControllerProvider).payments,
+                        ledgerEntries: ref.read(ledgerControllerProvider),
+                      );
+                  return MemberCard(
+                    member: member,
+                    trustScore: score.overallScore,
+                    canRemove: member.role != MemberRole.organizer &&
+                        member.status != MemberStatus.removed &&
+                        kameti.status == KametiStatus.draft,
+                    onView: () => Navigator.of(context).pushNamed(AppRoutes.memberDetails, arguments: member.id),
+                    onEdit: () => Navigator.of(context).pushNamed(
+                      AppRoutes.editMember,
+                      arguments: {'kametiId': kameti.id, 'memberId': member.id},
+                    ),
+                    onRemove: () => _removeMember(kameti, member),
+                  );
+                },
               ),
           ],
         ),

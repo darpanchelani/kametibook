@@ -38,6 +38,15 @@ import '../features/reports/models/report_model.dart';
 import '../features/reports/screens/report_history_screen.dart';
 import '../features/reports/screens/report_preview_screen.dart';
 import '../features/reports/screens/reports_dashboard_screen.dart';
+import '../features/security/screens/audit_detail_screen.dart';
+import '../features/security/screens/audit_log_screen.dart';
+import '../features/security/screens/create_dispute_screen.dart';
+import '../features/security/screens/dispute_detail_screen.dart';
+import '../features/security/screens/disputes_screen.dart';
+import '../features/security/screens/privacy_settings_screen.dart';
+import '../features/security/screens/report_user_screen.dart';
+import '../features/security/screens/security_center_screen.dart';
+import '../features/security/screens/trust_score_detail_screen.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -76,6 +85,15 @@ class AppRoutes {
   static const inviteMember = '/invite-member';
   static const joinKameti = '/join-kameti';
   static const submitPaymentProof = '/submit-payment-proof';
+  static const securityCenter = '/security-center';
+  static const auditLogs = '/audit-logs';
+  static const auditDetail = '/audit-detail';
+  static const disputes = '/disputes';
+  static const disputeDetail = '/dispute-detail';
+  static const createDispute = '/create-dispute';
+  static const trustScore = '/trust-score';
+  static const privacySettings = '/privacy-settings';
+  static const reportUser = '/report-user';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     return MaterialPageRoute(
@@ -160,6 +178,25 @@ class AppRoutes {
             return const JoinKametiScreen();
           case submitPaymentProof:
             return SubmitPaymentProofScreen(paymentId: settings.arguments! as String);
+          case securityCenter:
+            final kametiId = settings.arguments is String ? settings.arguments! as String : '';
+            return SecurityCenterScreen(kametiId: kametiId);
+          case auditLogs:
+            return AuditLogScreen(kametiId: settings.arguments! as String);
+          case auditDetail:
+            return AuditDetailScreen(auditId: settings.arguments! as String);
+          case disputes:
+            return DisputesScreen(kametiId: settings.arguments! as String);
+          case disputeDetail:
+            return DisputeDetailScreen(disputeId: settings.arguments! as String);
+          case createDispute:
+            return CreateDisputeScreen(args: settings.arguments! as CreateDisputeArgs);
+          case trustScore:
+            return TrustScoreDetailScreen(memberId: settings.arguments! as String);
+          case privacySettings:
+            return const PrivacySettingsScreen();
+          case reportUser:
+            return ReportUserScreen(args: settings.arguments! as ReportUserArgs);
           default:
             return const SplashScreen();
         }

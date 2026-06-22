@@ -13,6 +13,7 @@ class MemberStatusBadge extends StatelessWidget {
       MemberStatus.pending => Colors.orange.shade700,
       MemberStatus.active => Theme.of(context).colorScheme.primary,
       MemberStatus.removed => Colors.red.shade700,
+      MemberStatus.blocked => Colors.red.shade900,
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

@@ -22,5 +22,13 @@ service firebase.storage {
       allow read: if kametiMember(kametiId);
       allow write: if kametiManager(kametiId);
     }
+    match /kametis/{kametiId}/disputes/{disputeId}/{fileName} {
+      allow read: if kametiMember(kametiId);
+      allow write: if kametiMember(kametiId);
+    }
+    match /kametis/{kametiId}/reports/{reportId}/{fileName} {
+      allow read: if kametiMember(kametiId);
+      allow write: if kametiManager(kametiId);
+    }
   }
 }

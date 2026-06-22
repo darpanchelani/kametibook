@@ -31,6 +31,8 @@ import '../../receiver/models/receiver_allocation_model.dart';
 import '../../receiver/providers/receiver_controller.dart';
 import '../../receiver/widgets/owner_first_info_card.dart';
 import '../../receiver/widgets/receiver_allocation_card.dart';
+import '../../security/models/security_models.dart';
+import '../../security/providers/security_controller.dart';
 import '../models/kameti_model.dart';
 import '../providers/kameti_controller.dart';
 
@@ -69,6 +71,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     ref.watch(receiverControllerProvider);
     ref.watch(ledgerControllerProvider);
     ref.watch(notificationControllerProvider);
+    ref.watch(securityControllerProvider);
     final memberController = ref.read(memberControllerProvider.notifier);
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final drawController = ref.read(luckyDrawControllerProvider.notifier);
@@ -101,6 +104,16 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
         .getNotificationsByKametiId(userId, selectedKameti.id)
         .where((item) => item.isUnread || item.priority == NotificationPriority.urgent)
         .length;
+    final trustScores = members
+        .map((member) => ref.read(securityControllerProvider.notifier).calculateMemberTrustScore(
+              member: member,
+              payments: ref.read(paymentControllerProvider).payments,
+              ledgerEntries: ref.read(ledgerControllerProvider),
+            ))
+        .toList();
+    final averageTrust = trustScores.isEmpty ? 0 : trustScores.fold<double>(0, (total, score) => total + score.overallScore) / trustScores.length;
+    final riskyMembers = trustScores.where((score) => score.riskLevel == RiskLevel.risky || score.riskLevel == RiskLevel.highRisk).length;
+    final excellentMembers = trustScores.where((score) => score.riskLevel == RiskLevel.excellent).length;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Kameti Details')),
@@ -160,6 +173,25 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
                 subtitle: const Text('View kameti alerts or configure reminder settings.'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiAlerts, arguments: selectedKameti.id),
+              ),
+            ),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('Security & Trust', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 8),
+                  Text('Average Trust: ${averageTrust.round()}'),
+                  Text('Risky Members: $riskyMembers'),
+                  Text('Excellent Members: $excellentMembers'),
+                  const SizedBox(height: 10),
+                  AppButton(
+                    label: 'Open Security Center',
+                    icon: Icons.security_outlined,
+                    isOutlined: true,
+                    onPressed: () => Navigator.of(context).pushNamed(AppRoutes.securityCenter, arguments: selectedKameti.id),
+                  ),
+                ]),
               ),
             ),
             TextButton.icon(
@@ -553,6 +585,19 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
           userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
           kameti: kameti,
         );
+    ref.read(securityControllerProvider.notifier).createAuditLog(
+          kametiId: kameti.id,
+          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+          userRole: 'organizer',
+          actionType: AuditActionType.kametiStarted,
+          entityType: AuditEntityType.kameti,
+          entityId: kameti.id,
+          oldValue: KametiStatus.draft.name,
+          newValue: KametiStatus.active.name,
+          description: 'Kameti started and payment cycles generated.',
+          severity: AuditSeverity.high,
+        );
     ref.read(notificationControllerProvider.notifier).generateScheduledRemindersForKameti(
           userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
           kameti: activeKameti,
@@ -618,6 +663,18 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
                 actionRoute: AppRoutes.kametiDetails,
               ),
         );
+    ref.read(securityControllerProvider.notifier).createAuditLog(
+          kametiId: kameti.id,
+          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+          userRole: 'organizer',
+          actionType: AuditActionType.receiverConfirmed,
+          entityType: AuditEntityType.receiverAllocation,
+          entityId: cycle.id,
+          newValue: organizer.id,
+          description: 'Organizer confirmed as receiver.',
+          severity: AuditSeverity.high,
+        );
     SnackbarHelper.showSuccess(context, 'Organizer confirmed as receiver.');
   }
 
@@ -666,6 +723,18 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
                 actionRoute: AppRoutes.kametiDetails,
               ),
         );
+    ref.read(securityControllerProvider.notifier).createAuditLog(
+          kametiId: kameti.id,
+          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+          userRole: 'organizer',
+          actionType: AuditActionType.receiverConfirmed,
+          entityType: AuditEntityType.receiverAllocation,
+          entityId: cycle.id,
+          newValue: member.id,
+          description: 'Fixed order receiver confirmed.',
+          severity: AuditSeverity.high,
+        );
     SnackbarHelper.showSuccess(context, 'Receiver confirmed successfully.');
   }
 
@@ -705,6 +774,17 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
                       actionType: NotificationActionType.openKameti,
                       actionRoute: AppRoutes.kametiDetails,
                     ),
+              );
+          ref.read(securityControllerProvider.notifier).createAuditLog(
+                kametiId: allocation.kametiId,
+                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+                userRole: 'organizer',
+                actionType: AuditActionType.payoutMarkedPaid,
+                entityType: AuditEntityType.payout,
+                entityId: allocation.id,
+                description: 'Payout marked paid.',
+                severity: AuditSeverity.high,
               );
           Navigator.of(sheetContext).pop();
           SnackbarHelper.showSuccess(context, 'Payout marked as paid.');

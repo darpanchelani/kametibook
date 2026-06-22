@@ -8,6 +8,8 @@ import '../../../core/widgets/app_button.dart';
 import '../../auth/providers/auth_controller.dart';
 import '../../notifications/models/notification_model.dart';
 import '../../notifications/providers/notification_controller.dart';
+import '../../security/models/security_models.dart';
+import '../../security/providers/security_controller.dart';
 import '../models/report_model.dart';
 import '../providers/report_controller.dart';
 import '../providers/report_pdf_service.dart';
@@ -121,6 +123,17 @@ class _ReportPreviewScreenState extends ConsumerState<ReportPreviewScreen> {
                   actionType: NotificationActionType.openReport,
                   actionRoute: AppRoutes.reportHistory,
                 ),
+          );
+      ref.read(securityControllerProvider.notifier).createAuditLog(
+            kametiId: updatedModel.kametiId,
+            userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+            userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+            userRole: 'organizer',
+            actionType: AuditActionType.reportGenerated,
+            entityType: AuditEntityType.report,
+            entityId: updatedModel.id,
+            description: '${updatedModel.title} exported as PDF.',
+            severity: AuditSeverity.medium,
           );
       if (mounted) SnackbarHelper.showSuccess(context, 'PDF generated successfully.');
     } catch (_) {

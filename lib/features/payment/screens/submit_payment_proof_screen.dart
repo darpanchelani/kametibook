@@ -8,6 +8,8 @@ import '../../../core/services/firebase_bootstrap.dart';
 import '../../../core/utils/snackbar_helper.dart';
 import '../../auth/providers/auth_controller.dart';
 import '../../cloud/services/storage_service.dart';
+import '../../security/models/security_models.dart';
+import '../../security/providers/security_controller.dart';
 import '../models/payment_models.dart';
 import '../providers/payment_controller.dart';
 
@@ -107,6 +109,19 @@ class _SubmitPaymentProofScreenState extends ConsumerState<SubmitPaymentProofScr
             proofUrl: proofUrl,
             note: _noteController.text.trim(),
             submittedBy: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          );
+      ref.read(securityControllerProvider.notifier).createAuditLog(
+            kametiId: payment.kametiId,
+            userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+            userName: ref.read(authControllerProvider).user?.fullName ?? 'Member',
+            userRole: 'member',
+            actionType: AuditActionType.paymentProofSubmitted,
+            entityType: AuditEntityType.payment,
+            entityId: payment.id,
+            oldValue: payment.paymentStatus.name,
+            newValue: PaymentStatus.pendingApproval.name,
+            description: 'Member submitted payment proof for approval.',
+            severity: AuditSeverity.medium,
           );
       if (mounted) {
         SnackbarHelper.showSuccess(context, 'Payment proof submitted for approval.');

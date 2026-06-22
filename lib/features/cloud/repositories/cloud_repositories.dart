@@ -8,6 +8,7 @@ import '../../notifications/models/notification_model.dart';
 import '../../payment/models/payment_models.dart';
 import '../../receiver/models/receiver_allocation_model.dart';
 import '../../reports/models/report_model.dart';
+import '../../security/models/security_models.dart';
 
 abstract class KametiRepository {
   Future<void> createKameti(KametiModel kameti);
@@ -73,6 +74,35 @@ abstract class NotificationRepository {
   Stream<QuerySnapshot<Map<String, dynamic>>> streamUserNotifications(String userId);
   Future<void> markAsRead(String userId, String notificationId);
   Future<void> markAllAsRead(String userId);
+}
+
+abstract class AuditLogRepository {
+  Future<void> createAuditLog(AuditLogModel log);
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamAuditLogs(String kametiId);
+  Stream<QuerySnapshot<Map<String, dynamic>>> getUserSecurityLogs(String userId);
+}
+
+abstract class DisputeRepository {
+  Future<void> createDispute(DisputeModel dispute);
+  Future<void> updateDispute(String kametiId, String disputeId, Map<String, Object?> data);
+  Future<void> addDisputeComment(DisputeCommentModel comment);
+  Future<void> resolveDispute(String kametiId, String disputeId, Map<String, Object?> resolution);
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamDisputes(String kametiId);
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamUserDisputes(String userId);
+}
+
+abstract class TrustScoreRepository {
+  Future<void> updateTrustScore(TrustScoreModel score);
+  Stream<DocumentSnapshot<Map<String, dynamic>>> streamTrustScore(String userId);
+  Stream<QuerySnapshot<Map<String, dynamic>>> getRiskyMembers(String kametiId);
+}
+
+abstract class SecurityRepository {
+  Future<void> reportUser(ReportUserModel report);
+  Future<void> blockMember(String kametiId, String memberId, String reason);
+  Future<void> unblockMember(String kametiId, String memberId);
+  Future<void> createDeletionRequest(DeletionRequestModel request);
+  Future<void> updatePrivacySettings(PrivacySettingsModel settings);
 }
 
 class FirebaseKametiRepository implements KametiRepository {
@@ -243,4 +273,58 @@ class FirebaseNotificationRepository implements NotificationRepository {
     }
     await batch.commit();
   }
+}
+
+class FirebaseAuditLogRepository implements AuditLogRepository {
+  FirebaseAuditLogRepository({FirebaseFirestore? firestore}) : _firestore = firestore ?? FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
+  @override
+  Future<void> createAuditLog(AuditLogModel log) => _firestore.collection('kametis').doc(log.kametiId).collection('auditLogs').doc(log.id).set({'id': log.id, 'userId': log.userId, 'userName': log.userName, 'actionType': log.actionType.name, 'entityType': log.entityType.name, 'entityId': log.entityId, 'description': log.description, 'severity': log.severity.name, 'createdAt': log.createdAt.millisecondsSinceEpoch});
+  @override
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamAuditLogs(String kametiId) => _firestore.collection('kametis').doc(kametiId).collection('auditLogs').snapshots();
+  @override
+  Stream<QuerySnapshot<Map<String, dynamic>>> getUserSecurityLogs(String userId) => _firestore.collection('users').doc(userId).collection('securityLogs').snapshots();
+}
+
+class FirebaseDisputeRepository implements DisputeRepository {
+  FirebaseDisputeRepository({FirebaseFirestore? firestore}) : _firestore = firestore ?? FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
+  @override
+  Future<void> createDispute(DisputeModel dispute) => _firestore.collection('kametis').doc(dispute.kametiId).collection('disputes').doc(dispute.id).set({'id': dispute.id, 'createdBy': dispute.createdBy, 'againstUserId': dispute.againstUserId, 'type': dispute.disputeType.name, 'status': dispute.status.name, 'priority': dispute.priority.name, 'title': dispute.title, 'description': dispute.description, 'createdAt': dispute.createdAt.millisecondsSinceEpoch});
+  @override
+  Future<void> updateDispute(String kametiId, String disputeId, Map<String, Object?> data) => _firestore.collection('kametis').doc(kametiId).collection('disputes').doc(disputeId).update(data);
+  @override
+  Future<void> addDisputeComment(DisputeCommentModel comment) => _firestore.collection('kametis').doc(comment.kametiId).collection('disputes').doc(comment.disputeId).collection('comments').doc(comment.id).set({'id': comment.id, 'userId': comment.userId, 'userName': comment.userName, 'message': comment.message, 'createdAt': comment.createdAt.millisecondsSinceEpoch});
+  @override
+  Future<void> resolveDispute(String kametiId, String disputeId, Map<String, Object?> resolution) => updateDispute(kametiId, disputeId, resolution);
+  @override
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamDisputes(String kametiId) => _firestore.collection('kametis').doc(kametiId).collection('disputes').snapshots();
+  @override
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamUserDisputes(String userId) => _firestore.collectionGroup('disputes').where('createdBy', isEqualTo: userId).snapshots();
+}
+
+class FirebaseTrustScoreRepository implements TrustScoreRepository {
+  FirebaseTrustScoreRepository({FirebaseFirestore? firestore}) : _firestore = firestore ?? FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
+  @override
+  Future<void> updateTrustScore(TrustScoreModel score) => _firestore.collection('users').doc(score.userId).collection('trustScores').doc(score.kametiId.isEmpty ? 'global' : score.kametiId).set({'overallScore': score.overallScore, 'riskLevel': score.riskLevel.name, 'updatedAt': score.updatedAt.millisecondsSinceEpoch});
+  @override
+  Stream<DocumentSnapshot<Map<String, dynamic>>> streamTrustScore(String userId) => _firestore.collection('users').doc(userId).collection('trustScores').doc('global').snapshots();
+  @override
+  Stream<QuerySnapshot<Map<String, dynamic>>> getRiskyMembers(String kametiId) => _firestore.collection('kametis').doc(kametiId).collection('trustScores').where('riskLevel', whereIn: ['risky', 'highRisk']).snapshots();
+}
+
+class FirebaseSecurityRepository implements SecurityRepository {
+  FirebaseSecurityRepository({FirebaseFirestore? firestore}) : _firestore = firestore ?? FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
+  @override
+  Future<void> reportUser(ReportUserModel report) => _firestore.collection('kametis').doc(report.kametiId).collection('userReports').doc(report.id).set({'id': report.id, 'reportedUserId': report.reportedUserId, 'reportedBy': report.reportedBy, 'reason': report.reason.name, 'description': report.description, 'status': report.status, 'createdAt': report.createdAt.millisecondsSinceEpoch});
+  @override
+  Future<void> blockMember(String kametiId, String memberId, String reason) => _firestore.collection('kametis').doc(kametiId).collection('members').doc(memberId).update({'status': 'blocked', 'blockReason': reason});
+  @override
+  Future<void> unblockMember(String kametiId, String memberId) => _firestore.collection('kametis').doc(kametiId).collection('members').doc(memberId).update({'status': 'active'});
+  @override
+  Future<void> createDeletionRequest(DeletionRequestModel request) => _firestore.collection('deletionRequests').doc(request.id).set({'id': request.id, 'userId': request.userId, 'reason': request.reason, 'status': request.status, 'requestedAt': request.requestedAt.millisecondsSinceEpoch});
+  @override
+  Future<void> updatePrivacySettings(PrivacySettingsModel settings) => _firestore.collection('users').doc(settings.userId).collection('settings').doc('privacy').set({'hidePhoneFromMembers': settings.hidePhoneFromMembers, 'hideCityFromMembers': settings.hideCityFromMembers, 'hideCnicInReports': settings.hideCnicInReports, 'allowGroupMembersViewFullLedger': settings.allowGroupMembersViewFullLedger});
 }
