@@ -80,6 +80,9 @@ class MemberController extends StateNotifier<List<MemberModel>> {
         joinedAt: now,
         createdAt: now,
         updatedAt: now,
+        userId: currentUser?.id ?? '',
+        joinedByApp: currentUser != null,
+        linkedAt: currentUser == null ? null : now,
       ),
     );
   }

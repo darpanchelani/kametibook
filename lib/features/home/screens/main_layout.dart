@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/providers/auth_controller.dart';
+import '../../../core/widgets/app_state_views.dart';
 import '../../kameti/screens/my_kametis_screen.dart';
 import '../../notifications/providers/notification_controller.dart';
 import '../../notifications/screens/notifications_screen.dart';
@@ -30,7 +31,16 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
-    final userId = ref.watch(authControllerProvider).user?.id ?? 'mock-user';
+    final authState = ref.watch(authControllerProvider);
+    if (!authState.isAuthenticated) {
+      return const Scaffold(
+        body: AppPermissionDeniedView(
+          title: 'Login required',
+          message: 'Please login with an active KametiBook account to continue.',
+        ),
+      );
+    }
+    final userId = authState.user!.id;
     final unreadCount = ref.watch(notificationControllerProvider).where((item) => item.userId == userId && item.isUnread).length;
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),

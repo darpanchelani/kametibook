@@ -309,7 +309,7 @@ class MemberDetailsScreen extends ConsumerWidget {
     } else {
       ref.read(securityControllerProvider.notifier).createAuditLog(
             kametiId: member.kametiId,
-            userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+            userId: ref.read(authControllerProvider).user?.id ?? '',
             userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
             userRole: 'organizer',
             actionType: AuditActionType.memberBlocked,

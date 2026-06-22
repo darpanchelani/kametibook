@@ -5,6 +5,7 @@ import '../../../app/routes.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/app_state_views.dart';
 import '../../../core/widgets/summary_card.dart';
 import '../../auth/providers/auth_controller.dart';
 import '../../kameti/models/kameti_model.dart';
@@ -26,7 +27,16 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
-    final kametis = ref.watch(kametiControllerProvider);
+    if (user == null) {
+      return const Scaffold(
+        body: AppPermissionDeniedView(
+          title: 'Login required',
+          message: 'Please login with an active KametiBook account.',
+        ),
+      );
+    }
+    ref.watch(kametiControllerProvider);
+    final kametis = ref.read(kametiControllerProvider.notifier).visibleToUser(user.id);
     ref.watch(memberControllerProvider);
     ref.watch(paymentControllerProvider);
     ref.watch(luckyDrawControllerProvider);
@@ -75,7 +85,7 @@ class HomeScreen extends ConsumerWidget {
       0,
       (total, kameti) => total + receiverController.getPendingPayoutProofs(kameti.id),
     );
-    final userId = user?.id ?? 'mock-user';
+    final userId = user.id;
     _runNotificationChecks(ref, userId);
     final unreadNotifications = ref.read(notificationControllerProvider.notifier).getUnreadCount(userId);
     final urgentAlerts = ref.read(notificationControllerProvider.notifier).getUrgentCount(userId);
@@ -88,7 +98,7 @@ class HomeScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              'Assalam o Alaikum, ${user?.fullName ?? 'User'}',
+              'Assalam o Alaikum, ${user.fullName}',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 16),
@@ -176,7 +186,7 @@ class HomeScreen extends ConsumerWidget {
             if (recent.isEmpty)
               const EmptyState(
                 icon: Icons.savings_outlined,
-                title: 'No kameti created yet. Start your first kameti today.',
+                title: 'Your KametiBook is empty. Create or join your first kameti.',
               )
             else
               ...recent.map(
@@ -225,7 +235,7 @@ class HomeScreen extends ConsumerWidget {
 
   void _runNotificationChecks(WidgetRef ref, String userId) {
     final notificationController = ref.read(notificationControllerProvider.notifier);
-    final kametis = ref.read(kametiControllerProvider);
+    final kametis = ref.read(kametiControllerProvider.notifier).visibleToUser(userId);
     final cycles = ref.read(paymentControllerProvider).cycles;
     final payments = ref.read(paymentControllerProvider).payments;
     final members = ref.read(memberControllerProvider);

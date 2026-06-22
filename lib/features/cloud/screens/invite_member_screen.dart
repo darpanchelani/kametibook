@@ -72,7 +72,7 @@ class _InviteMemberScreenState extends ConsumerState<InviteMemberScreen> {
           kameti: kameti,
           invitedPhone: phone,
           role: _role,
-          invitedBy: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          invitedBy: ref.read(authControllerProvider).user?.id ?? '',
         );
     final message =
         'You are invited to join ${kameti.name} on KametiBook.\nInvite Code: ${invite.inviteCode}\nMonthly Amount: ${CurrencyFormatter.pkr(kameti.monthlyAmount)}\nOpen KametiBook and enter this code to join.';

@@ -92,7 +92,7 @@ class _CreateDisputeScreenState extends ConsumerState<CreateDisputeScreen> {
     final user = ref.read(authControllerProvider).user;
     ref.read(securityControllerProvider.notifier).createDispute(
           kametiId: widget.args.kametiId,
-          createdBy: user?.id ?? 'mock-user',
+          createdBy: user?.id ?? '',
           createdByName: user?.fullName ?? 'Kameti User',
           againstUserId: '',
           againstUserName: '',

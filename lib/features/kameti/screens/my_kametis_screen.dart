@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/routes.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/app_state_views.dart';
 import '../models/kameti_model.dart';
+import '../../auth/providers/auth_controller.dart';
 import '../../member/providers/member_controller.dart';
 import '../../lucky_draw/providers/lucky_draw_controller.dart';
 import '../../bidding/models/bidding_models.dart';
@@ -20,7 +22,17 @@ class MyKametisScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final kametis = ref.watch(kametiControllerProvider);
+    final user = ref.watch(authControllerProvider).user;
+    if (user == null) {
+      return const Scaffold(
+        body: AppPermissionDeniedView(
+          title: 'Login required',
+          message: 'Please login with an active KametiBook account.',
+        ),
+      );
+    }
+    ref.watch(kametiControllerProvider);
+    final kametis = ref.read(kametiControllerProvider.notifier).visibleToUser(user.id);
     ref.watch(memberControllerProvider);
     ref.watch(paymentControllerProvider);
     ref.watch(luckyDrawControllerProvider);
@@ -39,7 +51,7 @@ class MyKametisScreen extends ConsumerWidget {
         child: kametis.isEmpty
             ? EmptyState(
                 icon: Icons.groups_2_outlined,
-                title: 'No kameti groups yet',
+                title: 'Your KametiBook is empty. Create or join your first kameti.',
                 action: AppButton(
                   label: 'Create Kameti',
                   icon: Icons.add,

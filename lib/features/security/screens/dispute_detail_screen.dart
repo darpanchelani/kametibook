@@ -85,7 +85,7 @@ class _DisputeDetailScreenState extends ConsumerState<DisputeDetailScreen> {
     ref.read(securityControllerProvider.notifier).updateDisputeStatus(
           disputeId: dispute.id,
           status: status,
-          userId: user?.id ?? 'mock-user',
+          userId: user?.id ?? '',
           userName: user?.fullName ?? 'Organizer',
           response: _responseController.text.trim(),
           resolutionNote: _responseController.text.trim(),
@@ -100,7 +100,7 @@ class _DisputeDetailScreenState extends ConsumerState<DisputeDetailScreen> {
     ref.read(securityControllerProvider.notifier).addDisputeComment(
           disputeId: dispute.id,
           kametiId: dispute.kametiId,
-          userId: user?.id ?? 'mock-user',
+          userId: user?.id ?? '',
           userName: user?.fullName ?? 'Kameti User',
           message: message,
         );

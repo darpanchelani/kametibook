@@ -3,12 +3,16 @@ service firebase.storage {
   match /b/{bucket}/o {
     function signedIn() { return request.auth != null; }
     function kametiMember(kametiId) {
-      return signedIn() && firestore.exists(/databases/(default)/documents/kametis/$(kametiId)/members/$(request.auth.uid));
+      return signedIn()
+        && (firestore.exists(/databases/(default)/documents/kametis/$(kametiId)/members/$(request.auth.uid))
+          || firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)/joinedKametis/$(kametiId)));
     }
     function kametiManager(kametiId) {
       return signedIn()
-        && firestore.exists(/databases/(default)/documents/kametis/$(kametiId)/members/$(request.auth.uid))
-        && firestore.get(/databases/(default)/documents/kametis/$(kametiId)/members/$(request.auth.uid)).data.role in ['organizer', 'coOrganizer'];
+        && ((firestore.exists(/databases/(default)/documents/kametis/$(kametiId)/members/$(request.auth.uid))
+            && firestore.get(/databases/(default)/documents/kametis/$(kametiId)/members/$(request.auth.uid)).data.role in ['organizer', 'coOrganizer'])
+          || (firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)/joinedKametis/$(kametiId))
+            && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)/joinedKametis/$(kametiId)).data.role in ['organizer', 'coOrganizer']));
     }
 
     match /users/{userId}/{fileName} {

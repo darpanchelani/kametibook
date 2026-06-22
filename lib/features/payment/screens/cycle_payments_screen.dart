@@ -209,7 +209,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
     };
     ref.read(notificationControllerProvider.notifier).createNotification(
           ref.read(notificationControllerProvider.notifier).buildNotification(
-                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                userId: ref.read(authControllerProvider).user?.id ?? '',
                 kametiId: payment.kametiId,
                 cycleId: payment.cycleId,
                 memberId: payment.memberId,
@@ -228,7 +228,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
     final user = ref.read(authControllerProvider).user;
     ref.read(securityControllerProvider.notifier).createAuditLog(
           kametiId: payment.kametiId,
-          userId: user?.id ?? 'mock-user',
+          userId: user?.id ?? '',
           userName: user?.fullName ?? 'Organizer',
           userRole: 'organizer',
           actionType: action,

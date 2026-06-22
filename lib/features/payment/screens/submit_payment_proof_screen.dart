@@ -108,11 +108,11 @@ class _SubmitPaymentProofScreenState extends ConsumerState<SubmitPaymentProofScr
             proofImagePath: _proof?.path ?? '',
             proofUrl: proofUrl,
             note: _noteController.text.trim(),
-            submittedBy: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+            submittedBy: ref.read(authControllerProvider).user?.id ?? '',
           );
       ref.read(securityControllerProvider.notifier).createAuditLog(
             kametiId: payment.kametiId,
-            userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+            userId: ref.read(authControllerProvider).user?.id ?? '',
             userName: ref.read(authControllerProvider).user?.fullName ?? 'Member',
             userRole: 'member',
             actionType: AuditActionType.paymentProofSubmitted,

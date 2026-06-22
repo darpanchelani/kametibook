@@ -79,6 +79,11 @@ class _CreateKametiScreenState extends ConsumerState<CreateKametiScreen> {
   }
 
   void _submit() {
+    final user = ref.read(authControllerProvider).user;
+    if (user == null) {
+      SnackbarHelper.showError(context, 'Please login before creating a kameti.');
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
     if (_startDate == null) {
       SnackbarHelper.showError(context, 'Start date is required');
@@ -103,12 +108,14 @@ class _CreateKametiScreenState extends ConsumerState<CreateKametiScreen> {
       totalPoolAmount: _totalPool,
       status: KametiStatus.draft,
       createdAt: DateTime.now(),
+      ownerUserId: user.id,
+      memberUserIds: [user.id],
     );
 
     ref.read(kametiControllerProvider.notifier).createKameti(kameti);
     ref.read(memberControllerProvider.notifier).ensureOrganizerMember(
           kameti: kameti,
-          currentUser: ref.read(authControllerProvider).user,
+          currentUser: user,
         );
     SnackbarHelper.showSuccess(context, 'Kameti created successfully.');
     Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.main, (_) => false, arguments: 1);

@@ -10,6 +10,7 @@ class AppTextField extends StatelessWidget {
     this.obscureText = false,
     this.maxLines = 1,
     this.prefixIcon,
+    this.suffixIcon,
     this.onChanged,
     super.key,
   });
@@ -22,6 +23,7 @@ class AppTextField extends StatelessWidget {
   final bool obscureText;
   final int maxLines;
   final IconData? prefixIcon;
+  final Widget? suffixIcon;
   final ValueChanged<String>? onChanged;
 
   @override
@@ -37,6 +39,7 @@ class AppTextField extends StatelessWidget {
         labelText: label,
         hintText: hint,
         prefixIcon: prefixIcon == null ? null : Icon(prefixIcon),
+        suffixIcon: suffixIcon,
       ),
     );
   }

@@ -9,6 +9,40 @@ class KametiController extends StateNotifier<List<KametiModel>> {
     state = [kameti, ...state];
   }
 
+  List<KametiModel> visibleToUser(String userId) {
+    if (userId.isEmpty) return const [];
+    return state
+        .where(
+          (kameti) =>
+              kameti.ownerUserId == userId ||
+              kameti.memberUserIds.contains(userId),
+        )
+        .toList();
+  }
+
+  bool canViewKameti(String kametiId, String userId) {
+    final kameti = byId(kametiId);
+    if (kameti == null || userId.isEmpty) return false;
+    return kameti.ownerUserId == userId || kameti.memberUserIds.contains(userId);
+  }
+
+  bool canManageKameti(String kametiId, String userId) {
+    final kameti = byId(kametiId);
+    if (kameti == null || userId.isEmpty) return false;
+    return kameti.ownerUserId == userId;
+  }
+
+  void addMemberUser(String kametiId, String userId) {
+    if (userId.isEmpty) return;
+    state = [
+      for (final kameti in state)
+        if (kameti.id == kametiId && !kameti.memberUserIds.contains(userId))
+          kameti.copyWith(memberUserIds: [...kameti.memberUserIds, userId])
+        else
+          kameti,
+    ];
+  }
+
   KametiModel? byId(String id) {
     for (final kameti in state) {
       if (kameti.id == id) return kameti;

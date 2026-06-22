@@ -222,7 +222,7 @@ class BiddingScreen extends ConsumerWidget {
     if (error == null) {
       ref.read(notificationControllerProvider.notifier).createNotification(
             ref.read(notificationControllerProvider.notifier).buildNotification(
-                  userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                  userId: ref.read(authControllerProvider).user?.id ?? '',
                   kametiId: kameti.id,
                   cycleId: cycle.id,
                   type: AppNotificationType.biddingStarted,
@@ -235,7 +235,7 @@ class BiddingScreen extends ConsumerWidget {
           );
       ref.read(securityControllerProvider.notifier).createAuditLog(
             kametiId: kameti.id,
-            userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+            userId: ref.read(authControllerProvider).user?.id ?? '',
             userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
             userRole: 'organizer',
             actionType: AuditActionType.biddingStarted,
@@ -302,7 +302,7 @@ class BiddingScreen extends ConsumerWidget {
     if (error == null) {
       ref.read(notificationControllerProvider.notifier).createNotification(
             ref.read(notificationControllerProvider.notifier).buildNotification(
-                  userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                  userId: ref.read(authControllerProvider).user?.id ?? '',
                   kametiId: session.kametiId,
                   cycleId: session.cycleId,
                   relatedBiddingSessionId: session.id,
@@ -316,7 +316,7 @@ class BiddingScreen extends ConsumerWidget {
           );
       ref.read(securityControllerProvider.notifier).createAuditLog(
             kametiId: session.kametiId,
-            userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+            userId: ref.read(authControllerProvider).user?.id ?? '',
             userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
             userRole: 'organizer',
             actionType: AuditActionType.biddingClosed,
@@ -373,7 +373,7 @@ class BiddingScreen extends ConsumerWidget {
         );
     ref.read(notificationControllerProvider.notifier).createNotification(
           ref.read(notificationControllerProvider.notifier).buildNotification(
-                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                userId: ref.read(authControllerProvider).user?.id ?? '',
                 kametiId: session.kametiId,
                 cycleId: session.cycleId,
                 memberId: preview.winningBid.memberId,
@@ -388,7 +388,7 @@ class BiddingScreen extends ConsumerWidget {
         );
     ref.read(securityControllerProvider.notifier).createAuditLog(
           kametiId: session.kametiId,
-          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          userId: ref.read(authControllerProvider).user?.id ?? '',
           userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
           userRole: 'organizer',
           actionType: AuditActionType.biddingCompleted,

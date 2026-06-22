@@ -62,7 +62,7 @@ class _ReportUserScreenState extends ConsumerState<ReportUserScreen> {
           ReportUserModel(
             id: 'report-user-${now.microsecondsSinceEpoch}',
             reportedUserId: widget.args.memberId,
-            reportedBy: user?.id ?? 'mock-user',
+            reportedBy: user?.id ?? '',
             kametiId: widget.args.kametiId,
             reason: _reason,
             description: _descriptionController.text.trim(),

@@ -7,6 +7,7 @@ import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/confirmation_dialog.dart';
+import '../../../core/widgets/app_state_views.dart';
 import '../../auth/providers/auth_controller.dart';
 import '../../bidding/models/bidding_models.dart';
 import '../../bidding/providers/bidding_controller.dart';
@@ -86,6 +87,17 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
         body: const Center(child: Text('Kameti not found')),
       );
     }
+    final signedInUser = ref.watch(authControllerProvider).user;
+    if (signedInUser == null ||
+        !ref.read(kametiControllerProvider.notifier).canViewKameti(selectedKameti.id, signedInUser.id)) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Kameti Details')),
+        body: const AppPermissionDeniedView(
+          title: 'No access to this kameti',
+          message: 'You can only view kametis where you are an approved organizer or member.',
+        ),
+      );
+    }
     final members = memberController.getMembersByKametiId(selectedKameti.id);
     final activeMembersCount = memberController.getActiveMembersCount(selectedKameti.id);
     final remainingSlots = (selectedKameti.totalMembers - activeMembersCount).clamp(0, selectedKameti.totalMembers);
@@ -98,7 +110,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     final currentAllocation = currentCycle == null ? null : receiverController.getCurrentCycleAllocation(selectedKameti.id, currentCycle.id);
     final receivedCount = members.where((member) => member.hasReceivedKameti).length;
     final ledgerSummary = ledgerController.calculateGroupLedgerSummary(selectedKameti.id);
-    final userId = ref.read(authControllerProvider).user?.id ?? 'mock-user';
+    final userId = signedInUser.id;
     final kametiAlerts = ref
         .read(notificationControllerProvider.notifier)
         .getNotificationsByKametiId(userId, selectedKameti.id)
@@ -582,12 +594,12 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
           members: members,
         );
     ref.read(notificationControllerProvider.notifier).createKametiStartedNotification(
-          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          userId: ref.read(authControllerProvider).user?.id ?? '',
           kameti: kameti,
         );
     ref.read(securityControllerProvider.notifier).createAuditLog(
           kametiId: kameti.id,
-          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          userId: ref.read(authControllerProvider).user?.id ?? '',
           userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
           userRole: 'organizer',
           actionType: AuditActionType.kametiStarted,
@@ -599,7 +611,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
           severity: AuditSeverity.high,
         );
     ref.read(notificationControllerProvider.notifier).generateScheduledRemindersForKameti(
-          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          userId: ref.read(authControllerProvider).user?.id ?? '',
           kameti: activeKameti,
           cycles: ref.read(paymentControllerProvider).cycles,
           payments: ref.read(paymentControllerProvider).payments,
@@ -651,7 +663,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
         );
     ref.read(notificationControllerProvider.notifier).createNotification(
           ref.read(notificationControllerProvider.notifier).buildNotification(
-                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                userId: ref.read(authControllerProvider).user?.id ?? '',
                 kametiId: kameti.id,
                 cycleId: cycle.id,
                 memberId: organizer.id,
@@ -665,7 +677,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
         );
     ref.read(securityControllerProvider.notifier).createAuditLog(
           kametiId: kameti.id,
-          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          userId: ref.read(authControllerProvider).user?.id ?? '',
           userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
           userRole: 'organizer',
           actionType: AuditActionType.receiverConfirmed,
@@ -711,7 +723,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
         );
     ref.read(notificationControllerProvider.notifier).createNotification(
           ref.read(notificationControllerProvider.notifier).buildNotification(
-                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                userId: ref.read(authControllerProvider).user?.id ?? '',
                 kametiId: kameti.id,
                 cycleId: cycle.id,
                 memberId: member.id,
@@ -725,7 +737,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
         );
     ref.read(securityControllerProvider.notifier).createAuditLog(
           kametiId: kameti.id,
-          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          userId: ref.read(authControllerProvider).user?.id ?? '',
           userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
           userRole: 'organizer',
           actionType: AuditActionType.receiverConfirmed,
@@ -762,7 +774,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
               );
           ref.read(notificationControllerProvider.notifier).createNotification(
                 ref.read(notificationControllerProvider.notifier).buildNotification(
-                      userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                      userId: ref.read(authControllerProvider).user?.id ?? '',
                       kametiId: allocation.kametiId,
                       cycleId: allocation.cycleId,
                       memberId: allocation.memberId,
@@ -777,7 +789,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
               );
           ref.read(securityControllerProvider.notifier).createAuditLog(
                 kametiId: allocation.kametiId,
-                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                userId: ref.read(authControllerProvider).user?.id ?? '',
                 userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
                 userRole: 'organizer',
                 actionType: AuditActionType.payoutMarkedPaid,

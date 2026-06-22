@@ -110,7 +110,29 @@ class FirebaseKametiRepository implements KametiRepository {
   final FirebaseFirestore _firestore;
 
   @override
-  Future<void> createKameti(KametiModel kameti) => _firestore.collection('kametis').doc(kameti.id).set({'id': kameti.id, 'name': kameti.name, 'type': kameti.type.name, 'status': kameti.status.name, 'organizerName': kameti.organizerName, 'createdAt': kameti.createdAt.millisecondsSinceEpoch});
+  Future<void> createKameti(KametiModel kameti) async {
+    final batch = _firestore.batch();
+    final kametiRef = _firestore.collection('kametis').doc(kameti.id);
+    batch.set(kametiRef, {
+      'id': kameti.id,
+      'name': kameti.name,
+      'type': kameti.type.name,
+      'status': kameti.status.name,
+      'organizerName': kameti.organizerName,
+      'ownerUserId': kameti.ownerUserId,
+      'memberUserIds': kameti.memberUserIds,
+      'createdAt': kameti.createdAt.millisecondsSinceEpoch,
+    });
+    if (kameti.ownerUserId.isNotEmpty) {
+      batch.set(_firestore.collection('users').doc(kameti.ownerUserId).collection('joinedKametis').doc(kameti.id), {
+        'kametiId': kameti.id,
+        'role': 'organizer',
+        'status': 'active',
+        'joinedAt': kameti.createdAt.millisecondsSinceEpoch,
+      });
+    }
+    await batch.commit();
+  }
 
   @override
   Future<void> updateKameti(KametiModel kameti) => _firestore.collection('kametis').doc(kameti.id).update({'name': kameti.name, 'status': kameti.status.name, 'updatedAt': DateTime.now().millisecondsSinceEpoch});
@@ -142,7 +164,7 @@ class FirebaseMemberRepository implements MemberRepository {
   Future<void> acceptInvite(KametiInviteModel invite, String userId) async {
     final batch = _firestore.batch();
     batch.update(_firestore.collection('kametiInvites').doc(invite.id), {'status': KametiInviteStatus.accepted.name, 'acceptedAt': DateTime.now().millisecondsSinceEpoch, 'invitedUserId': userId});
-    batch.set(_firestore.collection('users').doc(userId).collection('joinedKametis').doc(invite.kametiId), {'kametiId': invite.kametiId, 'role': invite.role.name, 'joinedAt': DateTime.now().millisecondsSinceEpoch});
+    batch.set(_firestore.collection('users').doc(userId).collection('joinedKametis').doc(invite.kametiId), {'kametiId': invite.kametiId, 'role': invite.role.name, 'status': 'active', 'joinedAt': DateTime.now().millisecondsSinceEpoch});
     await batch.commit();
   }
 

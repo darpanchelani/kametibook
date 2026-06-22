@@ -22,7 +22,7 @@ class _KametiAlertsScreenState extends ConsumerState<KametiAlertsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userId = ref.watch(authControllerProvider).user?.id ?? 'mock-user';
+    final userId = ref.watch(authControllerProvider).user?.id ?? '';
     ref.watch(notificationControllerProvider);
     final controller = ref.read(notificationControllerProvider.notifier);
     final kameti = ref.read(kametiControllerProvider.notifier).byId(widget.kametiId);

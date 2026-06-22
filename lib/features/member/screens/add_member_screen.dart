@@ -58,7 +58,7 @@ class AddMemberScreen extends ConsumerWidget {
                     );
                 if (error != null) return error;
                 ref.read(notificationControllerProvider.notifier).createMemberAddedNotification(
-                      userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                      userId: ref.read(authControllerProvider).user?.id ?? '',
                       kameti: kameti,
                       member: member,
                     );

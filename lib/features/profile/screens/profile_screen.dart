@@ -84,8 +84,9 @@ class ProfileScreen extends ConsumerWidget {
               label: 'Logout',
               icon: Icons.logout,
               isOutlined: true,
-              onPressed: () {
-                ref.read(authControllerProvider.notifier).logout();
+              onPressed: () async {
+                await ref.read(authControllerProvider.notifier).logout();
+                if (!context.mounted) return;
                 Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
               },
             ),

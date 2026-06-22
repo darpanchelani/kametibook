@@ -169,7 +169,7 @@ class _ManualReceiverSelectionScreenState extends ConsumerState<ManualReceiverSe
         );
     ref.read(notificationControllerProvider.notifier).createNotification(
           ref.read(notificationControllerProvider.notifier).buildNotification(
-                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                userId: ref.read(authControllerProvider).user?.id ?? '',
                 kametiId: kameti.id,
                 cycleId: cycle.id,
                 memberId: member.id,

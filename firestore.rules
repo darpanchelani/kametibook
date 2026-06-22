@@ -3,18 +3,29 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function ownUser(userId) { return signedIn() && request.auth.uid == userId; }
+    function joinedKameti(kametiId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid)/joinedKametis/$(kametiId))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)/joinedKametis/$(kametiId)).data.status == 'active';
+    }
     function kametiMember(kametiId) {
-      return signedIn() && exists(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid));
+      return joinedKameti(kametiId)
+        || (signedIn() && exists(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid)));
     }
     function kametiManager(kametiId) {
-      return signedIn()
-        && exists(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid))
-        && get(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid)).data.role in ['organizer', 'coOrganizer'];
+      return (signedIn()
+          && exists(/databases/$(database)/documents/kametis/$(kametiId))
+          && get(/databases/$(database)/documents/kametis/$(kametiId)).data.ownerUserId == request.auth.uid)
+        || (signedIn()
+          && exists(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid))
+          && get(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid)).data.role in ['organizer', 'coOrganizer'])
+        || (joinedKameti(kametiId)
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)/joinedKametis/$(kametiId)).data.role in ['organizer', 'coOrganizer']);
     }
     function notBlocked(kametiId) {
-      return signedIn()
-        && exists(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid))
-        && get(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid)).data.status != 'blocked';
+      return kametiMember(kametiId)
+        && (!exists(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid))
+          || get(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid)).data.status != 'blocked');
     }
 
     match /users/{userId} {
@@ -22,7 +33,7 @@ service cloud.firestore {
       allow create: if signedIn() && request.auth.uid == userId;
       match /notifications/{notificationId} {
         allow read, update, delete: if ownUser(userId);
-        allow create: if signedIn();
+        allow create: if ownUser(userId);
       }
       match /joinedKametis/{kametiId} {
         allow read, write: if ownUser(userId);
@@ -43,7 +54,7 @@ service cloud.firestore {
 
     match /kametis/{kametiId} {
       allow read: if kametiMember(kametiId);
-      allow create: if signedIn();
+      allow create: if signedIn() && request.resource.data.ownerUserId == request.auth.uid;
       allow update, delete: if kametiManager(kametiId);
 
       match /members/{memberId} {

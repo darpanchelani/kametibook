@@ -19,7 +19,7 @@ class _NotificationPreferencesScreenState extends ConsumerState<NotificationPref
   @override
   void initState() {
     super.initState();
-    final userId = ref.read(authControllerProvider).user?.id ?? 'mock-user';
+    final userId = ref.read(authControllerProvider).user?.id ?? '';
     preferences = ref.read(notificationControllerProvider.notifier).preferencesFor(userId);
   }
 

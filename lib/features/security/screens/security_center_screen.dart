@@ -87,7 +87,7 @@ class SecurityCenterScreen extends ConsumerWidget {
   DisputeStatus get dynamicClosed => DisputeStatus.closed;
 
   void _requestDeletion(BuildContext context, WidgetRef ref) {
-    final userId = ref.read(authControllerProvider).user?.id ?? 'mock-user';
+    final userId = ref.read(authControllerProvider).user?.id ?? '';
     ref.read(securityControllerProvider.notifier).createDeletionRequest(userId, 'User requested deletion from Security Center.');
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Deletion request created.')));
   }

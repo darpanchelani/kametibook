@@ -27,7 +27,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userId = ref.watch(authControllerProvider).user?.id ?? 'mock-user';
+    final userId = ref.watch(authControllerProvider).user?.id ?? '';
     ref.watch(notificationControllerProvider);
     ref.watch(kametiControllerProvider);
     ref.watch(paymentControllerProvider);

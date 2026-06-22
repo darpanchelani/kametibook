@@ -139,7 +139,8 @@ class _JoinKametiScreenState extends ConsumerState<JoinKametiScreen> {
             ),
           );
     }
-    ref.read(inviteControllerProvider.notifier).acceptInvite(invite.id, user?.id ?? 'mock-user');
+    ref.read(kametiControllerProvider.notifier).addMemberUser(kameti.id, user?.id ?? '');
+    ref.read(inviteControllerProvider.notifier).acceptInvite(invite.id, user?.id ?? '');
     SnackbarHelper.showSuccess(context, 'You have joined this kameti.');
     Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.main, (_) => false);
   }

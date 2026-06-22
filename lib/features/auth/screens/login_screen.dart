@@ -20,6 +20,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _showPassword = false;
 
   @override
   void dispose() {
@@ -30,11 +31,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-    await ref.read(authControllerProvider.notifier).login(
+    final success = await ref.read(authControllerProvider.notifier).login(
           phone: _phoneController.text,
           password: _passwordController.text,
         );
     if (!mounted) return;
+    if (!success) {
+      SnackbarHelper.showError(context, ref.read(authControllerProvider).errorMessage);
+      return;
+    }
     SnackbarHelper.showSuccess(context, 'Logged in successfully.');
     Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.main, (_) => false);
   }
@@ -52,14 +57,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 36),
-                Text(
-                  AppConstants.appName,
-                  style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900),
+                const SizedBox(height: 24),
+                Center(
+                  child: Container(
+                    height: 82,
+                    width: 82,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.22), blurRadius: 24, offset: const Offset(0, 12))],
+                    ),
+                    child: const Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 42),
+                  ),
                 ),
+                const SizedBox(height: 18),
+                Text(AppConstants.appName, textAlign: TextAlign.center, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 8),
-                Text('Login to manage your kameti records.', style: theme.textTheme.bodyLarge),
+                Text(AppConstants.tagline, textAlign: TextAlign.center, style: theme.textTheme.bodyLarge?.copyWith(color: Colors.black54)),
                 const SizedBox(height: 32),
+                if (auth.errorMessage.isNotEmpty) ...[
+                  Card(
+                    color: Colors.red.withValues(alpha: 0.08),
+                    child: ListTile(leading: const Icon(Icons.error_outline, color: Colors.red), title: Text(auth.errorMessage)),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 AppTextField(
                   controller: _phoneController,
                   label: 'Phone Number',
@@ -72,9 +94,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 AppTextField(
                   controller: _passwordController,
                   label: 'Password',
-                  obscureText: true,
+                  obscureText: !_showPassword,
                   prefixIcon: Icons.lock_outline,
                   validator: Validators.password,
+                  suffixIcon: IconButton(
+                    onPressed: () => setState(() => _showPassword = !_showPassword),
+                    icon: Icon(_showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                  ),
                 ),
                 Align(
                   alignment: Alignment.centerRight,

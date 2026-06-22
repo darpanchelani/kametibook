@@ -114,7 +114,7 @@ class _ReportPreviewScreenState extends ConsumerState<ReportPreviewScreen> {
       ref.read(reportControllerProvider.notifier).saveReportHistory(updatedModel);
       ref.read(notificationControllerProvider.notifier).createNotification(
             ref.read(notificationControllerProvider.notifier).buildNotification(
-                  userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                  userId: ref.read(authControllerProvider).user?.id ?? '',
                   kametiId: updatedModel.kametiId,
                   relatedReportId: updatedModel.id,
                   type: AppNotificationType.reportGenerated,
@@ -126,7 +126,7 @@ class _ReportPreviewScreenState extends ConsumerState<ReportPreviewScreen> {
           );
       ref.read(securityControllerProvider.notifier).createAuditLog(
             kametiId: updatedModel.kametiId,
-            userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+            userId: ref.read(authControllerProvider).user?.id ?? '',
             userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
             userRole: 'organizer',
             actionType: AuditActionType.reportGenerated,

@@ -34,6 +34,8 @@ class KametiModel {
     required this.totalPoolAmount,
     required this.status,
     required this.createdAt,
+    this.ownerUserId = '',
+    this.memberUserIds = const <String>[],
     this.requirePaymentBeforeDraw = true,
     this.requirePaymentBeforeBidding = true,
     this.discountDistributionType = DiscountDistributionType.equalToAllNonWinners,
@@ -69,6 +71,8 @@ class KametiModel {
   final double totalPoolAmount;
   final KametiStatus status;
   final DateTime createdAt;
+  final String ownerUserId;
+  final List<String> memberUserIds;
   final bool requirePaymentBeforeDraw;
   final bool requirePaymentBeforeBidding;
   final DiscountDistributionType discountDistributionType;
@@ -104,6 +108,8 @@ class KametiModel {
     double? totalPoolAmount,
     KametiStatus? status,
     DateTime? createdAt,
+    String? ownerUserId,
+    List<String>? memberUserIds,
     bool? requirePaymentBeforeDraw,
     bool? requirePaymentBeforeBidding,
     DiscountDistributionType? discountDistributionType,
@@ -139,6 +145,8 @@ class KametiModel {
       totalPoolAmount: totalPoolAmount ?? this.totalPoolAmount,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      ownerUserId: ownerUserId ?? this.ownerUserId,
+      memberUserIds: memberUserIds ?? this.memberUserIds,
       requirePaymentBeforeDraw: requirePaymentBeforeDraw ?? this.requirePaymentBeforeDraw,
       requirePaymentBeforeBidding: requirePaymentBeforeBidding ?? this.requirePaymentBeforeBidding,
       discountDistributionType: discountDistributionType ?? this.discountDistributionType,

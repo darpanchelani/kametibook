@@ -20,7 +20,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
   @override
   void initState() {
     super.initState();
-    final userId = ref.read(authControllerProvider).user?.id ?? 'mock-user';
+    final userId = ref.read(authControllerProvider).user?.id ?? '';
     settings = ref.read(securityControllerProvider.notifier).privacySettingsFor(userId);
   }
 
