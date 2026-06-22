@@ -42,6 +42,18 @@ class KametiModel {
     this.requirePaymentBeforeReceiving = true,
     this.ownerReceivesFirstCycle = true,
     this.afterOwnerAllocationMode = AfterOwnerAllocationMode.manualSelection,
+    this.remindersEnabled = true,
+    this.paymentReminderDaysBefore = 2,
+    this.paymentReminderOnDueDate = true,
+    this.overdueReminderEnabled = true,
+    this.overdueReminderFrequency = OverdueReminderFrequency.daily,
+    this.payoutProofReminderEnabled = true,
+    this.receiverPendingReminderEnabled = true,
+    this.biddingReminderEnabled = true,
+    this.luckyDrawReminderEnabled = true,
+    this.quietHoursEnabled = false,
+    this.quietHoursStart = '22:00',
+    this.quietHoursEnd = '08:00',
   });
 
   final String id;
@@ -65,6 +77,18 @@ class KametiModel {
   final bool requirePaymentBeforeReceiving;
   final bool ownerReceivesFirstCycle;
   final AfterOwnerAllocationMode afterOwnerAllocationMode;
+  final bool remindersEnabled;
+  final int paymentReminderDaysBefore;
+  final bool paymentReminderOnDueDate;
+  final bool overdueReminderEnabled;
+  final OverdueReminderFrequency overdueReminderFrequency;
+  final bool payoutProofReminderEnabled;
+  final bool receiverPendingReminderEnabled;
+  final bool biddingReminderEnabled;
+  final bool luckyDrawReminderEnabled;
+  final bool quietHoursEnabled;
+  final String quietHoursStart;
+  final String quietHoursEnd;
 
   KametiModel copyWith({
     String? id,
@@ -88,6 +112,18 @@ class KametiModel {
     bool? requirePaymentBeforeReceiving,
     bool? ownerReceivesFirstCycle,
     AfterOwnerAllocationMode? afterOwnerAllocationMode,
+    bool? remindersEnabled,
+    int? paymentReminderDaysBefore,
+    bool? paymentReminderOnDueDate,
+    bool? overdueReminderEnabled,
+    OverdueReminderFrequency? overdueReminderFrequency,
+    bool? payoutProofReminderEnabled,
+    bool? receiverPendingReminderEnabled,
+    bool? biddingReminderEnabled,
+    bool? luckyDrawReminderEnabled,
+    bool? quietHoursEnabled,
+    String? quietHoursStart,
+    String? quietHoursEnd,
   }) {
     return KametiModel(
       id: id ?? this.id,
@@ -111,8 +147,29 @@ class KametiModel {
       requirePaymentBeforeReceiving: requirePaymentBeforeReceiving ?? this.requirePaymentBeforeReceiving,
       ownerReceivesFirstCycle: ownerReceivesFirstCycle ?? this.ownerReceivesFirstCycle,
       afterOwnerAllocationMode: afterOwnerAllocationMode ?? this.afterOwnerAllocationMode,
+      remindersEnabled: remindersEnabled ?? this.remindersEnabled,
+      paymentReminderDaysBefore: paymentReminderDaysBefore ?? this.paymentReminderDaysBefore,
+      paymentReminderOnDueDate: paymentReminderOnDueDate ?? this.paymentReminderOnDueDate,
+      overdueReminderEnabled: overdueReminderEnabled ?? this.overdueReminderEnabled,
+      overdueReminderFrequency: overdueReminderFrequency ?? this.overdueReminderFrequency,
+      payoutProofReminderEnabled: payoutProofReminderEnabled ?? this.payoutProofReminderEnabled,
+      receiverPendingReminderEnabled: receiverPendingReminderEnabled ?? this.receiverPendingReminderEnabled,
+      biddingReminderEnabled: biddingReminderEnabled ?? this.biddingReminderEnabled,
+      luckyDrawReminderEnabled: luckyDrawReminderEnabled ?? this.luckyDrawReminderEnabled,
+      quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
+      quietHoursStart: quietHoursStart ?? this.quietHoursStart,
+      quietHoursEnd: quietHoursEnd ?? this.quietHoursEnd,
     );
   }
+}
+
+enum OverdueReminderFrequency {
+  daily('Daily'),
+  weekly('Weekly'),
+  manual('Manual only');
+
+  const OverdueReminderFrequency(this.label);
+  final String label;
 }
 
 enum DiscountDistributionType {

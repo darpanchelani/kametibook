@@ -76,6 +76,43 @@ class KametiController extends StateNotifier<List<KametiModel>> {
           kameti,
     ];
   }
+
+  void updateReminderSettings({
+    required String id,
+    required bool remindersEnabled,
+    required int paymentReminderDaysBefore,
+    required bool paymentReminderOnDueDate,
+    required bool overdueReminderEnabled,
+    required OverdueReminderFrequency overdueReminderFrequency,
+    required bool payoutProofReminderEnabled,
+    required bool receiverPendingReminderEnabled,
+    required bool biddingReminderEnabled,
+    required bool luckyDrawReminderEnabled,
+    required bool quietHoursEnabled,
+    required String quietHoursStart,
+    required String quietHoursEnd,
+  }) {
+    state = [
+      for (final kameti in state)
+        if (kameti.id == id)
+          kameti.copyWith(
+            remindersEnabled: remindersEnabled,
+            paymentReminderDaysBefore: paymentReminderDaysBefore,
+            paymentReminderOnDueDate: paymentReminderOnDueDate,
+            overdueReminderEnabled: overdueReminderEnabled,
+            overdueReminderFrequency: overdueReminderFrequency,
+            payoutProofReminderEnabled: payoutProofReminderEnabled,
+            receiverPendingReminderEnabled: receiverPendingReminderEnabled,
+            biddingReminderEnabled: biddingReminderEnabled,
+            luckyDrawReminderEnabled: luckyDrawReminderEnabled,
+            quietHoursEnabled: quietHoursEnabled,
+            quietHoursStart: quietHoursStart,
+            quietHoursEnd: quietHoursEnd,
+          )
+        else
+          kameti,
+    ];
+  }
 }
 
 final kametiControllerProvider =

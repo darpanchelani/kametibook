@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/routes.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/snackbar_helper.dart';
@@ -11,6 +12,8 @@ import '../../kameti/models/kameti_model.dart';
 import '../../kameti/providers/kameti_controller.dart';
 import '../../member/models/member_model.dart';
 import '../../member/providers/member_controller.dart';
+import '../../notifications/models/notification_model.dart';
+import '../../notifications/providers/notification_controller.dart';
 import '../../payment/models/payment_models.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../../receiver/providers/receiver_controller.dart';
@@ -214,6 +217,21 @@ class BiddingScreen extends ConsumerWidget {
     if (context.mounted) {
       error == null ? SnackbarHelper.showSuccess(context, 'Bidding started successfully.') : SnackbarHelper.showError(context, error);
     }
+    if (error == null) {
+      ref.read(notificationControllerProvider.notifier).createNotification(
+            ref.read(notificationControllerProvider.notifier).buildNotification(
+                  userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                  kametiId: kameti.id,
+                  cycleId: cycle.id,
+                  type: AppNotificationType.biddingStarted,
+                  title: 'Bidding Started',
+                  message: 'Bidding has started for ${kameti.name} Cycle ${cycle.cycleNumber}.',
+                  priority: NotificationPriority.high,
+                  actionType: NotificationActionType.openBidding,
+                  actionRoute: AppRoutes.bidding,
+                ),
+          );
+    }
   }
 
   Future<void> _openSubmitBid(
@@ -268,6 +286,22 @@ class BiddingScreen extends ConsumerWidget {
     if (context.mounted) {
       error == null ? SnackbarHelper.showSuccess(context, 'Bidding closed.') : SnackbarHelper.showError(context, error);
     }
+    if (error == null) {
+      ref.read(notificationControllerProvider.notifier).createNotification(
+            ref.read(notificationControllerProvider.notifier).buildNotification(
+                  userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                  kametiId: session.kametiId,
+                  cycleId: session.cycleId,
+                  relatedBiddingSessionId: session.id,
+                  type: AppNotificationType.biddingClosed,
+                  title: 'Bidding Closed',
+                  message: 'Bidding is closed. Please complete the result.',
+                  priority: NotificationPriority.high,
+                  actionType: NotificationActionType.openBidding,
+                  actionRoute: AppRoutes.bidding,
+                ),
+          );
+    }
   }
 
   Future<void> _completeBidding(
@@ -312,6 +346,21 @@ class BiddingScreen extends ConsumerWidget {
           receivedAt: DateTime.now(),
           receivedAmount: preview.winningBid.bidAmount,
           receivedVia: 'bidding',
+        );
+    ref.read(notificationControllerProvider.notifier).createNotification(
+          ref.read(notificationControllerProvider.notifier).buildNotification(
+                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                kametiId: session.kametiId,
+                cycleId: session.cycleId,
+                memberId: preview.winningBid.memberId,
+                relatedBiddingSessionId: session.id,
+                type: AppNotificationType.biddingCompleted,
+                title: 'Bidding Completed',
+                message: '${preview.winningBid.memberName} won bidding with ${CurrencyFormatter.pkr(preview.winningBid.bidAmount)}. Discount: ${CurrencyFormatter.pkr(preview.discountAmount)}.',
+                priority: NotificationPriority.high,
+                actionType: NotificationActionType.openBidding,
+                actionRoute: AppRoutes.bidding,
+              ),
         );
     if (context.mounted) SnackbarHelper.showSuccess(context, 'Bidding completed successfully.');
   }

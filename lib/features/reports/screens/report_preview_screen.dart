@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/routes.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../auth/providers/auth_controller.dart';
+import '../../notifications/models/notification_model.dart';
+import '../../notifications/providers/notification_controller.dart';
 import '../models/report_model.dart';
 import '../providers/report_controller.dart';
 import '../providers/report_pdf_service.dart';
@@ -106,6 +110,18 @@ class _ReportPreviewScreenState extends ConsumerState<ReportPreviewScreen> {
       final updatedModel = _data.model.copyWith(filePath: path, status: ReportStatus.exported);
       setState(() => _data = _data.copyWith(model: updatedModel));
       ref.read(reportControllerProvider.notifier).saveReportHistory(updatedModel);
+      ref.read(notificationControllerProvider.notifier).createNotification(
+            ref.read(notificationControllerProvider.notifier).buildNotification(
+                  userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                  kametiId: updatedModel.kametiId,
+                  relatedReportId: updatedModel.id,
+                  type: AppNotificationType.reportGenerated,
+                  title: 'Report Generated',
+                  message: '${updatedModel.title} has been generated successfully.',
+                  actionType: NotificationActionType.openReport,
+                  actionRoute: AppRoutes.reportHistory,
+                ),
+          );
       if (mounted) SnackbarHelper.showSuccess(context, 'PDF generated successfully.');
     } catch (_) {
       if (mounted) SnackbarHelper.showError(context, 'PDF export failed.');

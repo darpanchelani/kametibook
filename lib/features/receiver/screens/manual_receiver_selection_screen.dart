@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/routes.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/widgets/app_button.dart';
@@ -10,6 +11,8 @@ import '../../kameti/models/kameti_model.dart';
 import '../../kameti/providers/kameti_controller.dart';
 import '../../member/models/member_model.dart';
 import '../../member/providers/member_controller.dart';
+import '../../notifications/models/notification_model.dart';
+import '../../notifications/providers/notification_controller.dart';
 import '../../payment/models/payment_models.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../models/receiver_allocation_model.dart';
@@ -163,6 +166,20 @@ class _ManualReceiverSelectionScreenState extends ConsumerState<ManualReceiverSe
           receivedAt: DateTime.now(),
           receivedAmount: cycle.expectedAmount,
           receivedVia: widget.allocationType.name,
+        );
+    ref.read(notificationControllerProvider.notifier).createNotification(
+          ref.read(notificationControllerProvider.notifier).buildNotification(
+                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                kametiId: kameti.id,
+                cycleId: cycle.id,
+                memberId: member.id,
+                type: AppNotificationType.receiverConfirmed,
+                title: 'Receiver Confirmed',
+                message: '${member.fullName} will receive ${CurrencyFormatter.pkr(cycle.expectedAmount)} for Cycle ${cycle.cycleNumber}.',
+                priority: NotificationPriority.high,
+                actionType: NotificationActionType.openKameti,
+                actionRoute: AppRoutes.kametiDetails,
+              ),
         );
     if (mounted) {
       SnackbarHelper.showSuccess(context, 'Receiver confirmed successfully.');

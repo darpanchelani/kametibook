@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/routes.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../auth/providers/auth_controller.dart';
+import '../../kameti/providers/kameti_controller.dart';
 import '../../ledger/providers/ledger_controller.dart';
 import '../../ledger/widgets/penalty_form_bottom_sheet.dart';
 import '../../member/models/member_model.dart';
 import '../../member/providers/member_controller.dart';
+import '../../notifications/models/notification_model.dart';
+import '../../notifications/providers/notification_controller.dart';
 import '../models/payment_models.dart';
 import '../providers/payment_controller.dart';
 import '../widgets/mark_payment_bottom_sheet.dart';
@@ -106,6 +111,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
                   onMarkPending: () {
                     paymentController.markPaymentPending(payment.id);
                     _syncPaymentLedger(payment.kametiId);
+                    _createPaymentNotification(payment, AppNotificationType.paymentDueReminder, 'Payment Pending', 'Payment marked as pending.');
                     SnackbarHelper.showSuccess(context, 'Payment marked as pending.');
                   },
                   onMarkLate: () => _markLate(payment),
@@ -128,6 +134,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
         onSubmit: (data) {
           ref.read(paymentControllerProvider.notifier).markPaymentPaid(payment.id, data);
           _syncPaymentLedger(payment.kametiId);
+          _createPaymentNotification(payment, AppNotificationType.paymentMarkedPaid, 'Payment Received', 'Payment marked as paid.');
           Navigator.of(context).pop();
           SnackbarHelper.showSuccess(this.context, 'Payment marked as paid.');
         },
@@ -140,6 +147,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
     if (!mounted) return;
     ref.read(paymentControllerProvider.notifier).markPaymentLate(payment.id, note ?? '');
     _syncPaymentLedger(payment.kametiId);
+    _createPaymentNotification(payment, AppNotificationType.paymentOverdue, 'Payment Overdue', 'Payment marked as late.');
     SnackbarHelper.showSuccess(context, 'Payment marked as late.');
   }
 
@@ -148,6 +156,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
     if (!mounted) return;
     ref.read(paymentControllerProvider.notifier).rejectPayment(payment.id, reason ?? '');
     _syncPaymentLedger(payment.kametiId);
+    _createPaymentNotification(payment, AppNotificationType.paymentRejected, 'Payment Rejected', 'Payment was rejected. Please review.');
     SnackbarHelper.showSuccess(context, 'Payment rejected.');
   }
 
@@ -158,6 +167,33 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
           allocations: const [],
           biddingSessions: const [],
           discountAdjustments: const [],
+        );
+  }
+
+  void _createPaymentNotification(MemberPaymentModel payment, AppNotificationType type, String title, String fallbackMessage) {
+    final member = ref.read(memberControllerProvider.notifier).getMember(payment.memberId);
+    final kameti = ref.read(kametiControllerProvider.notifier).byId(payment.kametiId);
+    final cycle = ref.read(paymentControllerProvider.notifier).getCycle(payment.cycleId);
+    final message = switch (type) {
+      AppNotificationType.paymentMarkedPaid => '${member?.fullName ?? 'Member'} paid ${payment.amountDue.toStringAsFixed(0)} for ${kameti?.name ?? 'kameti'} Cycle ${cycle?.cycleNumber ?? 0}.',
+      AppNotificationType.paymentRejected => 'Payment for ${member?.fullName ?? 'member'} was rejected. Please review.',
+      AppNotificationType.paymentOverdue => '${member?.fullName ?? 'Member'} payment is overdue for Cycle ${cycle?.cycleNumber ?? 0}.',
+      _ => fallbackMessage,
+    };
+    ref.read(notificationControllerProvider.notifier).createNotification(
+          ref.read(notificationControllerProvider.notifier).buildNotification(
+                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                kametiId: payment.kametiId,
+                cycleId: payment.cycleId,
+                memberId: payment.memberId,
+                relatedPaymentId: payment.id,
+                type: type,
+                title: title,
+                message: message,
+                priority: type == AppNotificationType.paymentMarkedPaid ? NotificationPriority.normal : NotificationPriority.high,
+                actionType: NotificationActionType.openPayment,
+                actionRoute: AppRoutes.cyclePayments,
+              ),
         );
   }
 

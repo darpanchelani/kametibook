@@ -21,6 +21,9 @@ import '../../member/widgets/member_role_badge.dart';
 import '../../member/widgets/member_status_badge.dart';
 import '../../lucky_draw/providers/lucky_draw_controller.dart';
 import '../../lucky_draw/widgets/winner_card.dart';
+import '../../notifications/models/notification_model.dart';
+import '../../notifications/providers/notification_controller.dart';
+import '../../notifications/widgets/alert_banner.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../../payment/models/payment_models.dart';
 import '../../payment/widgets/payment_summary_card.dart';
@@ -65,6 +68,7 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     ref.watch(biddingControllerProvider);
     ref.watch(receiverControllerProvider);
     ref.watch(ledgerControllerProvider);
+    ref.watch(notificationControllerProvider);
     final memberController = ref.read(memberControllerProvider.notifier);
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final drawController = ref.read(luckyDrawControllerProvider.notifier);
@@ -91,6 +95,12 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     final currentAllocation = currentCycle == null ? null : receiverController.getCurrentCycleAllocation(selectedKameti.id, currentCycle.id);
     final receivedCount = members.where((member) => member.hasReceivedKameti).length;
     final ledgerSummary = ledgerController.calculateGroupLedgerSummary(selectedKameti.id);
+    final userId = ref.read(authControllerProvider).user?.id ?? 'mock-user';
+    final kametiAlerts = ref
+        .read(notificationControllerProvider.notifier)
+        .getNotificationsByKametiId(userId, selectedKameti.id)
+        .where((item) => item.isUnread || item.priority == NotificationPriority.urgent)
+        .length;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Kameti Details')),
@@ -135,6 +145,27 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
                   ],
                 ),
               ),
+            ),
+            const SizedBox(height: 12),
+            if (kametiAlerts > 0)
+              AlertBanner(
+                title: '$kametiAlerts active alert(s)',
+                message: 'Review payments, payout proof, receiver, bidding, draw, or ledger warnings.',
+                onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiAlerts, arguments: selectedKameti.id),
+              ),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.notifications_active_outlined),
+                title: const Text('Alerts & Reminders', style: TextStyle(fontWeight: FontWeight.w900)),
+                subtitle: const Text('View kameti alerts or configure reminder settings.'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiAlerts, arguments: selectedKameti.id),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () => Navigator.of(context).pushNamed(AppRoutes.reminderSettings, arguments: selectedKameti.id),
+              icon: const Icon(Icons.alarm_outlined),
+              label: const Text('Reminder Settings'),
             ),
             const SizedBox(height: 12),
             MemberCountSummaryCard(addedCount: activeMembersCount, totalCount: selectedKameti.totalMembers),
@@ -518,6 +549,17 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
           kameti: activeKameti,
           members: members,
         );
+    ref.read(notificationControllerProvider.notifier).createKametiStartedNotification(
+          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          kameti: kameti,
+        );
+    ref.read(notificationControllerProvider.notifier).generateScheduledRemindersForKameti(
+          userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+          kameti: activeKameti,
+          cycles: ref.read(paymentControllerProvider).cycles,
+          payments: ref.read(paymentControllerProvider).payments,
+          members: members,
+        );
     if (context.mounted) {
       SnackbarHelper.showSuccess(context, 'Kameti started successfully.');
     }
@@ -562,6 +604,20 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
           receivedAmount: cycle.expectedAmount,
           receivedVia: ReceiverAllocationType.ownerFirst.name,
         );
+    ref.read(notificationControllerProvider.notifier).createNotification(
+          ref.read(notificationControllerProvider.notifier).buildNotification(
+                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                kametiId: kameti.id,
+                cycleId: cycle.id,
+                memberId: organizer.id,
+                type: AppNotificationType.receiverConfirmed,
+                title: 'Receiver Confirmed',
+                message: '${organizer.fullName} will receive ${CurrencyFormatter.pkr(cycle.expectedAmount)} for Cycle ${cycle.cycleNumber}.',
+                priority: NotificationPriority.high,
+                actionType: NotificationActionType.openKameti,
+                actionRoute: AppRoutes.kametiDetails,
+              ),
+        );
     SnackbarHelper.showSuccess(context, 'Organizer confirmed as receiver.');
   }
 
@@ -596,6 +652,20 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
           receivedAmount: cycle.expectedAmount,
           receivedVia: ReceiverAllocationType.fixedOrder.name,
         );
+    ref.read(notificationControllerProvider.notifier).createNotification(
+          ref.read(notificationControllerProvider.notifier).buildNotification(
+                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                kametiId: kameti.id,
+                cycleId: cycle.id,
+                memberId: member.id,
+                type: AppNotificationType.receiverConfirmed,
+                title: 'Receiver Confirmed',
+                message: '${member.fullName} will receive ${CurrencyFormatter.pkr(cycle.expectedAmount)} for Cycle ${cycle.cycleNumber}.',
+                priority: NotificationPriority.high,
+                actionType: NotificationActionType.openKameti,
+                actionRoute: AppRoutes.kametiDetails,
+              ),
+        );
     SnackbarHelper.showSuccess(context, 'Receiver confirmed successfully.');
   }
 
@@ -620,6 +690,21 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
                 proofPath: data.proofPath,
                 note: data.note,
                 paidAt: data.paidAt,
+              );
+          ref.read(notificationControllerProvider.notifier).createNotification(
+                ref.read(notificationControllerProvider.notifier).buildNotification(
+                      userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                      kametiId: allocation.kametiId,
+                      cycleId: allocation.cycleId,
+                      memberId: allocation.memberId,
+                      relatedAllocationId: allocation.id,
+                      type: AppNotificationType.payoutPaid,
+                      title: 'Payout Paid',
+                      message: 'Payout of ${CurrencyFormatter.pkr(allocation.amount)} has been marked paid to ${allocation.memberName}.',
+                      priority: NotificationPriority.high,
+                      actionType: NotificationActionType.openKameti,
+                      actionRoute: AppRoutes.kametiDetails,
+                    ),
               );
           Navigator.of(sheetContext).pop();
           SnackbarHelper.showSuccess(context, 'Payout marked as paid.');

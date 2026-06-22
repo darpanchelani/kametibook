@@ -20,6 +20,9 @@ import '../features/member/screens/add_member_screen.dart';
 import '../features/member/screens/edit_member_screen.dart';
 import '../features/member/screens/member_details_screen.dart';
 import '../features/member/screens/members_list_screen.dart';
+import '../features/notifications/screens/kameti_alerts_screen.dart';
+import '../features/notifications/screens/notification_preferences_screen.dart';
+import '../features/notifications/screens/reminder_settings_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/onboarding/screens/splash_screen.dart';
 import '../features/payment/screens/cycle_payments_screen.dart';
@@ -64,6 +67,9 @@ class AppRoutes {
   static const reportsDashboard = '/reports-dashboard';
   static const reportPreview = '/report-preview';
   static const reportHistory = '/report-history';
+  static const kametiAlerts = '/kameti-alerts';
+  static const reminderSettings = '/reminder-settings';
+  static const notificationPreferences = '/notification-preferences';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     return MaterialPageRoute(
@@ -136,6 +142,12 @@ class AppRoutes {
             return ReportPreviewScreen(data: settings.arguments! as ReportData);
           case reportHistory:
             return ReportHistoryScreen(kametiId: settings.arguments! as String);
+          case kametiAlerts:
+            return KametiAlertsScreen(kametiId: settings.arguments! as String);
+          case reminderSettings:
+            return ReminderSettingsScreen(kametiId: settings.arguments! as String);
+          case notificationPreferences:
+            return const NotificationPreferencesScreen();
           default:
             return const SplashScreen();
         }

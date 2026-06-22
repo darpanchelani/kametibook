@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/snackbar_helper.dart';
+import '../../auth/providers/auth_controller.dart';
 import '../../kameti/models/kameti_model.dart';
 import '../../kameti/providers/kameti_controller.dart';
+import '../../notifications/providers/notification_controller.dart';
 import '../models/member_model.dart';
 import '../providers/member_controller.dart';
 import '../widgets/add_member_form.dart';
@@ -33,27 +35,33 @@ class AddMemberScreen extends ConsumerWidget {
               submitLabel: 'Add Member',
               onSubmit: (data) {
                 final now = DateTime.now();
+                final member = MemberModel(
+                  id: now.microsecondsSinceEpoch.toString(),
+                  kametiId: kameti.id,
+                  fullName: data.fullName,
+                  phone: data.phone,
+                  city: data.city,
+                  cnic: data.cnic,
+                  whatsappNumber: data.whatsappNumber,
+                  email: data.email,
+                  notes: data.notes,
+                  role: MemberRole.member,
+                  status: MemberStatus.active,
+                  hasReceivedKameti: false,
+                  joinedAt: now,
+                  createdAt: now,
+                  updatedAt: now,
+                );
                 final error = ref.read(memberControllerProvider.notifier).addMemberForKameti(
                       kameti: kameti,
-                      member: MemberModel(
-                        id: now.microsecondsSinceEpoch.toString(),
-                        kametiId: kameti.id,
-                        fullName: data.fullName,
-                        phone: data.phone,
-                        city: data.city,
-                        cnic: data.cnic,
-                        whatsappNumber: data.whatsappNumber,
-                        email: data.email,
-                        notes: data.notes,
-                        role: MemberRole.member,
-                        status: MemberStatus.active,
-                        hasReceivedKameti: false,
-                        joinedAt: now,
-                        createdAt: now,
-                        updatedAt: now,
-                      ),
+                      member: member,
                     );
                 if (error != null) return error;
+                ref.read(notificationControllerProvider.notifier).createMemberAddedNotification(
+                      userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                      kameti: kameti,
+                      member: member,
+                    );
                 SnackbarHelper.showSuccess(context, 'Member added successfully.');
                 Navigator.of(context).pop();
                 return null;

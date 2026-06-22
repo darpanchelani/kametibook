@@ -11,6 +11,8 @@ import '../../kameti/models/kameti_model.dart';
 import '../../kameti/providers/kameti_controller.dart';
 import '../../kameti/widgets/kameti_card.dart';
 import '../../member/providers/member_controller.dart';
+import '../../notifications/providers/notification_controller.dart';
+import '../../notifications/widgets/alert_banner.dart';
 import '../../lucky_draw/providers/lucky_draw_controller.dart';
 import '../../bidding/models/bidding_models.dart';
 import '../../bidding/providers/bidding_controller.dart';
@@ -31,6 +33,7 @@ class HomeScreen extends ConsumerWidget {
     ref.watch(biddingControllerProvider);
     ref.watch(receiverControllerProvider);
     ref.watch(ledgerControllerProvider);
+    ref.watch(notificationControllerProvider);
     final activeCount = kametis.where((kameti) => kameti.status == KametiStatus.active).length;
     final draftCount = kametis.where((kameti) => kameti.status == KametiStatus.draft).length;
     final memberController = ref.read(memberControllerProvider.notifier);
@@ -72,6 +75,10 @@ class HomeScreen extends ConsumerWidget {
       0,
       (total, kameti) => total + receiverController.getPendingPayoutProofs(kameti.id),
     );
+    final userId = user?.id ?? 'mock-user';
+    _runNotificationChecks(ref, userId);
+    final unreadNotifications = ref.read(notificationControllerProvider.notifier).getUnreadCount(userId);
+    final urgentAlerts = ref.read(notificationControllerProvider.notifier).getUrgentCount(userId);
     final recent = kametis.take(3).toList();
 
     return Scaffold(
@@ -135,9 +142,26 @@ class HomeScreen extends ConsumerWidget {
                 SummaryCard(title: 'Total Collected', value: CurrencyFormatter.pkr(totalCollected), icon: Icons.add_card_outlined),
                 SummaryCard(title: 'Total Payouts', value: CurrencyFormatter.pkr(totalPayouts), icon: Icons.outbound_outlined),
                 SummaryCard(title: 'Group Balance', value: CurrencyFormatter.pkr(allSummary), icon: Icons.account_balance_outlined),
+                SummaryCard(title: 'Unread Alerts', value: '$unreadNotifications', icon: Icons.notifications_active_outlined),
+                SummaryCard(title: 'Urgent Alerts', value: '$urgentAlerts', icon: Icons.warning_amber_outlined, color: Colors.red.shade700),
               ],
             ),
+            if (urgentAlerts > 0) ...[
+              const SizedBox(height: 12),
+              AlertBanner(
+                title: '$urgentAlerts urgent alert(s)',
+                message: 'Payments, payouts, receivers, or ledger records need review.',
+                onTap: () => Navigator.of(context).pushNamed(AppRoutes.main, arguments: 2),
+              ),
+            ],
             const SizedBox(height: 18),
+            AppButton(
+              label: 'View Notifications',
+              icon: Icons.notifications_outlined,
+              isOutlined: true,
+              onPressed: () => Navigator.of(context).pushNamed(AppRoutes.main, arguments: 2),
+            ),
+            const SizedBox(height: 10),
             AppButton(
               label: 'Create New Kameti',
               icon: Icons.add,
@@ -197,5 +221,28 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _runNotificationChecks(WidgetRef ref, String userId) {
+    final notificationController = ref.read(notificationControllerProvider.notifier);
+    final kametis = ref.read(kametiControllerProvider);
+    final cycles = ref.read(paymentControllerProvider).cycles;
+    final payments = ref.read(paymentControllerProvider).payments;
+    final members = ref.read(memberControllerProvider);
+    final allocations = ref.read(receiverControllerProvider).allocations;
+    for (final kameti in kametis) {
+      notificationController.generateScheduledRemindersForKameti(
+        userId: userId,
+        kameti: kameti,
+        cycles: cycles,
+        payments: payments,
+        members: members,
+      );
+    }
+    notificationController.processDueScheduledNotifications();
+    notificationController.checkOverduePayments(userId: userId, kametis: kametis, cycles: cycles, payments: payments, members: members);
+    notificationController.checkPendingPayoutProofs(userId: userId, kametis: kametis, allocations: allocations);
+    notificationController.checkPendingReceivers(userId: userId, kametis: kametis, cycles: cycles, allocations: allocations);
+    notificationController.checkPendingBiddings(userId: userId, kametis: kametis, cycles: cycles, sessions: ref.read(biddingControllerProvider).sessions);
   }
 }

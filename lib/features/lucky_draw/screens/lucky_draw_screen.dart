@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/routes.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/snackbar_helper.dart';
@@ -11,6 +12,8 @@ import '../../kameti/models/kameti_model.dart';
 import '../../kameti/providers/kameti_controller.dart';
 import '../../member/models/member_model.dart';
 import '../../member/providers/member_controller.dart';
+import '../../notifications/models/notification_model.dart';
+import '../../notifications/providers/notification_controller.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../../payment/models/payment_models.dart';
 import '../../receiver/models/receiver_allocation_model.dart';
@@ -215,6 +218,21 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
           receivedAt: DateTime.now(),
           receivedAmount: cycle.expectedAmount,
           receivedVia: ReceiverAllocationType.luckyDraw.name,
+        );
+    ref.read(notificationControllerProvider.notifier).createNotification(
+          ref.read(notificationControllerProvider.notifier).buildNotification(
+                userId: ref.read(authControllerProvider).user?.id ?? 'mock-user',
+                kametiId: kameti.id,
+                cycleId: cycle.id,
+                memberId: winner.id,
+                relatedDrawId: '${cycle.id}-draw',
+                type: AppNotificationType.luckyDrawCompleted,
+                title: 'Lucky Draw Completed',
+                message: '${winner.fullName} won the lucky draw for Cycle ${cycle.cycleNumber}.',
+                priority: NotificationPriority.high,
+                actionType: NotificationActionType.openLuckyDraw,
+                actionRoute: AppRoutes.luckyDraw,
+              ),
         );
     setState(() {
       _drawnWinner = null;
