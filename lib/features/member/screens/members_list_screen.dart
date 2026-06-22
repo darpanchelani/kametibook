@@ -125,6 +125,13 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
               icon: Icons.group_add_outlined,
               onPressed: slotsFilled ? null : () => Navigator.of(context).pushNamed(AppRoutes.addMember, arguments: kameti.id),
             ),
+            const SizedBox(height: 10),
+            AppButton(
+              label: 'Invite Member',
+              icon: Icons.ios_share_outlined,
+              isOutlined: true,
+              onPressed: () => Navigator.of(context).pushNamed(AppRoutes.inviteMember, arguments: kameti.id),
+            ),
             const SizedBox(height: 14),
             if (nonOrganizerActiveMembers == 0)
               const EmptyState(

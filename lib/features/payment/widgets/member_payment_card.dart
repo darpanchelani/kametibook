@@ -15,6 +15,8 @@ class MemberPaymentCard extends StatelessWidget {
     required this.onMarkLate,
     required this.onReject,
     required this.onEdit,
+    this.onSubmitProof,
+    this.onApproveProof,
     super.key,
   });
 
@@ -25,6 +27,8 @@ class MemberPaymentCard extends StatelessWidget {
   final VoidCallback onMarkLate;
   final VoidCallback onReject;
   final VoidCallback onEdit;
+  final VoidCallback? onSubmitProof;
+  final VoidCallback? onApproveProof;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +69,7 @@ class MemberPaymentCard extends StatelessWidget {
                 _Meta(icon: Icons.event_available_outlined, text: 'Paid: $paidDate'),
                 _Meta(
                   icon: Icons.attachment_outlined,
-                  text: payment.proofImagePath.isEmpty ? 'No proof' : 'Proof attached',
+                  text: payment.proofImagePath.isEmpty && payment.proofUrl.isEmpty ? 'No proof' : 'Proof attached',
                 ),
               ],
             ),
@@ -79,6 +83,9 @@ class MemberPaymentCard extends StatelessWidget {
               runSpacing: 8,
               children: [
                 FilledButton(onPressed: onMarkPaid, child: const Text('Mark Paid')),
+                if (onSubmitProof != null) OutlinedButton(onPressed: onSubmitProof, child: const Text('Submit Proof')),
+                if (payment.paymentStatus == PaymentStatus.pendingApproval && onApproveProof != null)
+                  FilledButton(onPressed: onApproveProof, child: const Text('Approve')),
                 OutlinedButton(onPressed: onMarkPending, child: const Text('Pending')),
                 OutlinedButton(onPressed: onMarkLate, child: const Text('Late')),
                 OutlinedButton(onPressed: onReject, child: const Text('Reject')),

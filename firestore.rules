@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function ownUser(userId) { return signedIn() && request.auth.uid == userId; }
+    function kametiMember(kametiId) {
+      return signedIn() && exists(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid));
+    }
+    function kametiManager(kametiId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid)).data.role in ['organizer', 'coOrganizer'];
+    }
+
+    match /users/{userId} {
+      allow read, update: if ownUser(userId);
+      allow create: if signedIn() && request.auth.uid == userId;
+      match /notifications/{notificationId} {
+        allow read, update, delete: if ownUser(userId);
+        allow create: if signedIn();
+      }
+      match /joinedKametis/{kametiId} {
+        allow read, write: if ownUser(userId);
+      }
+    }
+
+    match /kametis/{kametiId} {
+      allow read: if kametiMember(kametiId);
+      allow create: if signedIn();
+      allow update, delete: if kametiManager(kametiId);
+
+      match /members/{memberId} {
+        allow read: if kametiMember(kametiId);
+        allow create, update, delete: if kametiManager(kametiId) || (signedIn() && request.auth.uid == memberId);
+      }
+      match /cycles/{cycleId} {
+        allow read: if kametiMember(kametiId);
+        allow write: if kametiManager(kametiId);
+        match /payments/{paymentId} {
+          allow read: if kametiMember(kametiId);
+          allow create, update: if kametiManager(kametiId) || (signedIn() && request.resource.data.memberUserId == request.auth.uid);
+        }
+      }
+      match /biddingSessions/{sessionId} {
+        allow read: if kametiMember(kametiId);
+        allow create, update: if kametiManager(kametiId);
+        match /bids/{bidId} {
+          allow read: if kametiMember(kametiId);
+          allow create, update: if kametiManager(kametiId) || (signedIn() && request.resource.data.userId == request.auth.uid);
+        }
+      }
+      match /receiverAllocations/{allocationId} {
+        allow read: if kametiMember(kametiId);
+        allow write: if kametiManager(kametiId);
+      }
+      match /ledgerEntries/{entryId} {
+        allow read: if kametiMember(kametiId);
+        allow write: if kametiManager(kametiId);
+      }
+      match /luckyDraws/{drawId} {
+        allow read: if kametiMember(kametiId);
+        allow write: if kametiManager(kametiId);
+      }
+      match /reports/{reportId} {
+        allow read: if kametiMember(kametiId);
+        allow write: if kametiManager(kametiId);
+      }
+      match /{subcollection}/{docId} {
+        allow read: if kametiMember(kametiId);
+        allow write: if kametiManager(kametiId);
+      }
+    }
+
+    match /kametiInvites/{inviteId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn();
+    }
+  }
+}

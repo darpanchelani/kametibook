@@ -117,6 +117,16 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
                   onMarkLate: () => _markLate(payment),
                   onReject: () => _rejectPayment(payment),
                   onEdit: () => _openMarkPaid(payment),
+                  onSubmitProof: () => Navigator.of(context).pushNamed(AppRoutes.submitPaymentProof, arguments: payment.id),
+                  onApproveProof: () {
+                    ref.read(paymentControllerProvider.notifier).approvePaymentProof(
+                          paymentId: payment.id,
+                          approvedBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+                        );
+                    _syncPaymentLedger(payment.kametiId);
+                    _createPaymentNotification(payment, AppNotificationType.paymentApproved, 'Payment Approved', 'Payment proof approved.');
+                    SnackbarHelper.showSuccess(context, 'Payment proof approved.');
+                  },
                 );
               }),
           ],

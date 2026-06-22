@@ -12,6 +12,8 @@ class PaymentStatusBadge extends StatelessWidget {
     final color = switch (status) {
       PaymentStatus.paid => Theme.of(context).colorScheme.primary,
       PaymentStatus.pending => Colors.orange.shade700,
+      PaymentStatus.proofSubmitted => Colors.blue.shade700,
+      PaymentStatus.pendingApproval => Colors.indigo.shade700,
       PaymentStatus.late => Colors.red.shade700,
       PaymentStatus.rejected => Colors.red.shade900,
       PaymentStatus.waived => Colors.blueGrey.shade700,

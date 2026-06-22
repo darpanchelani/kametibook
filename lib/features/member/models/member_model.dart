@@ -9,9 +9,22 @@ enum MemberStatus {
 
 enum MemberRole {
   organizer('Organizer'),
+  coOrganizer('Co-Organizer'),
   member('Member');
 
   const MemberRole(this.label);
+  final String label;
+}
+
+enum MemberInviteStatus {
+  none('None'),
+  pending('Pending'),
+  accepted('Accepted'),
+  rejected('Rejected'),
+  expired('Expired'),
+  cancelled('Cancelled');
+
+  const MemberInviteStatus(this.label);
   final String label;
 }
 
@@ -37,6 +50,11 @@ class MemberModel {
     this.receivedAt,
     this.receivedAmount = 0,
     this.receivedVia = '',
+    this.userId = '',
+    this.invitedBy = '',
+    this.inviteStatus = MemberInviteStatus.none,
+    this.joinedByApp = false,
+    this.linkedAt,
   });
 
   final String id;
@@ -59,8 +77,14 @@ class MemberModel {
   final DateTime? receivedAt;
   final double receivedAmount;
   final String receivedVia;
+  final String userId;
+  final String invitedBy;
+  final MemberInviteStatus inviteStatus;
+  final bool joinedByApp;
+  final DateTime? linkedAt;
 
   bool get isOrganizer => role == MemberRole.organizer;
+  bool get canManageGroup => role == MemberRole.organizer || role == MemberRole.coOrganizer;
   bool get isActiveForCount => status == MemberStatus.active;
 
   MemberModel copyWith({
@@ -84,6 +108,11 @@ class MemberModel {
     DateTime? receivedAt,
     double? receivedAmount,
     String? receivedVia,
+    String? userId,
+    String? invitedBy,
+    MemberInviteStatus? inviteStatus,
+    bool? joinedByApp,
+    DateTime? linkedAt,
   }) {
     return MemberModel(
       id: id ?? this.id,
@@ -106,6 +135,11 @@ class MemberModel {
       receivedAt: receivedAt ?? this.receivedAt,
       receivedAmount: receivedAmount ?? this.receivedAmount,
       receivedVia: receivedVia ?? this.receivedVia,
+      userId: userId ?? this.userId,
+      invitedBy: invitedBy ?? this.invitedBy,
+      inviteStatus: inviteStatus ?? this.inviteStatus,
+      joinedByApp: joinedByApp ?? this.joinedByApp,
+      linkedAt: linkedAt ?? this.linkedAt,
     );
   }
 }

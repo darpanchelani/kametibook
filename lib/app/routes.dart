@@ -6,6 +6,8 @@ import '../features/auth/screens/signup_screen.dart';
 import '../features/bidding/screens/bidding_detail_screen.dart';
 import '../features/bidding/screens/bidding_history_screen.dart';
 import '../features/bidding/screens/bidding_screen.dart';
+import '../features/cloud/screens/invite_member_screen.dart';
+import '../features/cloud/screens/join_kameti_screen.dart';
 import '../features/home/screens/main_layout.dart';
 import '../features/kameti/screens/create_kameti_screen.dart';
 import '../features/kameti/screens/kameti_details_screen.dart';
@@ -27,6 +29,7 @@ import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/onboarding/screens/splash_screen.dart';
 import '../features/payment/screens/cycle_payments_screen.dart';
 import '../features/payment/screens/payment_cycles_screen.dart';
+import '../features/payment/screens/submit_payment_proof_screen.dart';
 import '../features/receiver/models/receiver_allocation_model.dart';
 import '../features/receiver/screens/fixed_order_setup_screen.dart';
 import '../features/receiver/screens/manual_receiver_selection_screen.dart';
@@ -70,6 +73,9 @@ class AppRoutes {
   static const kametiAlerts = '/kameti-alerts';
   static const reminderSettings = '/reminder-settings';
   static const notificationPreferences = '/notification-preferences';
+  static const inviteMember = '/invite-member';
+  static const joinKameti = '/join-kameti';
+  static const submitPaymentProof = '/submit-payment-proof';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     return MaterialPageRoute(
@@ -148,6 +154,12 @@ class AppRoutes {
             return ReminderSettingsScreen(kametiId: settings.arguments! as String);
           case notificationPreferences:
             return const NotificationPreferencesScreen();
+          case inviteMember:
+            return InviteMemberScreen(kametiId: settings.arguments! as String);
+          case joinKameti:
+            return const JoinKametiScreen();
+          case submitPaymentProof:
+            return SubmitPaymentProofScreen(paymentId: settings.arguments! as String);
           default:
             return const SplashScreen();
         }

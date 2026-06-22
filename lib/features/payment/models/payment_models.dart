@@ -10,6 +10,8 @@ enum PaymentCycleStatus {
 
 enum PaymentStatus {
   pending('Pending'),
+  proofSubmitted('Proof Submitted'),
+  pendingApproval('Pending Approval'),
   paid('Paid'),
   late('Late'),
   rejected('Rejected'),
@@ -104,6 +106,13 @@ class MemberPaymentModel {
     required this.approvedBy,
     required this.createdAt,
     required this.updatedAt,
+    this.submittedBy = '',
+    this.submittedAt,
+    this.approvedAt,
+    this.rejectedBy = '',
+    this.rejectedAt,
+    this.rejectionReason = '',
+    this.proofUrl = '',
   });
 
   final String id;
@@ -120,6 +129,13 @@ class MemberPaymentModel {
   final String approvedBy;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String submittedBy;
+  final DateTime? submittedAt;
+  final DateTime? approvedAt;
+  final String rejectedBy;
+  final DateTime? rejectedAt;
+  final String rejectionReason;
+  final String proofUrl;
 
   bool get countsAsPaid => paymentStatus == PaymentStatus.paid || paymentStatus == PaymentStatus.waived;
 
@@ -140,6 +156,13 @@ class MemberPaymentModel {
     String? approvedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? submittedBy,
+    DateTime? submittedAt,
+    DateTime? approvedAt,
+    String? rejectedBy,
+    DateTime? rejectedAt,
+    String? rejectionReason,
+    String? proofUrl,
   }) {
     return MemberPaymentModel(
       id: id ?? this.id,
@@ -156,6 +179,13 @@ class MemberPaymentModel {
       approvedBy: approvedBy ?? this.approvedBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      submittedBy: submittedBy ?? this.submittedBy,
+      submittedAt: submittedAt ?? this.submittedAt,
+      approvedAt: approvedAt ?? this.approvedAt,
+      rejectedBy: rejectedBy ?? this.rejectedBy,
+      rejectedAt: rejectedAt ?? this.rejectedAt,
+      rejectionReason: rejectionReason ?? this.rejectionReason,
+      proofUrl: proofUrl ?? this.proofUrl,
     );
   }
 }

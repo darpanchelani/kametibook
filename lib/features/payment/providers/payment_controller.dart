@@ -252,6 +252,49 @@ class PaymentController extends StateNotifier<PaymentState> {
     );
   }
 
+  void submitPaymentProof({
+    required String paymentId,
+    required double amountPaid,
+    required PaymentMethod method,
+    required String proofImagePath,
+    required String proofUrl,
+    required String note,
+    required String submittedBy,
+  }) {
+    final now = DateTime.now();
+    _updatePayment(
+      paymentId,
+      (payment) => payment.copyWith(
+        amountPaid: amountPaid,
+        paymentStatus: PaymentStatus.pendingApproval,
+        paymentMethod: method,
+        proofImagePath: proofImagePath,
+        proofUrl: proofUrl,
+        note: note,
+        submittedBy: submittedBy,
+        submittedAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
+  void approvePaymentProof({
+    required String paymentId,
+    required String approvedBy,
+  }) {
+    final now = DateTime.now();
+    _updatePayment(
+      paymentId,
+      (payment) => payment.copyWith(
+        paymentStatus: PaymentStatus.paid,
+        approvedBy: approvedBy,
+        approvedAt: now,
+        paidAt: now,
+        updatedAt: now,
+      ),
+    );
+  }
+
   void updatePayment(String paymentId, MarkPaymentPaidData data) {
     markPaymentPaid(paymentId, data);
   }

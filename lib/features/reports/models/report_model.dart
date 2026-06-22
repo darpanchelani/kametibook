@@ -22,6 +22,14 @@ enum ReportStatus {
   final String label;
 }
 
+enum ReportVisibility {
+  privateOrganizerOnly('Private'),
+  sharedWithMembers('Shared with members');
+
+  const ReportVisibility(this.label);
+  final String label;
+}
+
 class ReportModel {
   const ReportModel({
     required this.id,
@@ -38,6 +46,8 @@ class ReportModel {
     required this.status,
     required this.summary,
     required this.createdAt,
+    this.visibility = ReportVisibility.privateOrganizerOnly,
+    this.sharedWithMemberIds = const [],
   });
 
   final String id;
@@ -54,8 +64,10 @@ class ReportModel {
   final ReportStatus status;
   final String summary;
   final DateTime createdAt;
+  final ReportVisibility visibility;
+  final List<String> sharedWithMemberIds;
 
-  ReportModel copyWith({String? filePath, ReportStatus? status}) {
+  ReportModel copyWith({String? filePath, ReportStatus? status, ReportVisibility? visibility, List<String>? sharedWithMemberIds}) {
     return ReportModel(
       id: id,
       kametiId: kametiId,
@@ -71,6 +83,8 @@ class ReportModel {
       status: status ?? this.status,
       summary: summary,
       createdAt: createdAt,
+      visibility: visibility ?? this.visibility,
+      sharedWithMemberIds: sharedWithMemberIds ?? this.sharedWithMemberIds,
     );
   }
 }
