@@ -76,13 +76,17 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
 
   void processDueScheduledNotifications() {
     final now = DateTime.now();
-    state = [
+    var changed = false;
+    final updated = [
       for (final item in state)
-        if (item.status == NotificationStatus.scheduled && item.scheduledAt != null && !item.scheduledAt!.isAfter(now))
-          item.copyWith(status: NotificationStatus.unread, triggeredAt: now, updatedAt: now)
+        if (item.status == NotificationStatus.scheduled && item.scheduledAt != null && !item.scheduledAt!.isAfter(now)) ...[
+          item.copyWith(status: NotificationStatus.unread, triggeredAt: now, updatedAt: now),
+        ]
         else
           item,
     ];
+    changed = updated.length == state.length && updated.indexed.any((entry) => !identical(entry.$2, state[entry.$1]));
+    if (changed) state = updated;
   }
 
   void generateScheduledRemindersForKameti({

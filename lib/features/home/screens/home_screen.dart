@@ -86,7 +86,9 @@ class HomeScreen extends ConsumerWidget {
       (total, kameti) => total + receiverController.getPendingPayoutProofs(kameti.id),
     );
     final userId = user.id;
-    _runNotificationChecks(ref, userId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.mounted) _runNotificationChecks(ref, userId);
+    });
     final unreadNotifications = ref.read(notificationControllerProvider.notifier).getUnreadCount(userId);
     final urgentAlerts = ref.read(notificationControllerProvider.notifier).getUrgentCount(userId);
     final recent = kametis.take(3).toList();

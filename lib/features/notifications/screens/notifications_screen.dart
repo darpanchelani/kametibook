@@ -33,7 +33,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     ref.watch(paymentControllerProvider);
     ref.watch(receiverControllerProvider);
     ref.watch(biddingControllerProvider);
-    _refreshChecks(userId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _refreshChecks(userId);
+    });
 
     final controller = ref.read(notificationControllerProvider.notifier);
     final notifications = controller.getNotificationsForUser(userId).where(_matchesFilter).toList();

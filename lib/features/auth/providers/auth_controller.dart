@@ -1,6 +1,8 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_config.dart';
 import '../../../core/services/firebase_bootstrap.dart';
@@ -56,7 +58,7 @@ class AuthState {
 class AuthController extends StateNotifier<AuthState> {
   AuthController() : super(const AuthState(status: AuthStatus.unauthenticated));
 
-  final Map<String, _AccountRecord> _accountsByPhone = {};
+  final Map<String, _AccountRecord> _accountsByEmail = {};
   firebase_auth.FirebaseAuth get _firebaseAuth => firebase_auth.FirebaseAuth.instance;
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
@@ -78,26 +80,7 @@ class AuthController extends StateNotifier<AuthState> {
           );
           return false;
         }
-        if (!_isActive(profile)) {
-          await _firebaseAuth.signOut();
-          state = const AuthState(
-            status: AuthStatus.blocked,
-            errorMessage: 'Your account is not active. Please contact support.',
-          );
-          return false;
-        }
-        state = AuthState(
-          user: UserModel(
-            id: profile.id,
-            fullName: profile.fullName,
-            phone: profile.phone,
-            city: profile.city,
-            createdAt: profile.createdAt,
-          ),
-          userProfile: profile,
-          status: AuthStatus.authenticated,
-        );
-        return true;
+        return _completeSession(profile);
       } catch (_) {
         await _firebaseAuth.signOut();
         state = const AuthState(
@@ -121,11 +104,12 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<bool> login({
-    required String phone,
+    required String email,
     required String password,
   }) async {
     state = state.copyWith(isLoading: true, status: AuthStatus.checking, errorMessage: '');
     await Future<void>.delayed(const Duration(milliseconds: 450));
+    final normalizedEmail = _normalizeEmail(email);
     if (!FirebaseBootstrap.isInitialized && !AppConfig.enableDemoMode) {
       state = const AuthState(
         status: AuthStatus.error,
@@ -133,18 +117,10 @@ class AuthController extends StateNotifier<AuthState> {
       );
       return false;
     }
-    final normalized = _normalizePhone(phone);
     if (FirebaseBootstrap.isInitialized) {
-      return _firebaseLogin(normalized, password);
+      return _firebaseLogin(normalizedEmail, password);
     }
-    if (!AppConfig.enableDemoMode) {
-      state = const AuthState(
-        status: AuthStatus.error,
-        errorMessage: 'Secure login is not configured. Please connect Firebase before signing in.',
-      );
-      return false;
-    }
-    final account = _accountsByPhone[normalized];
+    final account = _accountsByEmail[normalizedEmail];
     if (account == null) {
       state = const AuthState(
         status: AuthStatus.profileMissing,
@@ -156,7 +132,7 @@ class AuthController extends StateNotifier<AuthState> {
       state = state.copyWith(
         status: AuthStatus.error,
         isLoading: false,
-        errorMessage: 'Invalid phone number or password.',
+        errorMessage: 'Invalid email or password.',
         clearUser: true,
       );
       return false;
@@ -165,65 +141,37 @@ class AuthController extends StateNotifier<AuthState> {
       state = const AuthState(status: AuthStatus.blocked, errorMessage: 'Your account is not active. Please contact support.');
       return false;
     }
-    final now = DateTime.now();
-    final updatedProfile = UserProfileModel(
-      id: account.profile.id,
-      fullName: account.profile.fullName,
-      phone: account.profile.phone,
-      email: account.profile.email,
-      city: account.profile.city,
-      profilePhotoUrl: account.profile.profilePhotoUrl,
-      role: account.profile.role,
-      status: account.profile.status,
-      createdAt: account.profile.createdAt,
-      updatedAt: now,
-      lastLoginAt: now,
-      fcmToken: account.profile.fcmToken,
-    );
-    _accountsByPhone[normalized] = account.copyWith(profile: updatedProfile);
-    state = AuthState(
-      user: UserModel(
-        id: updatedProfile.id,
-        fullName: updatedProfile.fullName,
-        phone: updatedProfile.phone,
-        city: updatedProfile.city,
-        createdAt: updatedProfile.createdAt,
-      ),
-      userProfile: updatedProfile,
-      status: AuthStatus.authenticated,
-    );
-    return true;
+    final updated = _copyProfileWithLogin(account.profile);
+    _accountsByEmail[normalizedEmail] = account.copyWith(profile: updated);
+    return _setAuthenticatedProfile(updated);
   }
 
   Future<bool> signup({
     required String fullName,
+    required String email,
     required String phone,
     required String password,
     required String city,
-    String email = '',
   }) async {
     state = state.copyWith(isLoading: true, status: AuthStatus.checking, errorMessage: '');
     await Future<void>.delayed(const Duration(milliseconds: 500));
-    final normalized = _normalizePhone(phone);
+    final normalizedEmail = _normalizeEmail(email);
+    final normalizedPhone = _normalizePhone(phone);
     if (FirebaseBootstrap.isInitialized) {
       return _firebaseSignup(
         fullName: fullName,
+        email: normalizedEmail,
         phone: phone,
-        normalizedPhone: normalized,
+        normalizedPhone: normalizedPhone,
         password: password,
         city: city,
-        email: email,
       );
     }
     if (!AppConfig.enableDemoMode) {
       state = const AuthState(status: AuthStatus.error, errorMessage: 'Secure signup is not configured. Please connect Firebase before creating accounts.');
       return false;
     }
-    if (_accountsByPhone.containsKey(normalized)) {
-      state = const AuthState(status: AuthStatus.error, errorMessage: 'An account with this phone number already exists. Please login.');
-      return false;
-    }
-    if (email.trim().isNotEmpty && _accountsByPhone.values.any((record) => record.profile.email.toLowerCase() == email.trim().toLowerCase())) {
+    if (_accountsByEmail.containsKey(normalizedEmail)) {
       state = const AuthState(status: AuthStatus.error, errorMessage: 'An account with this email already exists. Please login.');
       return false;
     }
@@ -232,7 +180,7 @@ class AuthController extends StateNotifier<AuthState> {
       id: 'user-${now.microsecondsSinceEpoch}',
       fullName: fullName.trim(),
       phone: phone.trim(),
-      email: email.trim(),
+      email: normalizedEmail,
       city: city.trim(),
       profilePhotoUrl: '',
       role: GlobalUserRole.user,
@@ -242,24 +190,13 @@ class AuthController extends StateNotifier<AuthState> {
       lastLoginAt: now,
       fcmToken: '',
     );
-    _accountsByPhone[normalized] = _AccountRecord(profile: profile, password: password);
-    state = AuthState(
-      user: UserModel(
-        id: profile.id,
-        fullName: profile.fullName,
-        phone: profile.phone,
-        city: profile.city,
-        createdAt: profile.createdAt,
-      ),
-      userProfile: profile,
-      status: AuthStatus.authenticated,
-    );
-    return true;
+    _accountsByEmail[normalizedEmail] = _AccountRecord(profile: profile, password: password);
+    return _setAuthenticatedProfile(profile);
   }
 
-  Future<void> sendPasswordReset(String identifier) async {
+  Future<void> sendPasswordReset(String email) async {
     if (FirebaseBootstrap.isInitialized) {
-      await _firebaseAuth.sendPasswordResetEmail(email: _authEmail(_normalizePhone(identifier)));
+      await _firebaseAuth.sendPasswordResetEmail(email: _normalizeEmail(email));
       return;
     }
     await Future<void>.delayed(const Duration(milliseconds: 300));
@@ -273,12 +210,12 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   bool _isActive(UserProfileModel profile) => profile.status == UserProfileStatus.active;
+  String _normalizeEmail(String email) => email.trim().toLowerCase();
   String _normalizePhone(String phone) => phone.replaceAll(RegExp(r'\D'), '');
-  String _authEmail(String normalizedPhone) => '$normalizedPhone@kametibook.local';
 
-  Future<bool> _firebaseLogin(String normalizedPhone, String password) async {
+  Future<bool> _firebaseLogin(String email, String password) async {
     try {
-      final credential = await _firebaseAuth.signInWithEmailAndPassword(email: _authEmail(normalizedPhone), password: password);
+      final credential = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
       final firebaseUser = credential.user;
       if (firebaseUser == null) {
         state = const AuthState(status: AuthStatus.error, errorMessage: 'Login failed. Please try again.');
@@ -295,63 +232,32 @@ class AuthController extends StateNotifier<AuthState> {
         state = const AuthState(status: AuthStatus.blocked, errorMessage: 'Your account is not active. Please contact support.');
         return false;
       }
-      final now = DateTime.now();
+      final updated = _copyProfileWithLogin(profile);
       await _firestore.collection('users').doc(profile.id).update({
-        'lastLoginAt': now.millisecondsSinceEpoch,
-        'updatedAt': now.millisecondsSinceEpoch,
+        'lastLoginAt': updated.lastLoginAt?.millisecondsSinceEpoch,
+        'updatedAt': updated.updatedAt.millisecondsSinceEpoch,
       });
-      final updated = UserProfileModel(
-        id: profile.id,
-        fullName: profile.fullName,
-        phone: profile.phone,
-        email: profile.email,
-        city: profile.city,
-        profilePhotoUrl: profile.profilePhotoUrl,
-        role: profile.role,
-        status: profile.status,
-        createdAt: profile.createdAt,
-        updatedAt: now,
-        lastLoginAt: now,
-        fcmToken: profile.fcmToken,
-      );
-      state = AuthState(
-        user: UserModel(id: updated.id, fullName: updated.fullName, phone: updated.phone, city: updated.city, createdAt: updated.createdAt),
-        userProfile: updated,
-        status: AuthStatus.authenticated,
-      );
-      return true;
+      return _setAuthenticatedProfile(updated);
     } on firebase_auth.FirebaseAuthException catch (error) {
-      state = AuthState(status: AuthStatus.error, errorMessage: error.code == 'user-not-found' ? 'No KametiBook account found. Please sign up first.' : 'Invalid phone number or password.');
+      state = AuthState(status: AuthStatus.error, errorMessage: _loginErrorMessage(error));
       return false;
-    } catch (_) {
-      state = const AuthState(status: AuthStatus.error, errorMessage: 'Login failed. Please try again.');
+    } catch (error) {
+      state = AuthState(status: AuthStatus.error, errorMessage: _withDebugDetails('Login failed. Please try again.', error));
       return false;
     }
   }
 
   Future<bool> _firebaseSignup({
     required String fullName,
+    required String email,
     required String phone,
     required String normalizedPhone,
     required String password,
     required String city,
-    required String email,
   }) async {
     firebase_auth.UserCredential? credential;
     try {
-      final existing = await _firestore.collection('users').where('phoneNormalized', isEqualTo: normalizedPhone).limit(1).get();
-      if (existing.docs.isNotEmpty) {
-        state = const AuthState(status: AuthStatus.error, errorMessage: 'An account with this phone number already exists. Please login.');
-        return false;
-      }
-      if (email.trim().isNotEmpty) {
-        final emailExisting = await _firestore.collection('users').where('email', isEqualTo: email.trim().toLowerCase()).limit(1).get();
-        if (emailExisting.docs.isNotEmpty) {
-          state = const AuthState(status: AuthStatus.error, errorMessage: 'An account with this email already exists. Please login.');
-          return false;
-        }
-      }
-      credential = await _firebaseAuth.createUserWithEmailAndPassword(email: _authEmail(normalizedPhone), password: password);
+      credential = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
       final firebaseUser = credential.user;
       if (firebaseUser == null) throw StateError('Firebase user was not created.');
       final now = DateTime.now();
@@ -359,7 +265,7 @@ class AuthController extends StateNotifier<AuthState> {
         id: firebaseUser.uid,
         fullName: fullName.trim(),
         phone: phone.trim(),
-        email: email.trim().toLowerCase(),
+        email: email,
         city: city.trim(),
         profilePhotoUrl: '',
         role: GlobalUserRole.user,
@@ -373,20 +279,112 @@ class AuthController extends StateNotifier<AuthState> {
         ...profile.toMap(),
         'phoneNormalized': normalizedPhone,
       });
-      state = AuthState(
-        user: UserModel(id: profile.id, fullName: profile.fullName, phone: profile.phone, city: profile.city, createdAt: profile.createdAt),
-        userProfile: profile,
-        status: AuthStatus.authenticated,
-      );
-      return true;
-    } catch (_) {
+      return _setAuthenticatedProfile(profile);
+    } catch (error, stackTrace) {
+      debugPrint('KametiBook signup failed: $error');
+      debugPrint('$stackTrace');
       if (credential?.user != null) {
-        await credential!.user!.delete();
+        try {
+          await credential!.user!.delete();
+        } catch (_) {
+          // If cleanup fails, signing out still prevents access without a verified profile.
+        }
       }
       await _firebaseAuth.signOut();
-      state = const AuthState(status: AuthStatus.error, errorMessage: 'Account could not be created. Please try again.');
+      state = AuthState(status: AuthStatus.error, errorMessage: _signupErrorMessage(error));
       return false;
     }
+  }
+
+  Future<bool> _completeSession(UserProfileModel profile) async {
+    if (!_isActive(profile)) {
+      await _firebaseAuth.signOut();
+      state = const AuthState(status: AuthStatus.blocked, errorMessage: 'Your account is not active. Please contact support.');
+      return false;
+    }
+    return _setAuthenticatedProfile(profile);
+  }
+
+  UserProfileModel _copyProfileWithLogin(UserProfileModel profile) {
+    final now = DateTime.now();
+    return UserProfileModel(
+      id: profile.id,
+      fullName: profile.fullName,
+      phone: profile.phone,
+      email: profile.email,
+      city: profile.city,
+      profilePhotoUrl: profile.profilePhotoUrl,
+      role: profile.role,
+      status: profile.status,
+      createdAt: profile.createdAt,
+      updatedAt: now,
+      lastLoginAt: now,
+      fcmToken: profile.fcmToken,
+    );
+  }
+
+  bool _setAuthenticatedProfile(UserProfileModel profile) {
+    state = AuthState(
+      user: UserModel(id: profile.id, fullName: profile.fullName, phone: profile.phone, city: profile.city, createdAt: profile.createdAt),
+      userProfile: profile,
+      status: AuthStatus.authenticated,
+    );
+    return true;
+  }
+
+  String _loginErrorMessage(firebase_auth.FirebaseAuthException error) {
+    switch (error.code) {
+      case 'user-not-found':
+      case 'invalid-credential':
+      case 'wrong-password':
+        return 'Invalid email or password.';
+      case 'user-disabled':
+        return 'Your account is not active. Please contact support.';
+      case 'network-request-failed':
+        return 'Network error. Please check your internet connection and try again.';
+      case 'operation-not-allowed':
+        return 'Firebase Email/Password sign-in is disabled. Enable it in Firebase Console > Authentication > Sign-in method.';
+      default:
+        return _withDebugDetails('Firebase Auth error (${error.code}). ${error.message ?? 'Login failed.'}', error);
+    }
+  }
+
+  String _signupErrorMessage(Object error) {
+    if (error is firebase_auth.FirebaseAuthException) {
+      switch (error.code) {
+        case 'email-already-in-use':
+          return 'An account with this email already exists. Please login.';
+        case 'operation-not-allowed':
+          return 'Firebase Email/Password sign-in is disabled. Enable it in Firebase Console > Authentication > Sign-in method.';
+        case 'weak-password':
+          return 'Password is too weak. Use at least 8 characters with letters and numbers.';
+        case 'invalid-email':
+          return 'Enter a valid email address.';
+        case 'network-request-failed':
+          return 'Network error. Please check your internet connection and try again.';
+        default:
+          return _withDebugDetails('Firebase Auth error (${error.code}). ${error.message ?? 'Account could not be created.'}', error);
+      }
+    }
+    if (error is FirebaseException) {
+      switch (error.code) {
+        case 'permission-denied':
+          return 'Firestore permission denied while creating your profile. Deploy Firestore rules and make sure the database is created.';
+        case 'unavailable':
+          return 'Firebase is currently unavailable. Please check your internet connection and try again.';
+        default:
+          return _withDebugDetails('Firebase error (${error.code}). ${error.message ?? 'Account profile could not be saved.'}', error);
+      }
+    }
+    if (error is PlatformException) {
+      return _withDebugDetails('Platform error (${error.code}). ${error.message ?? 'Account could not be created.'}', error);
+    }
+    return _withDebugDetails('Account could not be created. Please try again.', error);
+  }
+
+  String _withDebugDetails(String message, Object error) {
+    if (!kDebugMode) return message;
+    return '$message\n\nDebug details: ${error.runtimeType}: $error';
   }
 
   Future<UserProfileModel?> _fetchProfile(String uid) async {

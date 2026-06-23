@@ -18,6 +18,7 @@ class SignupScreen extends ConsumerStatefulWidget {
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -28,6 +29,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -43,6 +45,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
     final success = await ref.read(authControllerProvider.notifier).signup(
           fullName: _nameController.text,
+          email: _emailController.text,
           phone: _phoneController.text,
           password: _passwordController.text,
           city: _cityController.text,
@@ -86,6 +89,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   label: 'Full Name',
                   prefixIcon: Icons.person_outline,
                   validator: (value) => Validators.required(value, 'Name'),
+                ),
+                const SizedBox(height: 14),
+                AppTextField(
+                  controller: _emailController,
+                  label: 'Email',
+                  hint: 'you@example.com',
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: Icons.email_outlined,
+                  validator: Validators.email,
                 ),
                 const SizedBox(height: 14),
                 AppTextField(

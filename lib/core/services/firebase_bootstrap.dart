@@ -1,5 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 
+import '../../firebase_options.dart';
+
 class FirebaseBootstrap {
   static bool _initialized = false;
   static Object? _lastError;
@@ -10,9 +12,18 @@ class FirebaseBootstrap {
   static Future<void> initializeIfConfigured() async {
     if (_initialized) return;
     try {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
       _initialized = true;
       _lastError = null;
+    } on UnsupportedError {
+      try {
+        await Firebase.initializeApp();
+        _initialized = true;
+        _lastError = null;
+      } catch (error) {
+        _lastError = error;
+        _initialized = false;
+      }
     } catch (error) {
       _lastError = error;
       _initialized = false;

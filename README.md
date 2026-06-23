@@ -140,19 +140,54 @@ lib/
 
 ## Firebase Setup
 
-The app includes Firebase packages and a Firebase-ready repository layer. A real Firebase project still needs to be connected before cloud sync, Firebase Auth, Firestore, Storage, and FCM can run against live services.
+The app includes Firebase packages and a Firebase-ready repository layer. A real Firebase project must be connected before signup, login, cloud sync, Firebase Auth, Firestore, Storage, and FCM can run against live services.
 
-Required Firebase project files:
+Recommended Firebase config file:
+
+- FlutterFire options: `lib/firebase_options.dart`
+
+Optional native Firebase project files:
 
 - Android: `android/app/google-services.json`
 - iOS: `ios/Runner/GoogleService-Info.plist`
+
+Recommended setup:
+
+```sh
+dart pub global activate flutterfire_cli
+export PATH="$PATH":"$HOME/.pub-cache/bin"
+npm install -g firebase-tools
+firebase login
+flutterfire configure \
+  --platforms=android,ios \
+  --android-package-name=com.example.kametibook \
+  --ios-bundle-id=com.example.kametibook
+flutter pub get
+cd ios && pod install && cd ..
+flutter run
+```
+
+If `npm install -g firebase-tools` times out, retry on a stable network or install Firebase CLI from the official Firebase CLI install options, then run `firebase login` and `flutterfire configure` again.
+
+After connecting Firebase, enable these services in the Firebase console:
+
+- Authentication: Email/Password provider
+- Firestore Database
+- Storage
+- Cloud Messaging, if notification push testing is needed
 
 Security rules are included:
 
 - `firestore.rules`
 - `storage.rules`
 
-Until Firebase config files are added, the guarded Firebase bootstrap allows the app to continue running in local/demo mode.
+Deploy rules after selecting your Firebase project:
+
+```sh
+firebase deploy --only firestore:rules,storage
+```
+
+Until Firebase config files are added, secure signup and login are intentionally blocked. This prevents fake local accounts and ensures users only access data from the connected Firebase project.
 
 ## Run
 

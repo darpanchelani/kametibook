@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1093900375588",
+    "project_id": "kametibook",
+    "storage_bucket": "kametibook.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1093900375588:android:a1e03453a0fbc87f302ab1",
+        "android_client_info": {
+          "package_name": "com.example.kametibook"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1dqJ2wPE4V_7e2p65qTAM28EGoqTdTBw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

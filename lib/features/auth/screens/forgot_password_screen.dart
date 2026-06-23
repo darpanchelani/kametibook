@@ -1,30 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../providers/auth_controller.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    SnackbarHelper.showInfo(context, 'Password reset instructions will be sent.');
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(authControllerProvider.notifier).sendPasswordReset(_emailController.text);
+      if (!mounted) return;
+      SnackbarHelper.showInfo(context, 'Password reset instructions will be sent if this email exists.');
+    } catch (_) {
+      if (!mounted) return;
+      SnackbarHelper.showError(context, 'Password reset could not be sent. Please check the email and try again.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -41,15 +54,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               children: [
                 const SizedBox(height: 12),
                 AppTextField(
-                  controller: _phoneController,
-                  label: 'Phone Number',
-                  hint: '03XXXXXXXXX',
-                  keyboardType: TextInputType.phone,
-                  prefixIcon: Icons.phone_outlined,
-                  validator: Validators.phone,
+                  controller: _emailController,
+                  label: 'Email',
+                  hint: 'you@example.com',
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIcon: Icons.email_outlined,
+                  validator: Validators.email,
                 ),
                 const SizedBox(height: 22),
-                AppButton(label: 'Submit', onPressed: _submit),
+                AppButton(label: 'Submit', isLoading: _isLoading, onPressed: _submit),
               ],
             ),
           ),
