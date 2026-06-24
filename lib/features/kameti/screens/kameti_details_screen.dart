@@ -24,7 +24,6 @@ import '../../lucky_draw/providers/lucky_draw_controller.dart';
 import '../../lucky_draw/widgets/winner_card.dart';
 import '../../notifications/models/notification_model.dart';
 import '../../notifications/providers/notification_controller.dart';
-import '../../notifications/widgets/alert_banner.dart';
 import '../../payment/providers/payment_controller.dart';
 import '../../payment/models/payment_models.dart';
 import '../../payment/widgets/payment_summary_card.dart';
@@ -110,22 +109,6 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
     final currentAllocation = currentCycle == null ? null : receiverController.getCurrentCycleAllocation(selectedKameti.id, currentCycle.id);
     final receivedCount = members.where((member) => member.hasReceivedKameti).length;
     final ledgerSummary = ledgerController.calculateGroupLedgerSummary(selectedKameti.id);
-    final userId = signedInUser.id;
-    final kametiAlerts = ref
-        .read(notificationControllerProvider.notifier)
-        .getNotificationsByKametiId(userId, selectedKameti.id)
-        .where((item) => item.isUnread || item.priority == NotificationPriority.urgent)
-        .length;
-    final trustScores = members
-        .map((member) => ref.read(securityControllerProvider.notifier).calculateMemberTrustScore(
-              member: member,
-              payments: ref.read(paymentControllerProvider).payments,
-              ledgerEntries: ref.read(ledgerControllerProvider),
-            ))
-        .toList();
-    final averageTrust = trustScores.isEmpty ? 0 : trustScores.fold<double>(0, (total, score) => total + score.overallScore) / trustScores.length;
-    final riskyMembers = trustScores.where((score) => score.riskLevel == RiskLevel.risky || score.riskLevel == RiskLevel.highRisk).length;
-    final excellentMembers = trustScores.where((score) => score.riskLevel == RiskLevel.excellent).length;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Kameti Details')),
@@ -170,46 +153,6 @@ class _KametiDetailsScreenState extends ConsumerState<KametiDetailsScreen> {
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            if (kametiAlerts > 0)
-              AlertBanner(
-                title: '$kametiAlerts active alert(s)',
-                message: 'Review payments, payout proof, receiver, bidding, draw, or ledger warnings.',
-                onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiAlerts, arguments: selectedKameti.id),
-              ),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.notifications_active_outlined),
-                title: const Text('Alerts & Reminders', style: TextStyle(fontWeight: FontWeight.w900)),
-                subtitle: const Text('View kameti alerts or configure reminder settings.'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).pushNamed(AppRoutes.kametiAlerts, arguments: selectedKameti.id),
-              ),
-            ),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Security & Trust', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 8),
-                  Text('Average Trust: ${averageTrust.round()}'),
-                  Text('Risky Members: $riskyMembers'),
-                  Text('Excellent Members: $excellentMembers'),
-                  const SizedBox(height: 10),
-                  AppButton(
-                    label: 'Open Security Center',
-                    icon: Icons.security_outlined,
-                    isOutlined: true,
-                    onPressed: () => Navigator.of(context).pushNamed(AppRoutes.securityCenter, arguments: selectedKameti.id),
-                  ),
-                ]),
-              ),
-            ),
-            TextButton.icon(
-              onPressed: () => Navigator.of(context).pushNamed(AppRoutes.reminderSettings, arguments: selectedKameti.id),
-              icon: const Icon(Icons.alarm_outlined),
-              label: const Text('Reminder Settings'),
             ),
             const SizedBox(height: 12),
             MemberCountSummaryCard(addedCount: activeMembersCount, totalCount: selectedKameti.totalMembers),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/foundation.dart';
@@ -34,7 +36,8 @@ class AuthState {
   final bool isLoading;
   final String errorMessage;
 
-  bool get isAuthenticated => user != null && userProfile != null && status == AuthStatus.authenticated;
+  bool get isAuthenticated =>
+      user != null && userProfile != null && status == AuthStatus.authenticated;
   bool get isProfileLoaded => userProfile != null;
 
   AuthState copyWith({
@@ -58,12 +61,16 @@ class AuthState {
 class AuthController extends StateNotifier<AuthState> {
   AuthController() : super(const AuthState(status: AuthStatus.unauthenticated));
 
+  static const _firebaseTimeout = Duration(seconds: 20);
+
   final Map<String, _AccountRecord> _accountsByEmail = {};
-  firebase_auth.FirebaseAuth get _firebaseAuth => firebase_auth.FirebaseAuth.instance;
+  firebase_auth.FirebaseAuth get _firebaseAuth =>
+      firebase_auth.FirebaseAuth.instance;
   FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
   Future<bool> refreshSession() async {
-    state = state.copyWith(status: AuthStatus.checking, isLoading: true, errorMessage: '');
+    state = state.copyWith(
+        status: AuthStatus.checking, isLoading: true, errorMessage: '');
     if (FirebaseBootstrap.isInitialized) {
       final firebaseUser = _firebaseAuth.currentUser;
       if (firebaseUser == null) {
@@ -96,7 +103,9 @@ class AuthController extends StateNotifier<AuthState> {
       return false;
     }
     if (!_isActive(state.userProfile!)) {
-      state = const AuthState(status: AuthStatus.blocked, errorMessage: 'Your account is not active. Please contact support.');
+      state = const AuthState(
+          status: AuthStatus.blocked,
+          errorMessage: 'Your account is not active. Please contact support.');
       return false;
     }
     state = state.copyWith(status: AuthStatus.authenticated, isLoading: false);
@@ -107,13 +116,15 @@ class AuthController extends StateNotifier<AuthState> {
     required String email,
     required String password,
   }) async {
-    state = state.copyWith(isLoading: true, status: AuthStatus.checking, errorMessage: '');
+    state = state.copyWith(
+        isLoading: true, status: AuthStatus.checking, errorMessage: '');
     await Future<void>.delayed(const Duration(milliseconds: 450));
     final normalizedEmail = _normalizeEmail(email);
     if (!FirebaseBootstrap.isInitialized && !AppConfig.enableDemoMode) {
       state = const AuthState(
         status: AuthStatus.error,
-        errorMessage: 'Secure login is not configured. Please connect Firebase before signing in.',
+        errorMessage:
+            'Secure login is not configured. Please connect Firebase before signing in.',
       );
       return false;
     }
@@ -138,7 +149,9 @@ class AuthController extends StateNotifier<AuthState> {
       return false;
     }
     if (!_isActive(account.profile)) {
-      state = const AuthState(status: AuthStatus.blocked, errorMessage: 'Your account is not active. Please contact support.');
+      state = const AuthState(
+          status: AuthStatus.blocked,
+          errorMessage: 'Your account is not active. Please contact support.');
       return false;
     }
     final updated = _copyProfileWithLogin(account.profile);
@@ -153,7 +166,8 @@ class AuthController extends StateNotifier<AuthState> {
     required String password,
     required String city,
   }) async {
-    state = state.copyWith(isLoading: true, status: AuthStatus.checking, errorMessage: '');
+    state = state.copyWith(
+        isLoading: true, status: AuthStatus.checking, errorMessage: '');
     await Future<void>.delayed(const Duration(milliseconds: 500));
     final normalizedEmail = _normalizeEmail(email);
     final normalizedPhone = _normalizePhone(phone);
@@ -168,11 +182,17 @@ class AuthController extends StateNotifier<AuthState> {
       );
     }
     if (!AppConfig.enableDemoMode) {
-      state = const AuthState(status: AuthStatus.error, errorMessage: 'Secure signup is not configured. Please connect Firebase before creating accounts.');
+      state = const AuthState(
+          status: AuthStatus.error,
+          errorMessage:
+              'Secure signup is not configured. Please connect Firebase before creating accounts.');
       return false;
     }
     if (_accountsByEmail.containsKey(normalizedEmail)) {
-      state = const AuthState(status: AuthStatus.error, errorMessage: 'An account with this email already exists. Please login.');
+      state = const AuthState(
+          status: AuthStatus.error,
+          errorMessage:
+              'An account with this email already exists. Please login.');
       return false;
     }
     final now = DateTime.now();
@@ -190,7 +210,8 @@ class AuthController extends StateNotifier<AuthState> {
       lastLoginAt: now,
       fcmToken: '',
     );
-    _accountsByEmail[normalizedEmail] = _AccountRecord(profile: profile, password: password);
+    _accountsByEmail[normalizedEmail] =
+        _AccountRecord(profile: profile, password: password);
     return _setAuthenticatedProfile(profile);
   }
 
@@ -209,40 +230,59 @@ class AuthController extends StateNotifier<AuthState> {
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
-  bool _isActive(UserProfileModel profile) => profile.status == UserProfileStatus.active;
+  bool _isActive(UserProfileModel profile) =>
+      profile.status == UserProfileStatus.active;
   String _normalizeEmail(String email) => email.trim().toLowerCase();
   String _normalizePhone(String phone) => phone.replaceAll(RegExp(r'\D'), '');
 
   Future<bool> _firebaseLogin(String email, String password) async {
     try {
-      final credential = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
+      final credential = await _withTimeout(
+        _firebaseAuth.signInWithEmailAndPassword(
+            email: email, password: password),
+        'Login request timed out. Please check your internet connection and try again.',
+      );
       final firebaseUser = credential.user;
       if (firebaseUser == null) {
-        state = const AuthState(status: AuthStatus.error, errorMessage: 'Login failed. Please try again.');
+        state = const AuthState(
+            status: AuthStatus.error,
+            errorMessage: 'Login failed. Please try again.');
         return false;
       }
       final profile = await _fetchProfile(firebaseUser.uid);
       if (profile == null) {
         await _firebaseAuth.signOut();
-        state = const AuthState(status: AuthStatus.profileMissing, errorMessage: 'No KametiBook account found. Please sign up first.');
+        state = const AuthState(
+            status: AuthStatus.profileMissing,
+            errorMessage: 'No KametiBook account found. Please sign up first.');
         return false;
       }
       if (!_isActive(profile)) {
         await _firebaseAuth.signOut();
-        state = const AuthState(status: AuthStatus.blocked, errorMessage: 'Your account is not active. Please contact support.');
+        state = const AuthState(
+            status: AuthStatus.blocked,
+            errorMessage:
+                'Your account is not active. Please contact support.');
         return false;
       }
       final updated = _copyProfileWithLogin(profile);
-      await _firestore.collection('users').doc(profile.id).update({
-        'lastLoginAt': updated.lastLoginAt?.millisecondsSinceEpoch,
-        'updatedAt': updated.updatedAt.millisecondsSinceEpoch,
-      });
+      await _updateLastLoginBestEffort(updated);
       return _setAuthenticatedProfile(updated);
     } on firebase_auth.FirebaseAuthException catch (error) {
-      state = AuthState(status: AuthStatus.error, errorMessage: _loginErrorMessage(error));
+      state = AuthState(
+          status: AuthStatus.error, errorMessage: _loginErrorMessage(error));
+      return false;
+    } on TimeoutException catch (error) {
+      state = AuthState(
+          status: AuthStatus.error,
+          errorMessage: error.message ??
+              'Login timed out. Please check your internet connection and try again.');
       return false;
     } catch (error) {
-      state = AuthState(status: AuthStatus.error, errorMessage: _withDebugDetails('Login failed. Please try again.', error));
+      state = AuthState(
+          status: AuthStatus.error,
+          errorMessage:
+              _withDebugDetails('Login failed. Please try again.', error));
       return false;
     }
   }
@@ -257,9 +297,15 @@ class AuthController extends StateNotifier<AuthState> {
   }) async {
     firebase_auth.UserCredential? credential;
     try {
-      credential = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
-      final firebaseUser = credential.user;
-      if (firebaseUser == null) throw StateError('Firebase user was not created.');
+      credential = await _withTimeout(
+        _firebaseAuth.createUserWithEmailAndPassword(
+            email: email, password: password),
+        'Signup request timed out. Please check your internet connection and try again.',
+      );
+      final firebaseUser = credential?.user;
+      if (firebaseUser == null) {
+        throw StateError('Firebase user was not created.');
+      }
       final now = DateTime.now();
       final profile = UserProfileModel(
         id: firebaseUser.uid,
@@ -275,10 +321,13 @@ class AuthController extends StateNotifier<AuthState> {
         lastLoginAt: now,
         fcmToken: '',
       );
-      await _firestore.collection('users').doc(firebaseUser.uid).set({
-        ...profile.toMap(),
-        'phoneNormalized': normalizedPhone,
-      });
+      await _withTimeout(
+        _firestore.collection('users').doc(firebaseUser.uid).set({
+          ...profile.toMap(),
+          'phoneNormalized': normalizedPhone,
+        }),
+        'Profile creation timed out. Please check Firestore setup and your internet connection.',
+      );
       return _setAuthenticatedProfile(profile);
     } catch (error, stackTrace) {
       debugPrint('KametiBook signup failed: $error');
@@ -291,7 +340,8 @@ class AuthController extends StateNotifier<AuthState> {
         }
       }
       await _firebaseAuth.signOut();
-      state = AuthState(status: AuthStatus.error, errorMessage: _signupErrorMessage(error));
+      state = AuthState(
+          status: AuthStatus.error, errorMessage: _signupErrorMessage(error));
       return false;
     }
   }
@@ -299,7 +349,9 @@ class AuthController extends StateNotifier<AuthState> {
   Future<bool> _completeSession(UserProfileModel profile) async {
     if (!_isActive(profile)) {
       await _firebaseAuth.signOut();
-      state = const AuthState(status: AuthStatus.blocked, errorMessage: 'Your account is not active. Please contact support.');
+      state = const AuthState(
+          status: AuthStatus.blocked,
+          errorMessage: 'Your account is not active. Please contact support.');
       return false;
     }
     return _setAuthenticatedProfile(profile);
@@ -325,7 +377,12 @@ class AuthController extends StateNotifier<AuthState> {
 
   bool _setAuthenticatedProfile(UserProfileModel profile) {
     state = AuthState(
-      user: UserModel(id: profile.id, fullName: profile.fullName, phone: profile.phone, city: profile.city, createdAt: profile.createdAt),
+      user: UserModel(
+          id: profile.id,
+          fullName: profile.fullName,
+          phone: profile.phone,
+          city: profile.city,
+          createdAt: profile.createdAt),
       userProfile: profile,
       status: AuthStatus.authenticated,
     );
@@ -345,7 +402,9 @@ class AuthController extends StateNotifier<AuthState> {
       case 'operation-not-allowed':
         return 'Firebase Email/Password sign-in is disabled. Enable it in Firebase Console > Authentication > Sign-in method.';
       default:
-        return _withDebugDetails('Firebase Auth error (${error.code}). ${error.message ?? 'Login failed.'}', error);
+        return _withDebugDetails(
+            'Firebase Auth error (${error.code}). ${error.message ?? 'Login failed.'}',
+            error);
     }
   }
 
@@ -363,7 +422,9 @@ class AuthController extends StateNotifier<AuthState> {
         case 'network-request-failed':
           return 'Network error. Please check your internet connection and try again.';
         default:
-          return _withDebugDetails('Firebase Auth error (${error.code}). ${error.message ?? 'Account could not be created.'}', error);
+          return _withDebugDetails(
+              'Firebase Auth error (${error.code}). ${error.message ?? 'Account could not be created.'}',
+              error);
       }
     }
     if (error is FirebaseException) {
@@ -373,13 +434,41 @@ class AuthController extends StateNotifier<AuthState> {
         case 'unavailable':
           return 'Firebase is currently unavailable. Please check your internet connection and try again.';
         default:
-          return _withDebugDetails('Firebase error (${error.code}). ${error.message ?? 'Account profile could not be saved.'}', error);
+          return _withDebugDetails(
+              'Firebase error (${error.code}). ${error.message ?? 'Account profile could not be saved.'}',
+              error);
       }
     }
     if (error is PlatformException) {
-      return _withDebugDetails('Platform error (${error.code}). ${error.message ?? 'Account could not be created.'}', error);
+      return _withDebugDetails(
+          'Platform error (${error.code}). ${error.message ?? 'Account could not be created.'}',
+          error);
     }
-    return _withDebugDetails('Account could not be created. Please try again.', error);
+    if (error is TimeoutException) {
+      return error.message ??
+          'Signup timed out. Please check your internet connection and try again.';
+    }
+    return _withDebugDetails(
+        'Account could not be created. Please try again.', error);
+  }
+
+  Future<T> _withTimeout<T>(Future<T> future, String message) {
+    return future.timeout(_firebaseTimeout,
+        onTimeout: () => throw TimeoutException(message, _firebaseTimeout));
+  }
+
+  Future<void> _updateLastLoginBestEffort(UserProfileModel profile) async {
+    try {
+      await _withTimeout(
+        _firestore.collection('users').doc(profile.id).update({
+          'lastLoginAt': profile.lastLoginAt?.millisecondsSinceEpoch,
+          'updatedAt': profile.updatedAt.millisecondsSinceEpoch,
+        }),
+        'Profile update timed out.',
+      );
+    } catch (error) {
+      debugPrint('KametiBook lastLoginAt update skipped: $error');
+    }
   }
 
   String _withDebugDetails(String message, Object error) {
@@ -388,7 +477,10 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<UserProfileModel?> _fetchProfile(String uid) async {
-    final doc = await _firestore.collection('users').doc(uid).get();
+    final doc = await _withTimeout(
+      _firestore.collection('users').doc(uid).get(),
+      'Profile lookup timed out. Please check your internet connection and try again.',
+    );
     if (!doc.exists) return null;
     return UserProfileModel.fromMap(doc.data() ?? {});
   }
@@ -399,9 +491,11 @@ class _AccountRecord {
   final UserProfileModel profile;
   final String password;
 
-  _AccountRecord copyWith({UserProfileModel? profile}) => _AccountRecord(profile: profile ?? this.profile, password: password);
+  _AccountRecord copyWith({UserProfileModel? profile}) =>
+      _AccountRecord(profile: profile ?? this.profile, password: password);
 }
 
-final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
+final authControllerProvider =
+    StateNotifierProvider<AuthController, AuthState>((ref) {
   return AuthController();
 });

@@ -33,9 +33,14 @@ class _CreateKametiScreenState extends ConsumerState<CreateKametiScreen> {
   DateTime? _startDate;
   int? _dueDay;
   bool _durationManuallyEdited = false;
+  bool _isSubmitting = false;
 
-  double get _monthlyAmount => double.tryParse(_monthlyAmountController.text.replaceAll(',', '').trim()) ?? 0;
-  int get _totalMembers => int.tryParse(_totalMembersController.text.trim()) ?? 0;
+  double get _monthlyAmount =>
+      double.tryParse(
+          _monthlyAmountController.text.replaceAll(',', '').trim()) ??
+      0;
+  int get _totalMembers =>
+      int.tryParse(_totalMembersController.text.trim()) ?? 0;
   int get _duration => int.tryParse(_durationController.text.trim()) ?? 0;
   double get _totalPool => _monthlyAmount * _totalMembers;
 
@@ -78,10 +83,12 @@ class _CreateKametiScreenState extends ConsumerState<CreateKametiScreen> {
     if (picked != null) setState(() => _startDate = picked);
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_isSubmitting) return;
     final user = ref.read(authControllerProvider).user;
     if (user == null) {
-      SnackbarHelper.showError(context, 'Please login before creating a kameti.');
+      SnackbarHelper.showError(
+          context, 'Please login before creating a kameti.');
       return;
     }
     if (!_formKey.currentState!.validate()) return;
@@ -112,13 +119,23 @@ class _CreateKametiScreenState extends ConsumerState<CreateKametiScreen> {
       memberUserIds: [user.id],
     );
 
-    ref.read(kametiControllerProvider.notifier).createKameti(kameti);
-    ref.read(memberControllerProvider.notifier).ensureOrganizerMember(
-          kameti: kameti,
-          currentUser: user,
-        );
-    SnackbarHelper.showSuccess(context, 'Kameti created successfully.');
-    Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.main, (_) => false, arguments: 1);
+    setState(() => _isSubmitting = true);
+    try {
+      await ref.read(kametiControllerProvider.notifier).createKameti(kameti);
+      ref.read(memberControllerProvider.notifier).ensureOrganizerMember(
+            kameti: kameti,
+            currentUser: user,
+          );
+      if (!mounted) return;
+      SnackbarHelper.showSuccess(context, 'Kameti created successfully.');
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil(AppRoutes.main, (_) => false, arguments: 1);
+    } catch (error) {
+      if (!mounted) return;
+      SnackbarHelper.showError(
+          context, 'Kameti could not be saved. Please try again.');
+      setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -141,11 +158,15 @@ class _CreateKametiScreenState extends ConsumerState<CreateKametiScreen> {
               const SizedBox(height: 14),
               DropdownButtonFormField<KametiType>(
                 initialValue: _type,
-                decoration: const InputDecoration(labelText: 'Kameti Type', prefixIcon: Icon(Icons.category_outlined)),
+                decoration: const InputDecoration(
+                    labelText: 'Kameti Type',
+                    prefixIcon: Icon(Icons.category_outlined)),
                 items: KametiType.values
-                    .map((type) => DropdownMenuItem(value: type, child: Text(type.label)))
+                    .map((type) =>
+                        DropdownMenuItem(value: type, child: Text(type.label)))
                     .toList(),
-                onChanged: (value) => setState(() => _type = value ?? KametiType.ownerFirst),
+                onChanged: (value) =>
+                    setState(() => _type = value ?? KametiType.ownerFirst),
               ),
               const SizedBox(height: 14),
               AppTextField(
@@ -154,7 +175,8 @@ class _CreateKametiScreenState extends ConsumerState<CreateKametiScreen> {
                 hint: '20000',
                 keyboardType: TextInputType.number,
                 prefixIcon: Icons.payments_outlined,
-                validator: (value) => Validators.positiveNumber(value, 'Monthly amount'),
+                validator: (value) =>
+                    Validators.positiveNumber(value, 'Monthly amount'),
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 14),
@@ -173,25 +195,32 @@ class _CreateKametiScreenState extends ConsumerState<CreateKametiScreen> {
                 hint: '10',
                 keyboardType: TextInputType.number,
                 prefixIcon: Icons.calendar_view_month_outlined,
-                validator: (value) => Validators.positiveNumber(value, 'Duration'),
-                onChanged: (_) => setState(() => _durationManuallyEdited = true),
+                validator: (value) =>
+                    Validators.positiveNumber(value, 'Duration'),
+                onChanged: (_) =>
+                    setState(() => _durationManuallyEdited = true),
               ),
               const SizedBox(height: 14),
               _PickerTile(
                 icon: Icons.event_outlined,
                 label: 'Start Date',
-                value: _startDate == null ? 'Select start date' : DateFormatter.display(_startDate!),
+                value: _startDate == null
+                    ? 'Select start date'
+                    : DateFormatter.display(_startDate!),
                 onTap: _pickStartDate,
               ),
               const SizedBox(height: 14),
               DropdownButtonFormField<int>(
                 initialValue: _dueDay,
-                decoration:
-                    const InputDecoration(labelText: 'Monthly Due Day', prefixIcon: Icon(Icons.today_outlined)),
+                decoration: const InputDecoration(
+                    labelText: 'Monthly Due Day',
+                    prefixIcon: Icon(Icons.today_outlined)),
                 items: List.generate(28, (index) => index + 1)
-                    .map((day) => DropdownMenuItem(value: day, child: Text('Day $day')))
+                    .map((day) =>
+                        DropdownMenuItem(value: day, child: Text('Day $day')))
                     .toList(),
-                validator: (value) => value == null ? 'Due day is required' : null,
+                validator: (value) =>
+                    value == null ? 'Due day is required' : null,
                 onChanged: (value) => setState(() => _dueDay = value),
               ),
               const SizedBox(height: 14),
@@ -199,7 +228,8 @@ class _CreateKametiScreenState extends ConsumerState<CreateKametiScreen> {
                 controller: _organizerController,
                 label: 'Organizer Name',
                 prefixIcon: Icons.person_pin_outlined,
-                validator: (value) => Validators.required(value, 'Organizer name'),
+                validator: (value) =>
+                    Validators.required(value, 'Organizer name'),
               ),
               const SizedBox(height: 14),
               AppTextField(
@@ -217,7 +247,12 @@ class _CreateKametiScreenState extends ConsumerState<CreateKametiScreen> {
                 duration: _duration,
               ),
               const SizedBox(height: 22),
-              AppButton(label: 'Create Kameti', icon: Icons.check, onPressed: _submit),
+              AppButton(
+                label: 'Create Kameti',
+                icon: Icons.check,
+                isLoading: _isSubmitting,
+                onPressed: _isSubmitting ? null : _submit,
+              ),
             ],
           ),
         ),
@@ -275,12 +310,18 @@ class _CalculationCard extends StatelessWidget {
           children: [
             Text(
               'Summary',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 12),
-            _SummaryLine(label: 'Monthly Amount', value: CurrencyFormatter.pkr(monthlyAmount)),
+            _SummaryLine(
+                label: 'Monthly Amount',
+                value: CurrencyFormatter.pkr(monthlyAmount)),
             _SummaryLine(label: 'Members', value: '$members'),
-            _SummaryLine(label: 'Total Pool', value: CurrencyFormatter.pkr(totalPool)),
+            _SummaryLine(
+                label: 'Total Pool', value: CurrencyFormatter.pkr(totalPool)),
             _SummaryLine(label: 'Duration', value: '$duration months'),
           ],
         ),
