@@ -12,6 +12,10 @@ class AppTextField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.onChanged,
+    this.onSubmitted,
+    this.textInputAction,
+    this.enableSuggestions = true,
+    this.autocorrect = true,
     super.key,
   });
 
@@ -25,6 +29,10 @@ class AppTextField extends StatelessWidget {
   final IconData? prefixIcon;
   final Widget? suffixIcon;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final TextInputAction? textInputAction;
+  final bool enableSuggestions;
+  final bool autocorrect;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +43,10 @@ class AppTextField extends StatelessWidget {
       obscureText: obscureText,
       maxLines: maxLines,
       onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
+      textInputAction: textInputAction,
+      enableSuggestions: enableSuggestions,
+      autocorrect: autocorrect,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

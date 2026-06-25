@@ -18,6 +18,7 @@ class SignupScreen extends ConsumerStatefulWidget {
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -29,6 +30,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
@@ -40,11 +42,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_acceptedTerms) {
-      SnackbarHelper.showError(context, 'Please accept the privacy and record-keeping terms.');
+      SnackbarHelper.showError(
+          context, 'Please accept the privacy and record-keeping terms.');
       return;
     }
     final success = await ref.read(authControllerProvider.notifier).signup(
           fullName: _nameController.text,
+          username: _usernameController.text,
           email: _emailController.text,
           phone: _phoneController.text,
           password: _passwordController.text,
@@ -52,7 +56,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         );
     if (!mounted) return;
     if (!success) {
-      SnackbarHelper.showError(context, ref.read(authControllerProvider).errorMessage);
+      SnackbarHelper.showError(
+          context, ref.read(authControllerProvider).errorMessage);
       return;
     }
     SnackbarHelper.showSuccess(context, 'Account created successfully.');
@@ -73,14 +78,21 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Create your KametiBook account', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
+                Text('Create your KametiBook account',
+                    style: theme.textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 6),
-                Text('Har kameti ka complete hisaab.', style: theme.textTheme.bodyLarge?.copyWith(color: Colors.black54)),
+                Text('Har kameti ka complete hisaab.',
+                    style: theme.textTheme.bodyLarge
+                        ?.copyWith(color: Colors.black54)),
                 const SizedBox(height: 22),
                 if (auth.errorMessage.isNotEmpty) ...[
                   Card(
                     color: Colors.red.withValues(alpha: 0.08),
-                    child: ListTile(leading: const Icon(Icons.error_outline, color: Colors.red), title: Text(auth.errorMessage)),
+                    child: ListTile(
+                        leading:
+                            const Icon(Icons.error_outline, color: Colors.red),
+                        title: Text(auth.errorMessage)),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -89,6 +101,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   label: 'Full Name',
                   prefixIcon: Icons.person_outline,
                   validator: (value) => Validators.required(value, 'Name'),
+                ),
+                const SizedBox(height: 14),
+                AppTextField(
+                  controller: _usernameController,
+                  label: 'Username',
+                  hint: 'darpan_786',
+                  prefixIcon: Icons.alternate_email_outlined,
+                  validator: Validators.username,
                 ),
                 const SizedBox(height: 14),
                 AppTextField(
@@ -123,8 +143,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   prefixIcon: Icons.lock_outline,
                   validator: Validators.password,
                   suffixIcon: IconButton(
-                    onPressed: () => setState(() => _showPassword = !_showPassword),
-                    icon: Icon(_showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                    onPressed: () =>
+                        setState(() => _showPassword = !_showPassword),
+                    icon: Icon(_showPassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -134,19 +157,26 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   obscureText: !_showPassword,
                   prefixIcon: Icons.lock_reset_outlined,
                   validator: (value) {
-                    if (value != _passwordController.text) return 'Passwords do not match';
+                    if (value != _passwordController.text) {
+                      return 'Passwords do not match';
+                    }
                     return Validators.password(value);
                   },
                 ),
                 CheckboxListTile(
                   value: _acceptedTerms,
-                  onChanged: (value) => setState(() => _acceptedTerms = value ?? false),
+                  onChanged: (value) =>
+                      setState(() => _acceptedTerms = value ?? false),
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('I understand KametiBook is a record-keeping tool and my account data must be accurate.'),
+                  title: const Text(
+                      'I understand KametiBook is a record-keeping tool and my account data must be accurate.'),
                   controlAffinity: ListTileControlAffinity.leading,
                 ),
                 const SizedBox(height: 24),
-                AppButton(label: 'Signup', isLoading: auth.isLoading, onPressed: _signup),
+                AppButton(
+                    label: 'Signup',
+                    isLoading: auth.isLoading,
+                    onPressed: _signup),
                 const SizedBox(height: 14),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

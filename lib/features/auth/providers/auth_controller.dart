@@ -161,6 +161,7 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<bool> signup({
     required String fullName,
+    required String username,
     required String email,
     required String phone,
     required String password,
@@ -170,10 +171,12 @@ class AuthController extends StateNotifier<AuthState> {
         isLoading: true, status: AuthStatus.checking, errorMessage: '');
     await Future<void>.delayed(const Duration(milliseconds: 500));
     final normalizedEmail = _normalizeEmail(email);
+    final normalizedUsername = _normalizeUsername(username);
     final normalizedPhone = _normalizePhone(phone);
     if (FirebaseBootstrap.isInitialized) {
       return _firebaseSignup(
         fullName: fullName,
+        username: normalizedUsername,
         email: normalizedEmail,
         phone: phone,
         normalizedPhone: normalizedPhone,
@@ -199,6 +202,7 @@ class AuthController extends StateNotifier<AuthState> {
     final profile = UserProfileModel(
       id: 'user-${now.microsecondsSinceEpoch}',
       fullName: fullName.trim(),
+      username: normalizedUsername,
       phone: phone.trim(),
       email: normalizedEmail,
       city: city.trim(),
@@ -233,6 +237,8 @@ class AuthController extends StateNotifier<AuthState> {
   bool _isActive(UserProfileModel profile) =>
       profile.status == UserProfileStatus.active;
   String _normalizeEmail(String email) => email.trim().toLowerCase();
+  String _normalizeUsername(String username) =>
+      username.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
   String _normalizePhone(String phone) => phone.replaceAll(RegExp(r'\D'), '');
 
   Future<bool> _firebaseLogin(String email, String password) async {
@@ -267,6 +273,7 @@ class AuthController extends StateNotifier<AuthState> {
       }
       final updated = _copyProfileWithLogin(profile);
       await _updateLastLoginBestEffort(updated);
+      unawaited(_syncPublicProfileBestEffort(updated));
       return _setAuthenticatedProfile(updated);
     } on firebase_auth.FirebaseAuthException catch (error) {
       state = AuthState(
@@ -289,6 +296,7 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<bool> _firebaseSignup({
     required String fullName,
+    required String username,
     required String email,
     required String phone,
     required String normalizedPhone,
@@ -310,6 +318,7 @@ class AuthController extends StateNotifier<AuthState> {
       final profile = UserProfileModel(
         id: firebaseUser.uid,
         fullName: fullName.trim(),
+        username: username,
         phone: phone.trim(),
         email: email,
         city: city.trim(),
@@ -321,11 +330,40 @@ class AuthController extends StateNotifier<AuthState> {
         lastLoginAt: now,
         fcmToken: '',
       );
+      final batch = _firestore.batch();
+      final privateProfileRef =
+          _firestore.collection('users').doc(firebaseUser.uid);
+      final publicProfileRef =
+          _firestore.collection('publicUserProfiles').doc(firebaseUser.uid);
+      final usernameRef = _firestore.collection('usernames').doc(username);
+      batch.set(usernameRef, {
+        'userId': profile.id,
+        'username': profile.username,
+        'createdAt': now.millisecondsSinceEpoch,
+      });
+      batch.set(privateProfileRef, {
+        ...profile.toMap(),
+        'phoneNormalized': normalizedPhone,
+        'searchKeywords': _buildProfileSearchKeywords(profile, normalizedPhone),
+      });
+      batch.set(publicProfileRef, {
+        'id': profile.id,
+        'fullName': profile.fullName,
+        'fullNameLower': profile.fullName.toLowerCase(),
+        'username': profile.username,
+        'usernameLower': profile.username.toLowerCase(),
+        'phone': profile.phone,
+        'phoneNormalized': normalizedPhone,
+        'email': profile.email,
+        'emailLower': profile.email.toLowerCase(),
+        'city': profile.city,
+        'profilePhotoUrl': profile.profilePhotoUrl,
+        'status': profile.status.name,
+        'searchKeywords': _buildProfileSearchKeywords(profile, normalizedPhone),
+        'createdAt': profile.createdAt.millisecondsSinceEpoch,
+      });
       await _withTimeout(
-        _firestore.collection('users').doc(firebaseUser.uid).set({
-          ...profile.toMap(),
-          'phoneNormalized': normalizedPhone,
-        }),
+        batch.commit(),
         'Profile creation timed out. Please check Firestore setup and your internet connection.',
       );
       return _setAuthenticatedProfile(profile);
@@ -354,6 +392,7 @@ class AuthController extends StateNotifier<AuthState> {
           errorMessage: 'Your account is not active. Please contact support.');
       return false;
     }
+    unawaited(_syncPublicProfileBestEffort(profile));
     return _setAuthenticatedProfile(profile);
   }
 
@@ -363,6 +402,7 @@ class AuthController extends StateNotifier<AuthState> {
       id: profile.id,
       fullName: profile.fullName,
       phone: profile.phone,
+      username: profile.username,
       email: profile.email,
       city: profile.city,
       profilePhotoUrl: profile.profilePhotoUrl,
@@ -457,6 +497,22 @@ class AuthController extends StateNotifier<AuthState> {
         onTimeout: () => throw TimeoutException(message, _firebaseTimeout));
   }
 
+  List<String> _buildProfileSearchKeywords(
+      UserProfileModel profile, String normalizedPhone) {
+    final values = <String>{
+      profile.username.toLowerCase(),
+      profile.fullName.toLowerCase(),
+      profile.email.toLowerCase(),
+      normalizedPhone,
+      profile.phone.trim().toLowerCase(),
+      profile.city.toLowerCase(),
+    };
+    for (final part in profile.fullName.toLowerCase().split(RegExp(r'\s+'))) {
+      if (part.trim().isNotEmpty) values.add(part.trim());
+    }
+    return values.where((value) => value.trim().isNotEmpty).toList();
+  }
+
   Future<void> _updateLastLoginBestEffort(UserProfileModel profile) async {
     try {
       await _withTimeout(
@@ -468,6 +524,31 @@ class AuthController extends StateNotifier<AuthState> {
       );
     } catch (error) {
       debugPrint('KametiBook lastLoginAt update skipped: $error');
+    }
+  }
+
+  Future<void> _syncPublicProfileBestEffort(UserProfileModel profile) async {
+    if (!FirebaseBootstrap.isInitialized || profile.id.isEmpty) return;
+    final normalizedPhone = _normalizePhone(profile.phone);
+    try {
+      await _firestore.collection('publicUserProfiles').doc(profile.id).set({
+        'id': profile.id,
+        'fullName': profile.fullName,
+        'fullNameLower': profile.fullName.toLowerCase(),
+        'username': profile.username,
+        'usernameLower': profile.username.toLowerCase(),
+        'phone': profile.phone,
+        'phoneNormalized': normalizedPhone,
+        'email': profile.email,
+        'emailLower': profile.email.toLowerCase(),
+        'city': profile.city,
+        'profilePhotoUrl': profile.profilePhotoUrl,
+        'status': profile.status.name,
+        'searchKeywords': _buildProfileSearchKeywords(profile, normalizedPhone),
+        'updatedAt': DateTime.now().millisecondsSinceEpoch,
+      }, SetOptions(merge: true));
+    } catch (error) {
+      debugPrint('KametiBook public profile sync skipped: $error');
     }
   }
 

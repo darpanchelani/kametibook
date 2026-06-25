@@ -1,1 +1,36 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"kametibook","appId":"1:1093900375588:android:a1e03453a0fbc87f302ab1","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"kametibook","appId":"1:1093900375588:ios:4458fb60b3b84435302ab1","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"kametibook","configurations":{"android":"1:1093900375588:android:a1e03453a0fbc87f302ab1","ios":"1:1093900375588:ios:4458fb60b3b84435302ab1"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "kametibook",
+          "appId": "1:1093900375588:android:a1e03453a0fbc87f302ab1",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "kametibook",
+          "appId": "1:1093900375588:ios:4458fb60b3b84435302ab1",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "kametibook",
+          "configurations": {
+            "android": "1:1093900375588:android:a1e03453a0fbc87f302ab1",
+            "ios": "1:1093900375588:ios:4458fb60b3b84435302ab1"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}

@@ -36,7 +36,8 @@ service cloud.firestore {
         allow create: if ownUser(userId);
       }
       match /joinedKametis/{kametiId} {
-        allow read, write: if ownUser(userId);
+        allow read: if ownUser(userId);
+        allow write: if ownUser(userId) || kametiManager(kametiId);
       }
       match /securityLogs/{logId} {
         allow read: if ownUser(userId);
@@ -50,6 +51,18 @@ service cloud.firestore {
       match /settings/{settingId} {
         allow read, write: if ownUser(userId);
       }
+    }
+
+    match /publicUserProfiles/{userId} {
+      allow read: if signedIn();
+      allow create, update: if ownUser(userId);
+      allow delete: if false;
+    }
+
+    match /usernames/{username} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
     }
 
     match /kametis/{kametiId} {

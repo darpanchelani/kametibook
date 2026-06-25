@@ -19,6 +19,7 @@ class UserProfileModel {
   const UserProfileModel({
     required this.id,
     required this.fullName,
+    required this.username,
     required this.phone,
     required this.email,
     required this.city,
@@ -33,6 +34,7 @@ class UserProfileModel {
 
   final String id;
   final String fullName;
+  final String username;
   final String phone;
   final String email;
   final String city;
@@ -48,6 +50,8 @@ class UserProfileModel {
     return {
       'id': id,
       'fullName': fullName,
+      'username': username,
+      'usernameLower': username.toLowerCase(),
       'phone': phone,
       'email': email,
       'city': city,
@@ -65,12 +69,16 @@ class UserProfileModel {
     return UserProfileModel(
       id: '${map['id'] ?? ''}',
       fullName: '${map['fullName'] ?? ''}',
+      username: _username(map),
       phone: '${map['phone'] ?? ''}',
       email: '${map['email'] ?? ''}',
       city: '${map['city'] ?? ''}',
       profilePhotoUrl: '${map['profilePhotoUrl'] ?? ''}',
-      role: GlobalUserRole.values.firstWhere((item) => item.name == map['role'], orElse: () => GlobalUserRole.user),
-      status: UserProfileStatus.values.firstWhere((item) => item.name == map['status'], orElse: () => UserProfileStatus.active),
+      role: GlobalUserRole.values.firstWhere((item) => item.name == map['role'],
+          orElse: () => GlobalUserRole.user),
+      status: UserProfileStatus.values.firstWhere(
+          (item) => item.name == map['status'],
+          orElse: () => UserProfileStatus.active),
       createdAt: _date(map['createdAt']) ?? DateTime.now(),
       updatedAt: _date(map['updatedAt']) ?? DateTime.now(),
       lastLoginAt: _date(map['lastLoginAt']),
@@ -81,5 +89,13 @@ class UserProfileModel {
   static DateTime? _date(Object? value) {
     if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
     return null;
+  }
+
+  static String _username(Map<String, Object?> map) {
+    final stored = '${map['username'] ?? ''}'.trim();
+    if (stored.isNotEmpty) return stored;
+    final email = '${map['email'] ?? ''}'.trim();
+    if (email.contains('@')) return email.split('@').first.toLowerCase();
+    return '';
   }
 }
