@@ -44,22 +44,26 @@ class EditMemberScreen extends ConsumerWidget {
               allowStatusEditing: true,
               submitLabel: 'Update Member',
               onSubmit: (data) {
-                final error = ref.read(memberControllerProvider.notifier).updateMember(
-                      kametiId: kametiId,
-                      memberId: memberId,
-                      updatedMember: selectedMember.copyWith(
-                        fullName: data.fullName,
-                        phone: data.phone,
-                        city: data.city,
-                        cnic: data.cnic,
-                        whatsappNumber: data.whatsappNumber,
-                        email: data.email,
-                        notes: data.notes,
-                        status: selectedMember.role == MemberRole.organizer ? MemberStatus.active : data.status,
-                      ),
-                    );
+                final error =
+                    ref.read(memberControllerProvider.notifier).updateMember(
+                          kametiId: kametiId,
+                          memberId: memberId,
+                          updatedMember: selectedMember.copyWith(
+                            fullName: data.fullName,
+                            phone: data.phone,
+                            city: data.city,
+                            cnic: data.cnic,
+                            whatsappNumber: data.whatsappNumber,
+                            email: data.email,
+                            notes: data.notes,
+                            status: selectedMember.role == MemberRole.organizer
+                                ? MemberStatus.active
+                                : data.status,
+                          ),
+                        );
                 if (error != null) return error;
-                SnackbarHelper.showSuccess(context, 'Member updated successfully.');
+                SnackbarHelper.showSuccess(
+                    context, 'Member updated successfully.');
                 Navigator.of(context).pop();
                 return null;
               },

@@ -19,10 +19,12 @@ class SubmitPaymentProofScreen extends ConsumerStatefulWidget {
   final String paymentId;
 
   @override
-  ConsumerState<SubmitPaymentProofScreen> createState() => _SubmitPaymentProofScreenState();
+  ConsumerState<SubmitPaymentProofScreen> createState() =>
+      _SubmitPaymentProofScreenState();
 }
 
-class _SubmitPaymentProofScreenState extends ConsumerState<SubmitPaymentProofScreen> {
+class _SubmitPaymentProofScreenState
+    extends ConsumerState<SubmitPaymentProofScreen> {
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
   PaymentMethod _method = PaymentMethod.cash;
@@ -38,10 +40,11 @@ class _SubmitPaymentProofScreenState extends ConsumerState<SubmitPaymentProofScr
 
   @override
   Widget build(BuildContext context) {
-    final payment = ref.watch(paymentControllerProvider).payments.where((item) => item.id == widget.paymentId).firstOrNull;
-    if (payment != null && _amountController.text.isEmpty) {
-      _amountController.text = payment.amountDue.toStringAsFixed(0);
-    }
+    final payment = ref
+        .watch(paymentControllerProvider)
+        .payments
+        .where((item) => item.id == widget.paymentId)
+        .firstOrNull;
     return Scaffold(
       appBar: AppBar(title: const Text('Submit Payment Proof')),
       body: SafeArea(
@@ -51,24 +54,57 @@ class _SubmitPaymentProofScreenState extends ConsumerState<SubmitPaymentProofScr
             if (payment == null)
               const Text('Payment not found.')
             else ...[
-              Text('Amount due: PKR ${payment.amountDue.toStringAsFixed(0)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+              Text('Amount due: PKR ${payment.amountDue.toStringAsFixed(0)}',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w900)),
               const SizedBox(height: 12),
-              TextField(controller: _amountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Amount paid')),
+              TextField(
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  autofillHints: const <String>[],
+                  smartDashesType: SmartDashesType.disabled,
+                  smartQuotesType: SmartQuotesType.disabled,
+                  controller: _amountController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                      labelText: 'Amount paid', hintText: '0')),
               const SizedBox(height: 12),
               DropdownButtonFormField<PaymentMethod>(
                 initialValue: _method,
                 decoration: const InputDecoration(labelText: 'Payment method'),
-                items: PaymentMethod.values.map((item) => DropdownMenuItem(value: item, child: Text(item.label))).toList(),
-                onChanged: (value) => setState(() => _method = value ?? PaymentMethod.cash),
+                items: PaymentMethod.values
+                    .map((item) =>
+                        DropdownMenuItem(value: item, child: Text(item.label)))
+                    .toList(),
+                onChanged: (value) =>
+                    setState(() => _method = value ?? PaymentMethod.cash),
               ),
               const SizedBox(height: 12),
-              OutlinedButton.icon(onPressed: _pickProof, icon: const Icon(Icons.upload_file_outlined), label: Text(_proof == null ? 'Attach Proof' : _proof!.name)),
+              OutlinedButton.icon(
+                  onPressed: _pickProof,
+                  icon: const Icon(Icons.upload_file_outlined),
+                  label: Text(_proof == null ? 'Attach Proof' : _proof!.name)),
               const SizedBox(height: 12),
-              TextField(controller: _noteController, maxLines: 3, decoration: const InputDecoration(labelText: 'Note')),
+              TextField(
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  autofillHints: const <String>[],
+                  smartDashesType: SmartDashesType.disabled,
+                  smartQuotesType: SmartQuotesType.disabled,
+                  controller: _noteController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(labelText: 'Note')),
               const SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: _isSaving ? null : () => _submit(payment),
-                icon: _isSaving ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.check_circle_outline),
+                icon: _isSaving
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.check_circle_outline),
                 label: const Text('Submit Proof'),
               ),
             ],
@@ -79,7 +115,8 @@ class _SubmitPaymentProofScreenState extends ConsumerState<SubmitPaymentProofScr
   }
 
   Future<void> _pickProof() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final image = await ImagePicker()
+        .pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (image == null) return;
     setState(() => _proof = image);
   }
@@ -113,7 +150,8 @@ class _SubmitPaymentProofScreenState extends ConsumerState<SubmitPaymentProofScr
       ref.read(securityControllerProvider.notifier).createAuditLog(
             kametiId: payment.kametiId,
             userId: ref.read(authControllerProvider).user?.id ?? '',
-            userName: ref.read(authControllerProvider).user?.fullName ?? 'Member',
+            userName:
+                ref.read(authControllerProvider).user?.fullName ?? 'Member',
             userRole: 'member',
             actionType: AuditActionType.paymentProofSubmitted,
             entityType: AuditEntityType.payment,
@@ -124,14 +162,14 @@ class _SubmitPaymentProofScreenState extends ConsumerState<SubmitPaymentProofScr
             severity: AuditSeverity.medium,
           );
       if (mounted) {
-        SnackbarHelper.showSuccess(context, 'Payment proof submitted for approval.');
+        SnackbarHelper.showSuccess(
+            context, 'Payment proof submitted for approval.');
         Navigator.of(context).pop();
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
   }
-
 }
 
 extension _FirstOrNull<T> on Iterable<T> {

@@ -25,15 +25,20 @@ class _KametiAlertsScreenState extends ConsumerState<KametiAlertsScreen> {
     final userId = ref.watch(authControllerProvider).user?.id ?? '';
     ref.watch(notificationControllerProvider);
     final controller = ref.read(notificationControllerProvider.notifier);
-    final kameti = ref.read(kametiControllerProvider.notifier).byId(widget.kametiId);
-    final alerts = controller.getNotificationsByKametiId(userId, widget.kametiId).where(_matchesFilter).toList();
+    final kameti =
+        ref.read(kametiControllerProvider.notifier).byId(widget.kametiId);
+    final alerts = controller
+        .getNotificationsByKametiId(userId, widget.kametiId)
+        .where(_matchesFilter)
+        .toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kameti Alerts'),
         actions: [
           TextButton(
-            onPressed: () => controller.markAllNotificationsRead(userId, kametiId: widget.kametiId),
+            onPressed: () => controller.markAllNotificationsRead(userId,
+                kametiId: widget.kametiId),
             child: const Text('Mark read'),
           ),
         ],
@@ -43,7 +48,9 @@ class _KametiAlertsScreenState extends ConsumerState<KametiAlertsScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(16),
-              child: NotificationFilterChips(selected: _filter, onChanged: (value) => setState(() => _filter = value)),
+              child: NotificationFilterChips(
+                  selected: _filter,
+                  onChanged: (value) => setState(() => _filter = value)),
             ),
             Expanded(
               child: alerts.isEmpty
@@ -57,9 +64,12 @@ class _KametiAlertsScreenState extends ConsumerState<KametiAlertsScreen> {
                         return NotificationCard(
                           notification: alert,
                           kametiName: kameti?.name ?? '',
-                          onTap: () => controller.markNotificationRead(alert.id),
-                          onMarkRead: () => controller.markNotificationRead(alert.id),
-                          onDismiss: () => controller.dismissNotification(alert.id),
+                          onTap: () =>
+                              controller.markNotificationRead(alert.id),
+                          onMarkRead: () =>
+                              controller.markNotificationRead(alert.id),
+                          onDismiss: () =>
+                              controller.dismissNotification(alert.id),
                         );
                       },
                     ),
@@ -74,13 +84,21 @@ class _KametiAlertsScreenState extends ConsumerState<KametiAlertsScreen> {
     return switch (_filter) {
       NotificationFilter.all => true,
       NotificationFilter.unread => notification.isUnread,
-      NotificationFilter.payments => notification.notificationType.name.startsWith('payment'),
-      NotificationFilter.payouts => notification.notificationType.name.startsWith('payout'),
-      NotificationFilter.bidding => notification.notificationType.name.startsWith('bidding'),
-      NotificationFilter.draws => notification.notificationType.name.startsWith('luckyDraw'),
-      NotificationFilter.reports => notification.notificationType == AppNotificationType.reportGenerated,
-      NotificationFilter.warnings => notification.notificationType == AppNotificationType.ledgerWarning || notification.priority == NotificationPriority.urgent,
-      NotificationFilter.receiver => notification.notificationType.name.startsWith('receiver'),
+      NotificationFilter.payments =>
+        notification.notificationType.name.startsWith('payment'),
+      NotificationFilter.payouts =>
+        notification.notificationType.name.startsWith('payout'),
+      NotificationFilter.bidding =>
+        notification.notificationType.name.startsWith('bidding'),
+      NotificationFilter.draws =>
+        notification.notificationType.name.startsWith('luckyDraw'),
+      NotificationFilter.reports =>
+        notification.notificationType == AppNotificationType.reportGenerated,
+      NotificationFilter.warnings =>
+        notification.notificationType == AppNotificationType.ledgerWarning ||
+            notification.priority == NotificationPriority.urgent,
+      NotificationFilter.receiver =>
+        notification.notificationType.name.startsWith('receiver'),
     };
   }
 }

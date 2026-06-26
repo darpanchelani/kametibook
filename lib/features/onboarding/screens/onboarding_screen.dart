@@ -23,12 +23,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _Slide(
       icon: Icons.fact_check_outlined,
       title: 'Track Members & Payments',
-      description: 'Keep clear records of members, monthly amounts, and payment status.',
+      description:
+          'Keep clear records of members, monthly amounts, and payment status.',
     ),
     _Slide(
       icon: Icons.verified_user_outlined,
       title: 'Transparent & Simple',
-      description: 'Reduce confusion with organized kameti records and history.',
+      description:
+          'Reduce confusion with organized kameti records and history.',
     ),
   ];
 
@@ -55,7 +57,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             children: [
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(onPressed: _finish, child: const Text('Skip')),
+                child:
+                    TextButton(onPressed: _finish, child: const Text('Skip')),
               ),
               Expanded(
                 child: PageView.builder(
@@ -71,22 +74,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           height: 150,
                           width: 150,
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                            color: theme.colorScheme.primary
+                                .withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(slide.icon, size: 72, color: theme.colorScheme.primary),
+                          child: Icon(slide.icon,
+                              size: 72, color: theme.colorScheme.primary),
                         ),
                         const SizedBox(height: 38),
                         Text(
                           slide.title,
                           textAlign: TextAlign.center,
-                          style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+                          style: theme.textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(height: 12),
                         Text(
                           slide.description,
                           textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyLarge?.copyWith(color: Colors.black54, height: 1.45),
+                          style: theme.textTheme.bodyLarge
+                              ?.copyWith(color: Colors.black54, height: 1.45),
                         ),
                       ],
                     );
@@ -103,7 +110,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     height: 8,
                     width: dot == _index ? 24 : 8,
                     decoration: BoxDecoration(
-                      color: dot == _index ? theme.colorScheme.primary : Colors.black26,
+                      color: dot == _index
+                          ? theme.colorScheme.primary
+                          : Colors.black26,
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
@@ -132,7 +141,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 }
 
 class _Slide {
-  const _Slide({required this.icon, required this.title, required this.description});
+  const _Slide(
+      {required this.icon, required this.title, required this.description});
 
   final IconData icon;
   final String title;

@@ -11,7 +11,8 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
@@ -29,12 +30,16 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      await ref.read(authControllerProvider.notifier).sendPasswordReset(_emailController.text);
+      await ref
+          .read(authControllerProvider.notifier)
+          .sendPasswordReset(_emailController.text);
       if (!mounted) return;
-      SnackbarHelper.showInfo(context, 'Password reset instructions will be sent if this email exists.');
+      SnackbarHelper.showInfo(context,
+          'Password reset instructions will be sent if this email exists.');
     } catch (_) {
       if (!mounted) return;
-      SnackbarHelper.showError(context, 'Password reset could not be sent. Please check the email and try again.');
+      SnackbarHelper.showError(context,
+          'Password reset could not be sent. Please check the email and try again.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -54,6 +59,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               children: [
                 const SizedBox(height: 12),
                 AppTextField(
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  autofillHints: const <String>[],
+                  smartDashesType: SmartDashesType.disabled,
+                  smartQuotesType: SmartQuotesType.disabled,
                   controller: _emailController,
                   label: 'Email',
                   hint: 'you@example.com',
@@ -62,7 +72,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   validator: Validators.email,
                 ),
                 const SizedBox(height: 22),
-                AppButton(label: 'Submit', isLoading: _isLoading, onPressed: _submit),
+                AppButton(
+                    label: 'Submit', isLoading: _isLoading, onPressed: _submit),
               ],
             ),
           ),

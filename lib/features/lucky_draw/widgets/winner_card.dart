@@ -17,7 +17,11 @@ class WinnerCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Winner: ${draw.winnerName}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+            Text('Winner: ${draw.winnerName}',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
             Text('Amount: ${CurrencyFormatter.pkr(draw.payoutAmount)}'),
             Text('Cycle: Month ${draw.cycleNumber}'),

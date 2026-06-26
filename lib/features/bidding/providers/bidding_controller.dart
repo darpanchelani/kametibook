@@ -59,7 +59,9 @@ class BiddingController extends StateNotifier<BiddingState> {
   }
 
   List<BiddingSessionModel> getBiddingSessionsByKametiId(String kametiId) {
-    final sessions = state.sessions.where((session) => session.kametiId == kametiId).toList();
+    final sessions = state.sessions
+        .where((session) => session.kametiId == kametiId)
+        .toList();
     sessions.sort((a, b) => a.cycleNumber.compareTo(b.cycleNumber));
     return sessions;
   }
@@ -67,7 +69,8 @@ class BiddingController extends StateNotifier<BiddingState> {
   List<BidModel> getBidsBySessionId(String sessionId) {
     final session = getSession(sessionId);
     if (session == null) return const [];
-    final bids = state.bids.where((bid) => bid.cycleId == session.cycleId).toList();
+    final bids =
+        state.bids.where((bid) => bid.cycleId == session.cycleId).toList();
     bids.sort((a, b) {
       final amount = a.bidAmount.compareTo(b.bidAmount);
       if (amount != 0) return amount;
@@ -77,15 +80,21 @@ class BiddingController extends StateNotifier<BiddingState> {
   }
 
   List<DiscountAdjustmentModel> getAdjustmentsBySessionId(String sessionId) {
-    return state.adjustments.where((item) => item.biddingSessionId == sessionId).toList();
+    return state.adjustments
+        .where((item) => item.biddingSessionId == sessionId)
+        .toList();
   }
 
   List<DiscountAdjustmentModel> getAdjustmentsByMemberId(String memberId) {
-    return state.adjustments.where((item) => item.memberId == memberId).toList();
+    return state.adjustments
+        .where((item) => item.memberId == memberId)
+        .toList();
   }
 
   BidModel? getLowestActiveBid(String sessionId) {
-    final active = getBidsBySessionId(sessionId).where((bid) => bid.status == BidStatus.active).toList();
+    final active = getBidsBySessionId(sessionId)
+        .where((bid) => bid.status == BidStatus.active)
+        .toList();
     return active.isEmpty ? null : active.first;
   }
 
@@ -103,7 +112,8 @@ class BiddingController extends StateNotifier<BiddingState> {
     final eligible = <MemberModel>[];
     final excluded = <MemberModel>[];
     final reasons = <String, String>{};
-    for (final member in members.where((member) => member.kametiId == kameti.id)) {
+    for (final member
+        in members.where((member) => member.kametiId == kameti.id)) {
       MemberPaymentModel? payment;
       if (cycle != null) {
         for (final item in payments) {
@@ -122,7 +132,8 @@ class BiddingController extends StateNotifier<BiddingState> {
         reason = 'Already received kameti';
       } else if (payment == null) {
         reason = 'No payment record found';
-      } else if (kameti.requirePaymentBeforeBidding && payment.paymentStatus != PaymentStatus.paid) {
+      } else if (kameti.requirePaymentBeforeBidding &&
+          payment.paymentStatus != PaymentStatus.paid) {
         reason = 'Payment not paid for current cycle';
       }
 
@@ -145,12 +156,20 @@ class BiddingController extends StateNotifier<BiddingState> {
     required PaymentCycleModel? cycle,
     required BiddingEligibilityResult eligibility,
   }) {
-    if (kameti.type != KametiType.bidding) return 'Bidding is only available for auction kametis.';
-    if (kameti.status == KametiStatus.draft) return 'Start this kameti before running bidding.';
-    if (kameti.status != KametiStatus.active) return 'Bidding is only available for active kametis.';
+    if (kameti.type != KametiType.bidding) {
+      return 'Bidding is only available for auction kametis.';
+    }
+    if (kameti.status == KametiStatus.draft) {
+      return 'Start this kameti before running bidding.';
+    }
+    if (kameti.status != KametiStatus.active) {
+      return 'Bidding is only available for active kametis.';
+    }
     if (cycle == null) return 'No active payment cycle found.';
     if (hasBiddingCompletedForCycle(cycle.id)) return null;
-    if (eligibility.eligibleMembers.isEmpty) return 'No eligible members available for bidding.';
+    if (eligibility.eligibleMembers.isEmpty) {
+      return 'No eligible members available for bidding.';
+    }
     return null;
   }
 
@@ -160,7 +179,9 @@ class BiddingController extends StateNotifier<BiddingState> {
     required int activeMembersCount,
     required String createdBy,
   }) {
-    if (getBiddingSessionByCycleId(cycle.id) != null) return 'Bidding session already exists for this cycle.';
+    if (getBiddingSessionByCycleId(cycle.id) != null) {
+      return 'Bidding session already exists for this cycle.';
+    }
     final now = DateTime.now();
     final totalPool = kameti.monthlyAmount * activeMembersCount;
     final session = BiddingSessionModel(
@@ -195,7 +216,11 @@ class BiddingController extends StateNotifier<BiddingState> {
     required String note,
     required BiddingEligibilityResult eligibility,
   }) {
-    final validation = _validateBid(session: session, member: member, bidAmount: bidAmount, eligibility: eligibility);
+    final validation = _validateBid(
+        session: session,
+        member: member,
+        bidAmount: bidAmount,
+        eligibility: eligibility);
     if (validation != null) return validation;
     final existing = _activeBidForMember(session, member.id);
     if (existing != null) {
@@ -230,12 +255,20 @@ class BiddingController extends StateNotifier<BiddingState> {
     if (session == null || session.status != BiddingSessionStatus.open) {
       return 'Bids cannot be updated after bidding is closed.';
     }
-    if (bidAmount <= 0 || bidAmount >= session.totalPoolAmount) return 'Bid amount must be greater than 0 and less than total pool.';
-    if (session.minimumBidAmount > 0 && bidAmount < session.minimumBidAmount) return 'Bid amount is lower than minimum bid.';
+    if (bidAmount <= 0 || bidAmount >= session.totalPoolAmount) {
+      return 'Bid amount must be greater than 0 and less than total pool.';
+    }
+    if (session.minimumBidAmount > 0 && bidAmount < session.minimumBidAmount) {
+      return 'Bid amount is lower than minimum bid.';
+    }
     state = state.copyWith(
       bids: [
         for (final item in state.bids)
-          if (item.id == bidId) item.copyWith(bidAmount: bidAmount, note: note, updatedAt: DateTime.now()) else item,
+          if (item.id == bidId)
+            item.copyWith(
+                bidAmount: bidAmount, note: note, updatedAt: DateTime.now())
+          else
+            item,
       ],
     );
     return null;
@@ -251,7 +284,11 @@ class BiddingController extends StateNotifier<BiddingState> {
     state = state.copyWith(
       bids: [
         for (final item in state.bids)
-          if (item.id == bidId) item.copyWith(status: BidStatus.withdrawn, updatedAt: DateTime.now()) else item,
+          if (item.id == bidId)
+            item.copyWith(
+                status: BidStatus.withdrawn, updatedAt: DateTime.now())
+          else
+            item,
       ],
     );
     return null;
@@ -260,9 +297,18 @@ class BiddingController extends StateNotifier<BiddingState> {
   String? closeBiddingSession(String sessionId) {
     final session = getSession(sessionId);
     if (session == null) return 'Bidding session not found.';
-    if (session.status != BiddingSessionStatus.open) return 'Only open bidding sessions can be closed.';
-    if (getLowestActiveBid(sessionId) == null) return 'At least one active bid is required.';
-    _replaceSession(sessionId, (item) => item.copyWith(status: BiddingSessionStatus.closed, endTime: DateTime.now(), updatedAt: DateTime.now()));
+    if (session.status != BiddingSessionStatus.open) {
+      return 'Only open bidding sessions can be closed.';
+    }
+    if (getLowestActiveBid(sessionId) == null) {
+      return 'At least one active bid is required.';
+    }
+    _replaceSession(
+        sessionId,
+        (item) => item.copyWith(
+            status: BiddingSessionStatus.closed,
+            endTime: DateTime.now(),
+            updatedAt: DateTime.now()));
     return null;
   }
 
@@ -272,14 +318,16 @@ class BiddingController extends StateNotifier<BiddingState> {
   }) {
     final winner = getLowestActiveBid(session.id);
     if (winner == null) return null;
-    final discount = calculateDiscount(session.totalPoolAmount, winner.bidAmount);
+    final discount =
+        calculateDiscount(session.totalPoolAmount, winner.bidAmount);
     final adjustments = calculateDiscountAdjustments(
       session: session,
       winningBid: winner,
       discountAmount: discount,
       activeMembers: activeMembers,
     );
-    return BiddingCompletionPreview(winningBid: winner, discountAmount: discount, adjustments: adjustments);
+    return BiddingCompletionPreview(
+        winningBid: winner, discountAmount: discount, adjustments: adjustments);
   }
 
   String? completeBiddingSession({
@@ -288,9 +336,14 @@ class BiddingController extends StateNotifier<BiddingState> {
   }) {
     final session = getSession(sessionId);
     if (session == null) return 'Bidding session not found.';
-    if (session.status != BiddingSessionStatus.closed) return 'Close bidding before completing it.';
-    if (session.status == BiddingSessionStatus.completed) return 'Bidding already completed.';
-    final preview = buildCompletionPreview(session: session, activeMembers: activeMembers);
+    if (session.status != BiddingSessionStatus.closed) {
+      return 'Close bidding before completing it.';
+    }
+    if (session.status == BiddingSessionStatus.completed) {
+      return 'Bidding already completed.';
+    }
+    final preview =
+        buildCompletionPreview(session: session, activeMembers: activeMembers);
     if (preview == null) return 'No active bids available.';
     final now = DateTime.now();
     state = state.copyWith(
@@ -313,21 +366,25 @@ class BiddingController extends StateNotifier<BiddingState> {
         for (final bid in state.bids)
           if (bid.cycleId == session.cycleId && bid.status == BidStatus.active)
             bid.copyWith(
-              status: bid.id == preview.winningBid.id ? BidStatus.winning : BidStatus.lost,
+              status: bid.id == preview.winningBid.id
+                  ? BidStatus.winning
+                  : BidStatus.lost,
               updatedAt: now,
             )
           else
             bid,
       ],
       adjustments: [
-        ...state.adjustments.where((item) => item.biddingSessionId != sessionId),
+        ...state.adjustments
+            .where((item) => item.biddingSessionId != sessionId),
         ...preview.adjustments,
       ],
     );
     return null;
   }
 
-  double calculateDiscount(double totalPoolAmount, double winningBid) => (totalPoolAmount - winningBid).clamp(0, totalPoolAmount).toDouble();
+  double calculateDiscount(double totalPoolAmount, double winningBid) =>
+      (totalPoolAmount - winningBid).clamp(0, totalPoolAmount).toDouble();
 
   List<DiscountAdjustmentModel> calculateDiscountAdjustments({
     required BiddingSessionModel session,
@@ -337,7 +394,8 @@ class BiddingController extends StateNotifier<BiddingState> {
   }) {
     if (discountAmount <= 0) return const [];
     final now = DateTime.now();
-    if (session.discountDistributionType == DiscountDistributionType.groupWallet) {
+    if (session.discountDistributionType ==
+        DiscountDistributionType.groupWallet) {
       return [
         DiscountAdjustmentModel(
           id: '${session.id}-group-wallet',
@@ -355,7 +413,8 @@ class BiddingController extends StateNotifier<BiddingState> {
         ),
       ];
     }
-    if (session.discountDistributionType == DiscountDistributionType.manualLater) {
+    if (session.discountDistributionType ==
+        DiscountDistributionType.manualLater) {
       return [
         DiscountAdjustmentModel(
           id: '${session.id}-manual',
@@ -374,7 +433,10 @@ class BiddingController extends StateNotifier<BiddingState> {
       ];
     }
     final recipients = activeMembers.where((member) {
-      if (session.discountDistributionType == DiscountDistributionType.equalToAllMembers) return true;
+      if (session.discountDistributionType ==
+          DiscountDistributionType.equalToAllMembers) {
+        return true;
+      }
       return member.id != winningBid.memberId;
     }).toList();
     if (recipients.isEmpty) return const [];
@@ -400,10 +462,17 @@ class BiddingController extends StateNotifier<BiddingState> {
     ];
   }
 
-  int getOpenBiddingsCount() => state.sessions.where((item) => item.status == BiddingSessionStatus.open).length;
-  int getPendingBiddingResultsCount() => state.sessions.where((item) => item.status == BiddingSessionStatus.closed).length;
-  int getCompletedBiddingsCount() => state.sessions.where((item) => item.status == BiddingSessionStatus.completed).length;
-  double getTotalDiscountsGenerated() => state.sessions.fold(0, (total, item) => total + item.discountAmount);
+  int getOpenBiddingsCount() => state.sessions
+      .where((item) => item.status == BiddingSessionStatus.open)
+      .length;
+  int getPendingBiddingResultsCount() => state.sessions
+      .where((item) => item.status == BiddingSessionStatus.closed)
+      .length;
+  int getCompletedBiddingsCount() => state.sessions
+      .where((item) => item.status == BiddingSessionStatus.completed)
+      .length;
+  double getTotalDiscountsGenerated() =>
+      state.sessions.fold(0, (total, item) => total + item.discountAmount);
 
   String? _validateBid({
     required BiddingSessionModel session,
@@ -411,16 +480,28 @@ class BiddingController extends StateNotifier<BiddingState> {
     required double bidAmount,
     required BiddingEligibilityResult eligibility,
   }) {
-    if (session.status != BiddingSessionStatus.open) return 'Bidding session must be open.';
-    if (!eligibility.eligibleMembers.any((item) => item.id == member.id)) return 'This member is not eligible to bid.';
-    if (bidAmount <= 0 || bidAmount >= session.totalPoolAmount) return 'Bid amount must be greater than 0 and less than total pool.';
-    if (session.minimumBidAmount > 0 && bidAmount < session.minimumBidAmount) return 'Bid amount is lower than minimum bid.';
+    if (session.status != BiddingSessionStatus.open) {
+      return 'Bidding session must be open.';
+    }
+    if (!eligibility.eligibleMembers.any((item) => item.id == member.id)) {
+      return 'This member is not eligible to bid.';
+    }
+    if (bidAmount <= 0 || bidAmount >= session.totalPoolAmount) {
+      return 'Bid amount must be greater than 0 and less than total pool.';
+    }
+    if (session.minimumBidAmount > 0 && bidAmount < session.minimumBidAmount) {
+      return 'Bid amount is lower than minimum bid.';
+    }
     return null;
   }
 
   BidModel? _activeBidForMember(BiddingSessionModel session, String memberId) {
     for (final bid in state.bids) {
-      if (bid.cycleId == session.cycleId && bid.memberId == memberId && bid.status == BidStatus.active) return bid;
+      if (bid.cycleId == session.cycleId &&
+          bid.memberId == memberId &&
+          bid.status == BidStatus.active) {
+        return bid;
+      }
     }
     return null;
   }
@@ -432,7 +513,8 @@ class BiddingController extends StateNotifier<BiddingState> {
     return null;
   }
 
-  void _replaceSession(String sessionId, BiddingSessionModel Function(BiddingSessionModel session) update) {
+  void _replaceSession(String sessionId,
+      BiddingSessionModel Function(BiddingSessionModel session) update) {
     state = state.copyWith(
       sessions: [
         for (final session in state.sessions)

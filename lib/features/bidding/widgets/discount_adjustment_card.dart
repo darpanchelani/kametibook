@@ -13,8 +13,10 @@ class DiscountAdjustmentCard extends StatelessWidget {
     return Card(
       child: ListTile(
         title: Text(adjustment.memberName),
-        subtitle: Text('${adjustment.adjustmentType.label} - ${adjustment.status.label}'),
-        trailing: Text(CurrencyFormatter.pkr(adjustment.adjustmentAmount), style: const TextStyle(fontWeight: FontWeight.w900)),
+        subtitle: Text(
+            '${adjustment.adjustmentType.label} - ${adjustment.status.label}'),
+        trailing: Text(CurrencyFormatter.pkr(adjustment.adjustmentAmount),
+            style: const TextStyle(fontWeight: FontWeight.w900)),
       ),
     );
   }

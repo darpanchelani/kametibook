@@ -34,7 +34,8 @@ class MemberPaymentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final paidDate = payment.paidAt == null ? '-' : DateFormatter.display(payment.paidAt!);
+    final paidDate =
+        payment.paidAt == null ? '-' : DateFormatter.display(payment.paidAt!);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -50,10 +51,14 @@ class MemberPaymentCard extends StatelessWidget {
                     children: [
                       Text(
                         member?.fullName ?? 'Unknown Member',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 3),
-                      Text(member?.phone ?? '-', style: const TextStyle(color: Colors.black54)),
+                      Text(member?.phone ?? '-',
+                          style: const TextStyle(color: Colors.black54)),
                     ],
                   ),
                 ),
@@ -65,13 +70,24 @@ class MemberPaymentCard extends StatelessWidget {
               spacing: 12,
               runSpacing: 8,
               children: [
-                _Meta(icon: Icons.payments_outlined, text: 'Due: ${CurrencyFormatter.pkr(payment.amountDue)}'),
-                _Meta(icon: Icons.check_circle_outline, text: 'Paid: ${CurrencyFormatter.pkr(payment.amountPaid)}'),
-                _Meta(icon: Icons.account_balance_wallet_outlined, text: payment.paymentMethod?.label ?? 'No method'),
-                _Meta(icon: Icons.event_available_outlined, text: 'Paid: $paidDate'),
+                _Meta(
+                    icon: Icons.payments_outlined,
+                    text: 'Due: ${CurrencyFormatter.pkr(payment.amountDue)}'),
+                _Meta(
+                    icon: Icons.check_circle_outline,
+                    text: 'Paid: ${CurrencyFormatter.pkr(payment.amountPaid)}'),
+                _Meta(
+                    icon: Icons.account_balance_wallet_outlined,
+                    text: payment.paymentMethod?.label ?? 'No method'),
+                _Meta(
+                    icon: Icons.event_available_outlined,
+                    text: 'Paid: $paidDate'),
                 _Meta(
                   icon: Icons.attachment_outlined,
-                  text: payment.proofImagePath.isEmpty && payment.proofUrl.isEmpty ? 'No proof' : 'Proof attached',
+                  text:
+                      payment.proofImagePath.isEmpty && payment.proofUrl.isEmpty
+                          ? 'No proof'
+                          : 'Proof attached',
                 ),
               ],
             ),
@@ -84,15 +100,27 @@ class MemberPaymentCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                FilledButton(onPressed: onMarkPaid, child: const Text('Mark Paid')),
-                if (onSubmitProof != null) OutlinedButton(onPressed: onSubmitProof, child: const Text('Submit Proof')),
-                if (payment.paymentStatus == PaymentStatus.pendingApproval && onApproveProof != null)
-                  FilledButton(onPressed: onApproveProof, child: const Text('Approve')),
-                OutlinedButton(onPressed: onMarkPending, child: const Text('Pending')),
-                OutlinedButton(onPressed: onMarkLate, child: const Text('Late')),
-                OutlinedButton(onPressed: onReject, child: const Text('Reject')),
+                FilledButton(
+                    onPressed: onMarkPaid, child: const Text('Mark Paid')),
+                if (onSubmitProof != null)
+                  OutlinedButton(
+                      onPressed: onSubmitProof,
+                      child: const Text('Submit Proof')),
+                if (payment.paymentStatus == PaymentStatus.pendingApproval &&
+                    onApproveProof != null)
+                  FilledButton(
+                      onPressed: onApproveProof, child: const Text('Approve')),
+                OutlinedButton(
+                    onPressed: onMarkPending, child: const Text('Pending')),
+                OutlinedButton(
+                    onPressed: onMarkLate, child: const Text('Late')),
+                OutlinedButton(
+                    onPressed: onReject, child: const Text('Reject')),
                 TextButton(onPressed: onEdit, child: const Text('View/Edit')),
-                if (onReportIssue != null) TextButton(onPressed: onReportIssue, child: const Text('Report Issue')),
+                if (onReportIssue != null)
+                  TextButton(
+                      onPressed: onReportIssue,
+                      child: const Text('Report Issue')),
               ],
             ),
           ],
@@ -115,7 +143,11 @@ class _Meta extends StatelessWidget {
       children: [
         Icon(icon, size: 17, color: Colors.black54),
         const SizedBox(width: 5),
-        Text(text, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+        Text(text,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: Colors.black54)),
       ],
     );
   }

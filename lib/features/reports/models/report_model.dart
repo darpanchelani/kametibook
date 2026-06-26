@@ -67,7 +67,11 @@ class ReportModel {
   final ReportVisibility visibility;
   final List<String> sharedWithMemberIds;
 
-  ReportModel copyWith({String? filePath, ReportStatus? status, ReportVisibility? visibility, List<String>? sharedWithMemberIds}) {
+  ReportModel copyWith(
+      {String? filePath,
+      ReportStatus? status,
+      ReportVisibility? visibility,
+      List<String>? sharedWithMemberIds}) {
     return ReportModel(
       id: id,
       kametiId: kametiId,

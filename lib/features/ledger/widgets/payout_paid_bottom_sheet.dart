@@ -22,7 +22,8 @@ class PayoutPaidData {
 }
 
 class PayoutPaidBottomSheet extends StatefulWidget {
-  const PayoutPaidBottomSheet({required this.allocation, required this.onSubmit, super.key});
+  const PayoutPaidBottomSheet(
+      {required this.allocation, required this.onSubmit, super.key});
 
   final ReceiverAllocationModel allocation;
   final ValueChanged<PayoutPaidData> onSubmit;
@@ -42,7 +43,7 @@ class _PayoutPaidBottomSheetState extends State<PayoutPaidBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _amountController = TextEditingController(text: widget.allocation.amount.toStringAsFixed(0));
+    _amountController = TextEditingController();
     _noteController = TextEditingController();
   }
 
@@ -57,73 +58,112 @@ class _PayoutPaidBottomSheetState extends State<PayoutPaidBottomSheet> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: MediaQuery.viewInsetsOf(context).bottom + 16),
+        padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.viewInsetsOf(context).bottom + 16),
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-              Text('Mark Payout Paid', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
-              const SizedBox(height: 16),
-              AppTextField(
-                controller: _amountController,
-                label: 'Payout Amount',
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  final error = Validators.positiveNumber(value, 'Payout amount');
-                  if (error != null) return error;
-                  final amount = double.parse(value!.replaceAll(',', '').trim());
-                  if (amount > widget.allocation.amount) return 'Payout cannot exceed allocation amount';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 14),
-              DropdownButtonFormField<PayoutMethod>(
-                initialValue: _method,
-                decoration: const InputDecoration(labelText: 'Payout Method'),
-                items: PayoutMethod.values.map((method) => DropdownMenuItem(value: method, child: Text(method.label))).toList(),
-                onChanged: (value) => setState(() => _method = value ?? PayoutMethod.cash),
-              ),
-              const SizedBox(height: 14),
-              InkWell(
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    firstDate: DateTime(DateTime.now().year - 2),
-                    lastDate: DateTime(DateTime.now().year + 2),
-                    initialDate: _paidAt,
-                  );
-                  if (picked != null) setState(() => _paidAt = picked);
-                },
-                child: InputDecorator(
-                  decoration: const InputDecoration(labelText: 'Paid Date'),
-                  child: Text(DateFormatter.display(_paidAt)),
-                ),
-              ),
-              const SizedBox(height: 14),
-              OutlinedButton.icon(
-                onPressed: () => setState(() => _proofPath = 'mock/payout-proof-${DateTime.now().millisecondsSinceEpoch}.jpg'),
-                icon: const Icon(Icons.attachment_outlined),
-                label: Text(_proofPath.isEmpty ? 'Attach payout proof' : 'Proof attached'),
-              ),
-              const SizedBox(height: 14),
-              AppTextField(controller: _noteController, label: 'Notes', maxLines: 3),
-              const SizedBox(height: 18),
-              AppButton(
-                label: 'Save Payout',
-                onPressed: () {
-                  if (!_formKey.currentState!.validate()) return;
-                  widget.onSubmit(
-                    PayoutPaidData(
-                      amount: double.parse(_amountController.text.replaceAll(',', '').trim()),
-                      method: _method,
-                      paidAt: _paidAt,
-                      proofPath: _proofPath,
-                      note: _noteController.text.trim(),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Mark Payout Paid',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 16),
+                  AppTextField(
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    autofillHints: const <String>[],
+                    smartDashesType: SmartDashesType.disabled,
+                    smartQuotesType: SmartQuotesType.disabled,
+                    controller: _amountController,
+                    label: 'Payout Amount',
+                    hint: '0',
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      final error =
+                          Validators.positiveNumber(value, 'Payout amount');
+                      if (error != null) return error;
+                      final amount =
+                          double.parse(value!.replaceAll(',', '').trim());
+                      if (amount > widget.allocation.amount) {
+                        return 'Payout cannot exceed allocation amount';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<PayoutMethod>(
+                    initialValue: _method,
+                    decoration:
+                        const InputDecoration(labelText: 'Payout Method'),
+                    items: PayoutMethod.values
+                        .map((method) => DropdownMenuItem(
+                            value: method, child: Text(method.label)))
+                        .toList(),
+                    onChanged: (value) =>
+                        setState(() => _method = value ?? PayoutMethod.cash),
+                  ),
+                  const SizedBox(height: 14),
+                  InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        firstDate: DateTime(DateTime.now().year - 2),
+                        lastDate: DateTime(DateTime.now().year + 2),
+                        initialDate: _paidAt,
+                      );
+                      if (picked != null) setState(() => _paidAt = picked);
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(labelText: 'Paid Date'),
+                      child: Text(DateFormatter.display(_paidAt)),
                     ),
-                  );
-                },
-              ),
-            ]),
+                  ),
+                  const SizedBox(height: 14),
+                  OutlinedButton.icon(
+                    onPressed: () => setState(() => _proofPath =
+                        'mock/payout-proof-${DateTime.now().millisecondsSinceEpoch}.jpg'),
+                    icon: const Icon(Icons.attachment_outlined),
+                    label: Text(_proofPath.isEmpty
+                        ? 'Attach payout proof'
+                        : 'Proof attached'),
+                  ),
+                  const SizedBox(height: 14),
+                  AppTextField(
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      autofillHints: const <String>[],
+                      smartDashesType: SmartDashesType.disabled,
+                      smartQuotesType: SmartQuotesType.disabled,
+                      controller: _noteController,
+                      label: 'Notes',
+                      maxLines: 3),
+                  const SizedBox(height: 18),
+                  AppButton(
+                    label: 'Save Payout',
+                    onPressed: () {
+                      if (!_formKey.currentState!.validate()) return;
+                      widget.onSubmit(
+                        PayoutPaidData(
+                          amount: double.parse(_amountController.text
+                              .replaceAll(',', '')
+                              .trim()),
+                          method: _method,
+                          paidAt: _paidAt,
+                          proofPath: _proofPath,
+                          note: _noteController.text.trim(),
+                        ),
+                      );
+                    },
+                  ),
+                ]),
           ),
         ),
       ),

@@ -27,15 +27,21 @@ class BiddingHistoryScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Bidding History')),
       body: SafeArea(
         child: sessions.isEmpty
-            ? const EmptyState(icon: Icons.gavel_outlined, title: 'No bidding history yet.')
+            ? const EmptyState(
+                icon: Icons.gavel_outlined, title: 'No bidding history yet.')
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemBuilder: (context, index) {
                   final session = sessions[index];
                   return BiddingHistoryCard(
                     session: session,
-                    winnerName: memberController.getMember(session.winnerMemberId)?.fullName ?? '-',
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.biddingDetail, arguments: session.id),
+                    winnerName: memberController
+                            .getMember(session.winnerMemberId)
+                            ?.fullName ??
+                        '-',
+                    onTap: () => Navigator.of(context).pushNamed(
+                        AppRoutes.biddingDetail,
+                        arguments: session.id),
                   );
                 },
                 separatorBuilder: (_, __) => const SizedBox(height: 8),

@@ -389,10 +389,13 @@ class PrivacySettingsModel {
       userId: userId,
       hidePhoneFromMembers: hidePhoneFromMembers ?? this.hidePhoneFromMembers,
       hideCityFromMembers: hideCityFromMembers ?? this.hideCityFromMembers,
-      hideFinancialAmountInLockScreen: hideFinancialAmountInLockScreen ?? this.hideFinancialAmountInLockScreen,
+      hideFinancialAmountInLockScreen: hideFinancialAmountInLockScreen ??
+          this.hideFinancialAmountInLockScreen,
       hideCnicInReports: hideCnicInReports ?? this.hideCnicInReports,
-      allowMembersDownloadOwnStatement: allowMembersDownloadOwnStatement ?? this.allowMembersDownloadOwnStatement,
-      allowGroupMembersViewFullLedger: allowGroupMembersViewFullLedger ?? this.allowGroupMembersViewFullLedger,
+      allowMembersDownloadOwnStatement: allowMembersDownloadOwnStatement ??
+          this.allowMembersDownloadOwnStatement,
+      allowGroupMembersViewFullLedger: allowGroupMembersViewFullLedger ??
+          this.allowGroupMembersViewFullLedger,
     );
   }
 }

@@ -45,7 +45,9 @@ class BiddingScreen extends ConsumerWidget {
     ref.watch(biddingControllerProvider);
     ref.watch(receiverControllerProvider);
     if (kameti == null) {
-      return Scaffold(appBar: AppBar(title: const Text('Bidding')), body: const Center(child: Text('Kameti not found')));
+      return Scaffold(
+          appBar: AppBar(title: const Text('Bidding')),
+          body: const Center(child: Text('Kameti not found')));
     }
 
     final memberController = ref.read(memberControllerProvider.notifier);
@@ -53,23 +55,38 @@ class BiddingScreen extends ConsumerWidget {
     final biddingController = ref.read(biddingControllerProvider.notifier);
     final cycle = paymentController.getCurrentCycle(kameti.id);
     final members = memberController.getMembersByKametiId(kameti.id);
-    final activeMembers = members.where((member) => member.status == MemberStatus.active).toList();
-    final payments = cycle == null ? <MemberPaymentModel>[] : paymentController.getPaymentsByCycleId(cycle.id);
+    final activeMembers = members
+        .where((member) => member.status == MemberStatus.active)
+        .toList();
+    final payments = cycle == null
+        ? <MemberPaymentModel>[]
+        : paymentController.getPaymentsByCycleId(cycle.id);
     final eligibility = biddingController.getEligibleMembersForBidding(
       kameti: kameti,
       cycle: cycle,
       members: members,
       payments: payments,
     );
-    final session = cycle == null ? null : biddingController.getBiddingSessionByCycleId(cycle.id);
-    final bids = session == null ? <BidModel>[] : biddingController.getBidsBySessionId(session.id);
-    final lowestBid = session == null ? null : biddingController.getLowestActiveBid(session.id);
-    final availabilityError = biddingController.validateAvailability(kameti: kameti, cycle: cycle, eligibility: eligibility);
-    final receivedCount = members.where((member) => member.hasReceivedKameti).length;
-    final settingsEnabled = session == null || session.status != BiddingSessionStatus.completed;
-    final completedPreview = session == null || session.status != BiddingSessionStatus.closed
+    final session = cycle == null
         ? null
-        : biddingController.buildCompletionPreview(session: session, activeMembers: activeMembers);
+        : biddingController.getBiddingSessionByCycleId(cycle.id);
+    final bids = session == null
+        ? <BidModel>[]
+        : biddingController.getBidsBySessionId(session.id);
+    final lowestBid = session == null
+        ? null
+        : biddingController.getLowestActiveBid(session.id);
+    final availabilityError = biddingController.validateAvailability(
+        kameti: kameti, cycle: cycle, eligibility: eligibility);
+    final receivedCount =
+        members.where((member) => member.hasReceivedKameti).length;
+    final settingsEnabled =
+        session == null || session.status != BiddingSessionStatus.completed;
+    final completedPreview =
+        session == null || session.status != BiddingSessionStatus.closed
+            ? null
+            : biddingController.buildCompletionPreview(
+                session: session, activeMembers: activeMembers);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Bidding')),
@@ -77,10 +94,17 @@ class BiddingScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(kameti.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+            Text(kameti.name,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 4),
-            Text(cycle == null ? 'No active payment cycle found.' : 'Month ${cycle.cycleNumber} - ${cycle.monthLabel}'),
-            if (cycle != null) Text('Due Date: ${DateFormatter.display(cycle.dueDate)}'),
+            Text(cycle == null
+                ? 'No active payment cycle found.'
+                : 'Month ${cycle.cycleNumber} - ${cycle.monthLabel}'),
+            if (cycle != null)
+              Text('Due Date: ${DateFormatter.display(cycle.dueDate)}'),
             const SizedBox(height: 12),
             if (cycle != null)
               PaymentSummaryCard(
@@ -89,34 +113,45 @@ class BiddingScreen extends ConsumerWidget {
                 collectedAmount: cycle.collectedAmount,
                 pendingAmount: cycle.pendingAmount,
                 paidCount: paymentController.getPaidMembersCount(cycle.id),
-                pendingCount: paymentController.getPendingMembersCount(cycle.id),
+                pendingCount:
+                    paymentController.getPendingMembersCount(cycle.id),
                 lateCount: paymentController.getLateMembersCount(cycle.id),
-                rejectedCount: paymentController.getRejectedMembersCount(cycle.id),
+                rejectedCount:
+                    paymentController.getRejectedMembersCount(cycle.id),
               ),
             BiddingSummaryCard(
               eligibleCount: eligibility.eligibleMembers.length,
               excludedCount: eligibility.excludedMembers.length,
               receivedCount: receivedCount,
-              bidsCount: bids.where((bid) => bid.status == BidStatus.active).length,
+              bidsCount:
+                  bids.where((bid) => bid.status == BidStatus.active).length,
               totalPoolAmount: kameti.monthlyAmount * activeMembers.length,
             ),
             BiddingSettingsTile(
               requirePayment: kameti.requirePaymentBeforeBidding,
               distributionType: kameti.discountDistributionType,
               enabled: settingsEnabled,
-              onRequirePaymentChanged: (value) => ref.read(kametiControllerProvider.notifier).updateRequirePaymentBeforeBidding(kameti.id, value),
-              onDistributionChanged: (value) => ref.read(kametiControllerProvider.notifier).updateDiscountDistributionType(kameti.id, value),
+              onRequirePaymentChanged: (value) => ref
+                  .read(kametiControllerProvider.notifier)
+                  .updateRequirePaymentBeforeBidding(kameti.id, value),
+              onDistributionChanged: (value) => ref
+                  .read(kametiControllerProvider.notifier)
+                  .updateDiscountDistributionType(kameti.id, value),
             ),
             const SizedBox(height: 8),
-            const Text('Only active members who have not received kameti are eligible for bidding.'),
-            if (kameti.requirePaymentBeforeBidding) const Text('Only members who paid for the current cycle can submit bids.'),
+            const Text(
+                'Only active members who have not received kameti are eligible for bidding.'),
+            if (kameti.requirePaymentBeforeBidding)
+              const Text(
+                  'Only members who paid for the current cycle can submit bids.'),
             const SizedBox(height: 12),
             if (session == null)
               AppButton(
                 label: 'Start Bidding',
                 icon: Icons.play_arrow,
                 onPressed: availabilityError == null && cycle != null
-                    ? () => _startBidding(context, ref, kameti, cycle, activeMembers.length)
+                    ? () => _startBidding(
+                        context, ref, kameti, cycle, activeMembers.length)
                     : null,
               )
             else ...[
@@ -124,12 +159,16 @@ class BiddingScreen extends ConsumerWidget {
                 children: [
                   BiddingStatusBadge(status: session.status),
                   const SizedBox(width: 10),
-                  Expanded(child: Text('Total Pool: ${CurrencyFormatter.pkr(session.totalPoolAmount)}')),
+                  Expanded(
+                      child: Text(
+                          'Total Pool: ${CurrencyFormatter.pkr(session.totalPoolAmount)}')),
                 ],
               ),
               const SizedBox(height: 12),
               if (session.status == BiddingSessionStatus.completed)
-                _CompletedBiddingCard(session: session, winner: memberController.getMember(session.winnerMemberId))
+                _CompletedBiddingCard(
+                    session: session,
+                    winner: memberController.getMember(session.winnerMemberId))
               else ...[
                 LowestBidCard(bid: lowestBid),
                 Wrap(
@@ -138,7 +177,8 @@ class BiddingScreen extends ConsumerWidget {
                   children: [
                     FilledButton.icon(
                       onPressed: session.status == BiddingSessionStatus.open
-                          ? () => _openSubmitBid(context, ref, session, eligibility, null)
+                          ? () => _openSubmitBid(
+                              context, ref, session, eligibility, null)
                           : null,
                       icon: const Icon(Icons.add),
                       label: const Text('Submit Bid'),
@@ -156,43 +196,65 @@ class BiddingScreen extends ConsumerWidget {
                   BiddingResultPreviewCard(
                     preview: completedPreview,
                     totalPool: session.totalPoolAmount,
-                    onComplete: () => _completeBidding(context, ref, session, activeMembers, completedPreview),
+                    onComplete: () => _completeBidding(
+                        context, ref, session, activeMembers, completedPreview),
                   ),
                 ],
               ],
             ],
             if (availabilityError != null && session == null) ...[
               const SizedBox(height: 8),
-              Text(availabilityError, style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w800)),
+              Text(availabilityError,
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontWeight: FontWeight.w800)),
             ],
             const SizedBox(height: 18),
-            Text('Active Bids', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+            Text('Active Bids',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             if (bids.isEmpty)
               const Text('No bids submitted yet.')
             else
               ...bids.map((bid) => BidCard(
                     bid: bid,
                     member: memberController.getMember(bid.memberId),
-                    canEdit: session?.status == BiddingSessionStatus.open && bid.status == BidStatus.active,
-                    onEdit: () => _openSubmitBid(context, ref, session!, eligibility, bid),
+                    canEdit: session?.status == BiddingSessionStatus.open &&
+                        bid.status == BidStatus.active,
+                    onEdit: () => _openSubmitBid(
+                        context, ref, session!, eligibility, bid),
                     onWithdraw: () => _withdrawBid(context, ref, bid),
                   )),
             const SizedBox(height: 18),
-            Text('Eligible Members', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+            Text('Eligible Members',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             if (eligibility.eligibleMembers.isEmpty)
               const Text('No eligible members available for bidding.')
             else
               ...eligibility.eligibleMembers.map((member) {
-                final payment = _paymentForMember(payments, cycle?.id ?? '', member.id);
-                return EligibleBidderCard(member: member, paymentStatus: payment?.paymentStatus);
+                final payment =
+                    _paymentForMember(payments, cycle?.id ?? '', member.id);
+                return EligibleBidderCard(
+                    member: member, paymentStatus: payment?.paymentStatus);
               }),
             const SizedBox(height: 18),
-            Text('Excluded Members', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+            Text('Excluded Members',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             if (eligibility.excludedMembers.isEmpty)
               const Text('No excluded members.')
             else
               ...eligibility.excludedMembers.map((member) {
-                return ExcludedBidderCard(member: member, reason: eligibility.exclusionReasons[member.id] ?? '-');
+                return ExcludedBidderCard(
+                    member: member,
+                    reason: eligibility.exclusionReasons[member.id] ?? '-');
               }),
           ],
         ),
@@ -200,24 +262,34 @@ class BiddingScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _startBidding(BuildContext context, WidgetRef ref, KametiModel kameti, PaymentCycleModel cycle, int activeMembersCount) async {
+  Future<void> _startBidding(
+      BuildContext context,
+      WidgetRef ref,
+      KametiModel kameti,
+      PaymentCycleModel cycle,
+      int activeMembersCount) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => const ConfirmationDialog(
         title: 'Start Bidding?',
-        message: 'Eligible members will be able to submit bid amounts for this cycle.',
+        message:
+            'Eligible members will be able to submit bid amounts for this cycle.',
         confirmLabel: 'Start',
       ),
     );
     if (confirmed != true) return;
-    final error = ref.read(biddingControllerProvider.notifier).createBiddingSession(
-          kameti: kameti,
-          cycle: cycle,
-          activeMembersCount: activeMembersCount,
-          createdBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
-        );
+    final error =
+        ref.read(biddingControllerProvider.notifier).createBiddingSession(
+              kameti: kameti,
+              cycle: cycle,
+              activeMembersCount: activeMembersCount,
+              createdBy: ref.read(authControllerProvider).user?.fullName ??
+                  'Organizer',
+            );
     if (context.mounted) {
-      error == null ? SnackbarHelper.showSuccess(context, 'Bidding started successfully.') : SnackbarHelper.showError(context, error);
+      error == null
+          ? SnackbarHelper.showSuccess(context, 'Bidding started successfully.')
+          : SnackbarHelper.showError(context, error);
     }
     if (error == null) {
       ref.read(notificationControllerProvider.notifier).createNotification(
@@ -227,7 +299,8 @@ class BiddingScreen extends ConsumerWidget {
                   cycleId: cycle.id,
                   type: AppNotificationType.biddingStarted,
                   title: 'Bidding Started',
-                  message: 'Bidding has started for ${kameti.name} Cycle ${cycle.cycleNumber}.',
+                  message:
+                      'Bidding has started for ${kameti.name} Cycle ${cycle.cycleNumber}.',
                   priority: NotificationPriority.high,
                   actionType: NotificationActionType.openBidding,
                   actionRoute: AppRoutes.bidding,
@@ -236,7 +309,8 @@ class BiddingScreen extends ConsumerWidget {
       ref.read(securityControllerProvider.notifier).createAuditLog(
             kametiId: kameti.id,
             userId: ref.read(authControllerProvider).user?.id ?? '',
-            userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+            userName:
+                ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
             userRole: 'organizer',
             actionType: AuditActionType.biddingStarted,
             entityType: AuditEntityType.biddingSession,
@@ -255,7 +329,9 @@ class BiddingScreen extends ConsumerWidget {
     BidModel? existingBid,
   ) async {
     final memberController = ref.read(memberControllerProvider.notifier);
-    final initialMember = existingBid == null ? null : memberController.getMember(existingBid.memberId);
+    final initialMember = existingBid == null
+        ? null
+        : memberController.getMember(existingBid.memberId);
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -274,10 +350,16 @@ class BiddingScreen extends ConsumerWidget {
                     note: note,
                     eligibility: eligibility,
                   )
-              : ref.read(biddingControllerProvider.notifier).updateBid(existingBid.id, amount, note);
+              : ref
+                  .read(biddingControllerProvider.notifier)
+                  .updateBid(existingBid.id, amount, note);
           if (error == null) {
             Navigator.of(sheetContext).pop();
-            SnackbarHelper.showSuccess(context, existingBid == null ? 'Bid submitted successfully.' : 'Bid updated successfully.');
+            SnackbarHelper.showSuccess(
+                context,
+                existingBid == null
+                    ? 'Bid submitted successfully.'
+                    : 'Bid updated successfully.');
           }
           return error;
         },
@@ -285,7 +367,8 @@ class BiddingScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _closeBidding(BuildContext context, WidgetRef ref, BiddingSessionModel session) async {
+  Future<void> _closeBidding(
+      BuildContext context, WidgetRef ref, BiddingSessionModel session) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => const ConfirmationDialog(
@@ -295,9 +378,13 @@ class BiddingScreen extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
-    final error = ref.read(biddingControllerProvider.notifier).closeBiddingSession(session.id);
+    final error = ref
+        .read(biddingControllerProvider.notifier)
+        .closeBiddingSession(session.id);
     if (context.mounted) {
-      error == null ? SnackbarHelper.showSuccess(context, 'Bidding closed.') : SnackbarHelper.showError(context, error);
+      error == null
+          ? SnackbarHelper.showSuccess(context, 'Bidding closed.')
+          : SnackbarHelper.showError(context, error);
     }
     if (error == null) {
       ref.read(notificationControllerProvider.notifier).createNotification(
@@ -317,7 +404,8 @@ class BiddingScreen extends ConsumerWidget {
       ref.read(securityControllerProvider.notifier).createAuditLog(
             kametiId: session.kametiId,
             userId: ref.read(authControllerProvider).user?.id ?? '',
-            userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+            userName:
+                ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
             userRole: 'organizer',
             actionType: AuditActionType.biddingClosed,
             entityType: AuditEntityType.biddingSession,
@@ -339,28 +427,38 @@ class BiddingScreen extends ConsumerWidget {
       context: context,
       builder: (context) => ConfirmationDialog(
         title: 'Complete Bidding?',
-        message: '${preview.winningBid.memberName} will receive ${CurrencyFormatter.pkr(preview.winningBid.bidAmount)}. This result will be locked and cannot be changed.',
+        message:
+            '${preview.winningBid.memberName} will receive ${CurrencyFormatter.pkr(preview.winningBid.bidAmount)}. This result will be locked and cannot be changed.',
         confirmLabel: 'Complete',
       ),
     );
     if (confirmed != true) return;
-    final error = ref.read(biddingControllerProvider.notifier).completeBiddingSession(
-          sessionId: session.id,
-          activeMembers: activeMembers,
-        );
+    final error =
+        ref.read(biddingControllerProvider.notifier).completeBiddingSession(
+              sessionId: session.id,
+              activeMembers: activeMembers,
+            );
     if (error != null) {
       if (context.mounted) SnackbarHelper.showError(context, error);
       return;
     }
-    final winner = ref.read(memberControllerProvider.notifier).getMember(preview.winningBid.memberId);
+    final winner = ref
+        .read(memberControllerProvider.notifier)
+        .getMember(preview.winningBid.memberId);
     if (winner != null) {
-      ref.read(receiverControllerProvider.notifier).createAllocationFromBiddingSession(
-            kameti: _findKameti(ref.read(kametiControllerProvider), session.kametiId)!,
-            cycle: ref.read(paymentControllerProvider.notifier).getCycle(session.cycleId)!,
+      ref
+          .read(receiverControllerProvider.notifier)
+          .createAllocationFromBiddingSession(
+            kameti: _findKameti(
+                ref.read(kametiControllerProvider), session.kametiId)!,
+            cycle: ref
+                .read(paymentControllerProvider.notifier)
+                .getCycle(session.cycleId)!,
             winner: winner,
             sessionId: session.id,
             amount: preview.winningBid.bidAmount,
-            selectedBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+            selectedBy:
+                ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
           );
     }
     ref.read(memberControllerProvider.notifier).markMemberReceived(
@@ -380,7 +478,8 @@ class BiddingScreen extends ConsumerWidget {
                 relatedBiddingSessionId: session.id,
                 type: AppNotificationType.biddingCompleted,
                 title: 'Bidding Completed',
-                message: '${preview.winningBid.memberName} won bidding with ${CurrencyFormatter.pkr(preview.winningBid.bidAmount)}. Discount: ${CurrencyFormatter.pkr(preview.discountAmount)}.',
+                message:
+                    '${preview.winningBid.memberName} won bidding with ${CurrencyFormatter.pkr(preview.winningBid.bidAmount)}. Discount: ${CurrencyFormatter.pkr(preview.discountAmount)}.',
                 priority: NotificationPriority.high,
                 actionType: NotificationActionType.openBidding,
                 actionRoute: AppRoutes.bidding,
@@ -389,21 +488,28 @@ class BiddingScreen extends ConsumerWidget {
     ref.read(securityControllerProvider.notifier).createAuditLog(
           kametiId: session.kametiId,
           userId: ref.read(authControllerProvider).user?.id ?? '',
-          userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+          userName:
+              ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
           userRole: 'organizer',
           actionType: AuditActionType.biddingCompleted,
           entityType: AuditEntityType.biddingSession,
           entityId: session.id,
           newValue: preview.winningBid.memberId,
-          description: '${preview.winningBid.memberName} won bidding with ${CurrencyFormatter.pkr(preview.winningBid.bidAmount)}.',
+          description:
+              '${preview.winningBid.memberName} won bidding with ${CurrencyFormatter.pkr(preview.winningBid.bidAmount)}.',
           severity: AuditSeverity.high,
         );
-    if (context.mounted) SnackbarHelper.showSuccess(context, 'Bidding completed successfully.');
+    if (context.mounted) {
+      SnackbarHelper.showSuccess(context, 'Bidding completed successfully.');
+    }
   }
 
   void _withdrawBid(BuildContext context, WidgetRef ref, BidModel bid) {
-    final error = ref.read(biddingControllerProvider.notifier).withdrawBid(bid.id);
-    error == null ? SnackbarHelper.showSuccess(context, 'Bid withdrawn.') : SnackbarHelper.showError(context, error);
+    final error =
+        ref.read(biddingControllerProvider.notifier).withdrawBid(bid.id);
+    error == null
+        ? SnackbarHelper.showSuccess(context, 'Bid withdrawn.')
+        : SnackbarHelper.showError(context, error);
   }
 
   KametiModel? _findKameti(List<KametiModel> kametis, String id) {
@@ -413,9 +519,12 @@ class BiddingScreen extends ConsumerWidget {
     return null;
   }
 
-  MemberPaymentModel? _paymentForMember(List<MemberPaymentModel> payments, String cycleId, String memberId) {
+  MemberPaymentModel? _paymentForMember(
+      List<MemberPaymentModel> payments, String cycleId, String memberId) {
     for (final payment in payments) {
-      if (payment.cycleId == cycleId && payment.memberId == memberId) return payment;
+      if (payment.cycleId == cycleId && payment.memberId == memberId) {
+        return payment;
+      }
     }
     return null;
   }
@@ -435,8 +544,13 @@ class _CompletedBiddingCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Winner: ${winner?.fullName ?? '-'}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-            Text('Winning Bid: ${CurrencyFormatter.pkr(session.winningAmount)}'),
+            Text('Winner: ${winner?.fullName ?? '-'}',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900)),
+            Text(
+                'Winning Bid: ${CurrencyFormatter.pkr(session.winningAmount)}'),
             Text('Discount: ${CurrencyFormatter.pkr(session.discountAmount)}'),
           ],
         ),

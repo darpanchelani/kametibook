@@ -49,12 +49,16 @@ class PaymentCyclesScreen extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final cycle = cycles[index];
                       final draw = drawController.getDrawByCycleId(cycle.id);
-                      final bidding = biddingController.getBiddingSessionByCycleId(cycle.id);
-                      final allocation = receiverController.getCurrentCycleAllocation(kameti.id, cycle.id);
+                      final bidding = biddingController
+                          .getBiddingSessionByCycleId(cycle.id);
+                      final allocation = receiverController
+                          .getCurrentCycleAllocation(kameti.id, cycle.id);
                       return PaymentCycleCard(
                         cycle: cycle,
-                        paidCount: paymentController.getPaidMembersCount(cycle.id),
-                        pendingCount: paymentController.getPendingMembersCount(cycle.id),
+                        paidCount:
+                            paymentController.getPaidMembersCount(cycle.id),
+                        pendingCount:
+                            paymentController.getPendingMembersCount(cycle.id),
                         drawStatusText: kameti.type == KametiType.luckyDraw
                             ? draw == null
                                 ? 'Draw: Pending'
@@ -68,29 +72,36 @@ class PaymentCyclesScreen extends ConsumerWidget {
                         biddingStatusText: kameti.type == KametiType.bidding
                             ? bidding == null
                                 ? 'Bidding: Not Started'
-                                : bidding.status == BiddingSessionStatus.completed
+                                : bidding.status ==
+                                        BiddingSessionStatus.completed
                                     ? 'Winner: ${biddingController.getBidsBySessionId(bidding.id).where((bid) => bid.id == bidding.winningBidId).map((bid) => bid.memberName).join()} | Winning Bid: ${CurrencyFormatter.pkr(bidding.winningAmount)} | Discount: ${CurrencyFormatter.pkr(bidding.discountAmount)}'
                                     : 'Bidding: ${bidding.status.label}'
                             : null,
                         biddingWarning: kameti.type == KametiType.bidding &&
                                 cycle.status == PaymentCycleStatus.completed &&
-                                bidding?.status != BiddingSessionStatus.completed
+                                bidding?.status !=
+                                    BiddingSessionStatus.completed
                             ? 'Cycle completed but bidding is pending.'
                             : null,
                         receiverStatusText: allocation == null
                             ? 'Receiver: Pending'
                             : 'Receiver: ${allocation.memberName} | Method: ${allocation.allocationType.label}',
-                        onOpen: () => Navigator.of(context).pushNamed(AppRoutes.cyclePayments, arguments: cycle.id),
+                        onOpen: () => Navigator.of(context).pushNamed(
+                            AppRoutes.cyclePayments,
+                            arguments: cycle.id),
                         onMarkCurrent: () {
                           paymentController.markCycleCurrent(cycle.id);
-                          SnackbarHelper.showSuccess(context, 'Cycle marked as current.');
+                          SnackbarHelper.showSuccess(
+                              context, 'Cycle marked as current.');
                         },
                         onComplete: () {
-                          final error = paymentController.completeCycle(cycle.id);
+                          final error =
+                              paymentController.completeCycle(cycle.id);
                           if (error != null) {
                             SnackbarHelper.showError(context, error);
                           } else {
-                            SnackbarHelper.showSuccess(context, 'Cycle marked as completed.');
+                            SnackbarHelper.showSuccess(
+                                context, 'Cycle marked as completed.');
                           }
                         },
                       );

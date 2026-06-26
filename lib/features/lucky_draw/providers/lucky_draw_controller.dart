@@ -12,7 +12,9 @@ class LuckyDrawController extends StateNotifier<List<LuckyDrawModel>> {
 
   LuckyDrawModel? getDrawByCycleId(String cycleId) {
     for (final draw in state) {
-      if (draw.cycleId == cycleId && draw.status == LuckyDrawStatus.completed) return draw;
+      if (draw.cycleId == cycleId && draw.status == LuckyDrawStatus.completed) {
+        return draw;
+      }
     }
     return null;
   }
@@ -23,7 +25,8 @@ class LuckyDrawController extends StateNotifier<List<LuckyDrawModel>> {
     return draws;
   }
 
-  bool hasDrawCompletedForCycle(String cycleId) => getDrawByCycleId(cycleId) != null;
+  bool hasDrawCompletedForCycle(String cycleId) =>
+      getDrawByCycleId(cycleId) != null;
 
   DrawEligibilityResult getEligibleMembersForDraw({
     required KametiModel kameti,
@@ -35,7 +38,8 @@ class LuckyDrawController extends StateNotifier<List<LuckyDrawModel>> {
     final excluded = <MemberModel>[];
     final reasons = <String, String>{};
 
-    for (final member in members.where((member) => member.kametiId == kameti.id)) {
+    for (final member
+        in members.where((member) => member.kametiId == kameti.id)) {
       MemberPaymentModel? payment;
       if (cycle != null) {
         for (final item in payments) {
@@ -54,7 +58,8 @@ class LuckyDrawController extends StateNotifier<List<LuckyDrawModel>> {
         reason = 'Already received kameti';
       } else if (payment == null) {
         reason = 'No payment record for current cycle';
-      } else if (kameti.requirePaymentBeforeDraw && payment.paymentStatus != PaymentStatus.paid) {
+      } else if (kameti.requirePaymentBeforeDraw &&
+          payment.paymentStatus != PaymentStatus.paid) {
         reason = 'Payment not paid for current cycle';
       }
 
@@ -78,12 +83,22 @@ class LuckyDrawController extends StateNotifier<List<LuckyDrawModel>> {
     required PaymentCycleModel? cycle,
     required DrawEligibilityResult eligibility,
   }) {
-    if (kameti.type != KametiType.luckyDraw) return 'Lucky draw is only available for Khulli Chhutti kametis.';
-    if (kameti.status == KametiStatus.draft) return 'Start this kameti before running lucky draw.';
-    if (kameti.status != KametiStatus.active) return 'Lucky draw is only available for active kametis.';
+    if (kameti.type != KametiType.luckyDraw) {
+      return 'Lucky draw is only available for Khulli Chhutti kametis.';
+    }
+    if (kameti.status == KametiStatus.draft) {
+      return 'Start this kameti before running lucky draw.';
+    }
+    if (kameti.status != KametiStatus.active) {
+      return 'Lucky draw is only available for active kametis.';
+    }
     if (cycle == null) return 'No active payment cycle found.';
-    if (hasDrawCompletedForCycle(cycle.id)) return 'Draw already completed for this cycle.';
-    if (eligibility.eligibleMembers.isEmpty) return 'No eligible members available for draw.';
+    if (hasDrawCompletedForCycle(cycle.id)) {
+      return 'Draw already completed for this cycle.';
+    }
+    if (eligibility.eligibleMembers.isEmpty) {
+      return 'No eligible members available for draw.';
+    }
     return null;
   }
 
@@ -92,7 +107,8 @@ class LuckyDrawController extends StateNotifier<List<LuckyDrawModel>> {
     required PaymentCycleModel? cycle,
     required DrawEligibilityResult eligibility,
   }) {
-    final error = validateDrawAvailability(kameti: kameti, cycle: cycle, eligibility: eligibility);
+    final error = validateDrawAvailability(
+        kameti: kameti, cycle: cycle, eligibility: eligibility);
     if (error != null) return null;
     final members = eligibility.eligibleMembers;
     return members[Random.secure().nextInt(members.length)];
@@ -106,7 +122,9 @@ class LuckyDrawController extends StateNotifier<List<LuckyDrawModel>> {
     required String createdBy,
     String notes = '',
   }) {
-    if (hasDrawCompletedForCycle(cycle.id)) return 'Draw already completed for this cycle.';
+    if (hasDrawCompletedForCycle(cycle.id)) {
+      return 'Draw already completed for this cycle.';
+    }
     final now = DateTime.now();
     state = [
       LuckyDrawModel(
@@ -117,8 +135,10 @@ class LuckyDrawController extends StateNotifier<List<LuckyDrawModel>> {
         winnerMemberId: winner.id,
         winnerName: winner.fullName,
         drawType: LuckyDrawType.luckyDraw,
-        eligibleMemberIds: eligibility.eligibleMembers.map((member) => member.id).toList(),
-        excludedMemberIds: eligibility.excludedMembers.map((member) => member.id).toList(),
+        eligibleMemberIds:
+            eligibility.eligibleMembers.map((member) => member.id).toList(),
+        excludedMemberIds:
+            eligibility.excludedMembers.map((member) => member.id).toList(),
         exclusionReasons: eligibility.exclusionReasons,
         totalEligibleMembers: eligibility.eligibleMembers.length,
         totalExcludedMembers: eligibility.excludedMembers.length,
@@ -140,10 +160,13 @@ class LuckyDrawController extends StateNotifier<List<LuckyDrawModel>> {
     required List<PaymentCycleModel> cycles,
   }) {
     var count = 0;
-    for (final kameti in kametis.where((item) => item.status == KametiStatus.active && item.type == KametiType.luckyDraw)) {
+    for (final kameti in kametis.where((item) =>
+        item.status == KametiStatus.active &&
+        item.type == KametiType.luckyDraw)) {
       PaymentCycleModel? current;
       for (final cycle in cycles) {
-        if (cycle.kametiId == kameti.id && cycle.status == PaymentCycleStatus.current) {
+        if (cycle.kametiId == kameti.id &&
+            cycle.status == PaymentCycleStatus.current) {
           current = cycle;
           break;
         }
@@ -153,7 +176,8 @@ class LuckyDrawController extends StateNotifier<List<LuckyDrawModel>> {
     return count;
   }
 
-  int getCompletedDrawsCount() => state.where((draw) => draw.status == LuckyDrawStatus.completed).length;
+  int getCompletedDrawsCount() =>
+      state.where((draw) => draw.status == LuckyDrawStatus.completed).length;
 }
 
 final luckyDrawControllerProvider =

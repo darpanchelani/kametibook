@@ -30,25 +30,43 @@ class _InviteMemberScreenState extends ConsumerState<InviteMemberScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final kameti = ref.watch(kametiControllerProvider).where((item) => item.id == widget.kametiId).firstOrNull;
+    final kameti = ref
+        .watch(kametiControllerProvider)
+        .where((item) => item.id == widget.kametiId)
+        .firstOrNull;
     return Scaffold(
       appBar: AppBar(title: const Text('Invite Member')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(kameti?.name ?? 'Kameti', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+            Text(kameti?.name ?? 'Kameti',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 12),
-            TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone number')),
+            TextField(
+                enableSuggestions: false,
+                autocorrect: false,
+                autofillHints: const <String>[],
+                smartDashesType: SmartDashesType.disabled,
+                smartQuotesType: SmartQuotesType.disabled,
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(labelText: 'Phone number')),
             const SizedBox(height: 12),
             DropdownButtonFormField<MemberRole>(
               initialValue: _role,
               decoration: const InputDecoration(labelText: 'Role'),
               items: const [
-                DropdownMenuItem(value: MemberRole.member, child: Text('Member')),
-                DropdownMenuItem(value: MemberRole.coOrganizer, child: Text('Co-Organizer')),
+                DropdownMenuItem(
+                    value: MemberRole.member, child: Text('Member')),
+                DropdownMenuItem(
+                    value: MemberRole.coOrganizer, child: Text('Co-Organizer')),
               ],
-              onChanged: (value) => setState(() => _role = value ?? MemberRole.member),
+              onChanged: (value) =>
+                  setState(() => _role = value ?? MemberRole.member),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -77,7 +95,9 @@ class _InviteMemberScreenState extends ConsumerState<InviteMemberScreen> {
     final message =
         'You are invited to join ${kameti.name} on KametiBook.\nInvite Code: ${invite.inviteCode}\nMonthly Amount: ${CurrencyFormatter.pkr(kameti.monthlyAmount)}\nOpen KametiBook and enter this code to join.';
     await SharePlus.instance.share(ShareParams(text: message));
-    if (mounted) SnackbarHelper.showSuccess(context, 'Invite created successfully.');
+    if (mounted) {
+      SnackbarHelper.showSuccess(context, 'Invite created successfully.');
+    }
   }
 }
 

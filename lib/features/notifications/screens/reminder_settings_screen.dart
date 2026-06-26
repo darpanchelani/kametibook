@@ -13,10 +13,12 @@ class ReminderSettingsScreen extends ConsumerStatefulWidget {
   final String kametiId;
 
   @override
-  ConsumerState<ReminderSettingsScreen> createState() => _ReminderSettingsScreenState();
+  ConsumerState<ReminderSettingsScreen> createState() =>
+      _ReminderSettingsScreenState();
 }
 
-class _ReminderSettingsScreenState extends ConsumerState<ReminderSettingsScreen> {
+class _ReminderSettingsScreenState
+    extends ConsumerState<ReminderSettingsScreen> {
   late bool remindersEnabled;
   late int paymentDaysBefore;
   late bool paymentOnDueDate;
@@ -33,19 +35,23 @@ class _ReminderSettingsScreenState extends ConsumerState<ReminderSettingsScreen>
   @override
   void initState() {
     super.initState();
-    final kameti = ref.read(kametiControllerProvider.notifier).byId(widget.kametiId);
+    final kameti =
+        ref.read(kametiControllerProvider.notifier).byId(widget.kametiId);
     remindersEnabled = kameti?.remindersEnabled ?? true;
     paymentDaysBefore = kameti?.paymentReminderDaysBefore ?? 2;
     paymentOnDueDate = kameti?.paymentReminderOnDueDate ?? true;
     overdueEnabled = kameti?.overdueReminderEnabled ?? true;
-    overdueFrequency = kameti?.overdueReminderFrequency ?? OverdueReminderFrequency.daily;
+    overdueFrequency =
+        kameti?.overdueReminderFrequency ?? OverdueReminderFrequency.daily;
     payoutProofEnabled = kameti?.payoutProofReminderEnabled ?? true;
     receiverPendingEnabled = kameti?.receiverPendingReminderEnabled ?? true;
     biddingEnabled = kameti?.biddingReminderEnabled ?? true;
     luckyDrawEnabled = kameti?.luckyDrawReminderEnabled ?? true;
     quietHoursEnabled = kameti?.quietHoursEnabled ?? false;
-    quietStartController = TextEditingController(text: kameti?.quietHoursStart ?? '22:00');
-    quietEndController = TextEditingController(text: kameti?.quietHoursEnd ?? '08:00');
+    quietStartController =
+        TextEditingController(text: kameti?.quietHoursStart ?? '22:00');
+    quietEndController =
+        TextEditingController(text: kameti?.quietHoursEnd ?? '08:00');
   }
 
   @override
@@ -57,46 +63,114 @@ class _ReminderSettingsScreenState extends ConsumerState<ReminderSettingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final kameti = ref.watch(kametiControllerProvider).where((item) => item.id == widget.kametiId).firstOrNull;
+    final kameti = ref
+        .watch(kametiControllerProvider)
+        .where((item) => item.id == widget.kametiId)
+        .firstOrNull;
     return Scaffold(
       appBar: AppBar(title: const Text('Reminder Settings')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(kameti?.name ?? 'Kameti', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+            Text(kameti?.name ?? 'Kameti',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 12),
-            ReminderSettingsTile(title: 'Enable reminders', value: remindersEnabled, onChanged: (value) => setState(() => remindersEnabled = value)),
+            ReminderSettingsTile(
+                title: 'Enable reminders',
+                value: remindersEnabled,
+                onChanged: (value) => setState(() => remindersEnabled = value)),
             TextFormField(
               initialValue: '$paymentDaysBefore',
               keyboardType: TextInputType.number,
+              enableSuggestions: false,
+              autocorrect: false,
+              autofillHints: const <String>[],
+              smartDashesType: SmartDashesType.disabled,
+              smartQuotesType: SmartQuotesType.disabled,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(labelText: 'Payment reminder days before due date'),
-              onChanged: (value) => paymentDaysBefore = int.tryParse(value) ?? 2,
+              decoration: const InputDecoration(
+                  labelText: 'Payment reminder days before due date'),
+              onChanged: (value) =>
+                  paymentDaysBefore = int.tryParse(value) ?? 2,
             ),
-            ReminderSettingsTile(title: 'Remind on due date', value: paymentOnDueDate, onChanged: (value) => setState(() => paymentOnDueDate = value)),
-            ReminderSettingsTile(title: 'Overdue reminders', value: overdueEnabled, onChanged: (value) => setState(() => overdueEnabled = value)),
+            ReminderSettingsTile(
+                title: 'Remind on due date',
+                value: paymentOnDueDate,
+                onChanged: (value) => setState(() => paymentOnDueDate = value)),
+            ReminderSettingsTile(
+                title: 'Overdue reminders',
+                value: overdueEnabled,
+                onChanged: (value) => setState(() => overdueEnabled = value)),
             DropdownButtonFormField<OverdueReminderFrequency>(
               initialValue: overdueFrequency,
-              decoration: const InputDecoration(labelText: 'Overdue reminder frequency'),
-              items: OverdueReminderFrequency.values.map((item) => DropdownMenuItem(value: item, child: Text(item.label))).toList(),
-              onChanged: (value) => setState(() => overdueFrequency = value ?? OverdueReminderFrequency.daily),
+              decoration: const InputDecoration(
+                  labelText: 'Overdue reminder frequency'),
+              items: OverdueReminderFrequency.values
+                  .map((item) =>
+                      DropdownMenuItem(value: item, child: Text(item.label)))
+                  .toList(),
+              onChanged: (value) => setState(() =>
+                  overdueFrequency = value ?? OverdueReminderFrequency.daily),
             ),
-            ReminderSettingsTile(title: 'Payout proof reminders', value: payoutProofEnabled, onChanged: (value) => setState(() => payoutProofEnabled = value)),
-            ReminderSettingsTile(title: 'Receiver pending reminders', value: receiverPendingEnabled, onChanged: (value) => setState(() => receiverPendingEnabled = value)),
-            ReminderSettingsTile(title: 'Bidding reminders', value: biddingEnabled, onChanged: (value) => setState(() => biddingEnabled = value)),
-            ReminderSettingsTile(title: 'Lucky draw reminders', value: luckyDrawEnabled, onChanged: (value) => setState(() => luckyDrawEnabled = value)),
-            ReminderSettingsTile(title: 'Quiet hours', value: quietHoursEnabled, onChanged: (value) => setState(() => quietHoursEnabled = value)),
+            ReminderSettingsTile(
+                title: 'Payout proof reminders',
+                value: payoutProofEnabled,
+                onChanged: (value) =>
+                    setState(() => payoutProofEnabled = value)),
+            ReminderSettingsTile(
+                title: 'Receiver pending reminders',
+                value: receiverPendingEnabled,
+                onChanged: (value) =>
+                    setState(() => receiverPendingEnabled = value)),
+            ReminderSettingsTile(
+                title: 'Bidding reminders',
+                value: biddingEnabled,
+                onChanged: (value) => setState(() => biddingEnabled = value)),
+            ReminderSettingsTile(
+                title: 'Lucky draw reminders',
+                value: luckyDrawEnabled,
+                onChanged: (value) => setState(() => luckyDrawEnabled = value)),
+            ReminderSettingsTile(
+                title: 'Quiet hours',
+                value: quietHoursEnabled,
+                onChanged: (value) =>
+                    setState(() => quietHoursEnabled = value)),
             Row(
               children: [
-                Expanded(child: TextField(controller: quietStartController, decoration: const InputDecoration(labelText: 'Quiet start'))),
+                Expanded(
+                    child: TextField(
+                        enableSuggestions: false,
+                        autocorrect: false,
+                        autofillHints: const <String>[],
+                        smartDashesType: SmartDashesType.disabled,
+                        smartQuotesType: SmartQuotesType.disabled,
+                        controller: quietStartController,
+                        decoration:
+                            const InputDecoration(labelText: 'Quiet start'))),
                 const SizedBox(width: 10),
-                Expanded(child: TextField(controller: quietEndController, decoration: const InputDecoration(labelText: 'Quiet end'))),
+                Expanded(
+                    child: TextField(
+                        enableSuggestions: false,
+                        autocorrect: false,
+                        autofillHints: const <String>[],
+                        smartDashesType: SmartDashesType.disabled,
+                        smartQuotesType: SmartQuotesType.disabled,
+                        controller: quietEndController,
+                        decoration:
+                            const InputDecoration(labelText: 'Quiet end'))),
               ],
             ),
             const SizedBox(height: 16),
-            FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save_outlined), label: const Text('Save Settings')),
-            TextButton(onPressed: _reset, child: const Text('Reset to Default')),
+            FilledButton.icon(
+                onPressed: _save,
+                icon: const Icon(Icons.save_outlined),
+                label: const Text('Save Settings')),
+            TextButton(
+                onPressed: _reset, child: const Text('Reset to Default')),
           ],
         ),
       ),

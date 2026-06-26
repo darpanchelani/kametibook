@@ -47,13 +47,16 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final kameti = _findKameti(ref.watch(kametiControllerProvider), widget.kametiId);
+    final kameti =
+        _findKameti(ref.watch(kametiControllerProvider), widget.kametiId);
     ref.watch(memberControllerProvider);
     ref.watch(paymentControllerProvider);
     ref.watch(luckyDrawControllerProvider);
     ref.watch(receiverControllerProvider);
     if (kameti == null) {
-      return Scaffold(appBar: AppBar(title: const Text('Lucky Draw')), body: const Center(child: Text('Kameti not found')));
+      return Scaffold(
+          appBar: AppBar(title: const Text('Lucky Draw')),
+          body: const Center(child: Text('Kameti not found')));
     }
 
     final memberController = ref.read(memberControllerProvider.notifier);
@@ -61,17 +64,25 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
     final drawController = ref.read(luckyDrawControllerProvider.notifier);
     final cycle = paymentController.getCurrentCycle(kameti.id);
     final members = memberController.getMembersByKametiId(kameti.id);
-    final payments = cycle == null ? <MemberPaymentModel>[] : paymentController.getPaymentsByCycleId(cycle.id);
+    final payments = cycle == null
+        ? <MemberPaymentModel>[]
+        : paymentController.getPaymentsByCycleId(cycle.id);
     final eligibility = drawController.getEligibleMembersForDraw(
       kameti: kameti,
       cycle: cycle,
       members: members,
       payments: payments,
     );
-    final completedDraw = cycle == null ? null : drawController.getDrawByCycleId(cycle.id);
-    final availabilityError = drawController.validateDrawAvailability(kameti: kameti, cycle: cycle, eligibility: eligibility);
-    final alreadyReceived = members.where((member) => member.hasReceivedKameti).length;
-    final remainingDraws = members.where((member) => member.status == MemberStatus.active && !member.hasReceivedKameti).length;
+    final completedDraw =
+        cycle == null ? null : drawController.getDrawByCycleId(cycle.id);
+    final availabilityError = drawController.validateDrawAvailability(
+        kameti: kameti, cycle: cycle, eligibility: eligibility);
+    final alreadyReceived =
+        members.where((member) => member.hasReceivedKameti).length;
+    final remainingDraws = members
+        .where((member) =>
+            member.status == MemberStatus.active && !member.hasReceivedKameti)
+        .length;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Lucky Draw')),
@@ -79,10 +90,17 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(kameti.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+            Text(kameti.name,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 4),
-            Text(cycle == null ? 'No active payment cycle found.' : 'Month ${cycle.cycleNumber} - ${cycle.monthLabel}'),
-            if (cycle != null) Text('Due Date: ${DateFormatter.display(cycle.dueDate)}'),
+            Text(cycle == null
+                ? 'No active payment cycle found.'
+                : 'Month ${cycle.cycleNumber} - ${cycle.monthLabel}'),
+            if (cycle != null)
+              Text('Due Date: ${DateFormatter.display(cycle.dueDate)}'),
             const SizedBox(height: 12),
             if (cycle != null)
               PaymentSummaryCard(
@@ -91,9 +109,11 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
                 collectedAmount: cycle.collectedAmount,
                 pendingAmount: cycle.pendingAmount,
                 paidCount: paymentController.getPaidMembersCount(cycle.id),
-                pendingCount: paymentController.getPendingMembersCount(cycle.id),
+                pendingCount:
+                    paymentController.getPendingMembersCount(cycle.id),
                 lateCount: paymentController.getLateMembersCount(cycle.id),
-                rejectedCount: paymentController.getRejectedMembersCount(cycle.id),
+                rejectedCount:
+                    paymentController.getRejectedMembersCount(cycle.id),
               ),
             LuckyDrawSummaryCard(
               eligibleCount: eligibility.eligibleMembers.length,
@@ -104,45 +124,61 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
             DrawSettingsTile(
               value: kameti.requirePaymentBeforeDraw,
               enabled: completedDraw == null,
-              onChanged: (value) => ref.read(kametiControllerProvider.notifier).updateRequirePaymentBeforeDraw(kameti.id, value),
+              onChanged: (value) => ref
+                  .read(kametiControllerProvider.notifier)
+                  .updateRequirePaymentBeforeDraw(kameti.id, value),
             ),
             const SizedBox(height: 8),
-            const Text('Only active members who have not received kameti are included in the draw.'),
+            const Text(
+                'Only active members who have not received kameti are included in the draw.'),
             if (kameti.requirePaymentBeforeDraw)
-              const Text('Only members who paid for the current cycle are eligible.'),
+              const Text(
+                  'Only members who paid for the current cycle are eligible.'),
             const SizedBox(height: 12),
             if (completedDraw != null) ...[
               WinnerCard(draw: completedDraw),
               AppButton(
                 label: 'Report Issue',
                 isOutlined: true,
-                onPressed: () => SnackbarHelper.showInfo(context, 'Dispute handling will be available in future phases.'),
+                onPressed: () => SnackbarHelper.showInfo(context,
+                    'Dispute handling will be available in future phases.'),
               ),
             ] else if (_isAnimating && _drawnWinner != null)
               AnimatedNameSelector(
                 members: eligibility.eligibleMembers,
                 winner: _drawnWinner!,
-                onFinished: () => _showResultDialog(kameti, cycle!, eligibility, _drawnWinner!),
+                onFinished: () => _showResultDialog(
+                    kameti, cycle!, eligibility, _drawnWinner!),
               )
             else if (_canSave && _drawnWinner != null)
               _PendingWinnerCard(
                 winner: _drawnWinner!,
                 amount: cycle?.expectedAmount ?? 0,
                 cycleNumber: cycle?.cycleNumber ?? 0,
-                onSave: () => _saveResult(kameti, cycle!, eligibility, _drawnWinner!),
+                onSave: () =>
+                    _saveResult(kameti, cycle!, eligibility, _drawnWinner!),
               )
             else
               AppButton(
                 label: 'Start Lucky Draw',
                 icon: Icons.casino_outlined,
-                onPressed: availabilityError == null ? () => _startDraw(kameti, cycle!, eligibility) : null,
+                onPressed: availabilityError == null
+                    ? () => _startDraw(kameti, cycle!, eligibility)
+                    : null,
               ),
             if (availabilityError != null && completedDraw == null) ...[
               const SizedBox(height: 8),
-              Text(availabilityError, style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w800)),
+              Text(availabilityError,
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontWeight: FontWeight.w800)),
             ],
             const SizedBox(height: 18),
-            Text('Eligible Members', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+            Text('Eligible Members',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
             if (eligibility.eligibleMembers.isEmpty)
               const Text('No eligible members available for draw.')
@@ -150,23 +186,31 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
               ...eligibility.eligibleMembers.map((member) {
                 MemberPaymentModel? payment;
                 if (cycle != null) {
-                  for (final item in paymentController.getPaymentsByCycleId(cycle.id)) {
+                  for (final item
+                      in paymentController.getPaymentsByCycleId(cycle.id)) {
                     if (item.memberId == member.id) {
                       payment = item;
                       break;
                     }
                   }
                 }
-                return EligibleMemberCard(member: member, paymentStatus: payment?.paymentStatus);
+                return EligibleMemberCard(
+                    member: member, paymentStatus: payment?.paymentStatus);
               }),
             const SizedBox(height: 18),
-            Text('Excluded Members', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+            Text('Excluded Members',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
             if (eligibility.excludedMembers.isEmpty)
               const Text('No excluded members.')
             else
               ...eligibility.excludedMembers.map(
-                (member) => ExcludedMemberCard(member: member, reason: eligibility.exclusionReasons[member.id] ?? '-'),
+                (member) => ExcludedMemberCard(
+                    member: member,
+                    reason: eligibility.exclusionReasons[member.id] ?? '-'),
               ),
           ],
         ),
@@ -174,17 +218,21 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
     );
   }
 
-  Future<void> _startDraw(KametiModel kameti, PaymentCycleModel cycle, DrawEligibilityResult eligibility) async {
+  Future<void> _startDraw(KametiModel kameti, PaymentCycleModel cycle,
+      DrawEligibilityResult eligibility) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => const ConfirmationDialog(
         title: 'Start Lucky Draw?',
-        message: 'This will randomly select one eligible member as the receiver for this cycle. Result cannot be changed after confirmation.',
+        message:
+            'This will randomly select one eligible member as the receiver for this cycle. Result cannot be changed after confirmation.',
         confirmLabel: 'Start Draw',
       ),
     );
     if (confirmed != true) return;
-    final winner = ref.read(luckyDrawControllerProvider.notifier).runLuckyDraw(kameti: kameti, cycle: cycle, eligibility: eligibility);
+    final winner = ref
+        .read(luckyDrawControllerProvider.notifier)
+        .runLuckyDraw(kameti: kameti, cycle: cycle, eligibility: eligibility);
     if (winner == null) return;
     setState(() {
       _drawnWinner = winner;
@@ -193,14 +241,17 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
     });
   }
 
-  void _saveResult(KametiModel kameti, PaymentCycleModel cycle, DrawEligibilityResult eligibility, MemberModel winner) {
-    final error = ref.read(luckyDrawControllerProvider.notifier).saveLuckyDrawResult(
-          kameti: kameti,
-          cycle: cycle,
-          winner: winner,
-          eligibility: eligibility,
-          createdBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
-        );
+  void _saveResult(KametiModel kameti, PaymentCycleModel cycle,
+      DrawEligibilityResult eligibility, MemberModel winner) {
+    final error =
+        ref.read(luckyDrawControllerProvider.notifier).saveLuckyDrawResult(
+              kameti: kameti,
+              cycle: cycle,
+              winner: winner,
+              eligibility: eligibility,
+              createdBy: ref.read(authControllerProvider).user?.fullName ??
+                  'Organizer',
+            );
     if (error != null) {
       SnackbarHelper.showError(context, error);
       return;
@@ -211,7 +262,8 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
           winner: winner,
           drawId: '${cycle.id}-draw',
           amount: cycle.expectedAmount,
-          selectedBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+          selectedBy:
+              ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
         );
     ref.read(memberControllerProvider.notifier).markMemberReceived(
           memberId: winner.id,
@@ -230,7 +282,8 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
                 relatedDrawId: '${cycle.id}-draw',
                 type: AppNotificationType.luckyDrawCompleted,
                 title: 'Lucky Draw Completed',
-                message: '${winner.fullName} won the lucky draw for Cycle ${cycle.cycleNumber}.',
+                message:
+                    '${winner.fullName} won the lucky draw for Cycle ${cycle.cycleNumber}.',
                 priority: NotificationPriority.high,
                 actionType: NotificationActionType.openLuckyDraw,
                 actionRoute: AppRoutes.luckyDraw,
@@ -239,13 +292,15 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
     ref.read(securityControllerProvider.notifier).createAuditLog(
           kametiId: kameti.id,
           userId: ref.read(authControllerProvider).user?.id ?? '',
-          userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+          userName:
+              ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
           userRole: 'organizer',
           actionType: AuditActionType.luckyDrawCompleted,
           entityType: AuditEntityType.luckyDraw,
           entityId: '${cycle.id}-draw',
           newValue: winner.id,
-          description: '${winner.fullName} won lucky draw for Cycle ${cycle.cycleNumber}.',
+          description:
+              '${winner.fullName} won lucky draw for Cycle ${cycle.cycleNumber}.',
           severity: AuditSeverity.high,
         );
     setState(() {
@@ -253,7 +308,8 @@ class _LuckyDrawScreenState extends ConsumerState<LuckyDrawScreen> {
       _canSave = false;
       _isAnimating = false;
     });
-    SnackbarHelper.showSuccess(context, 'Lucky draw result saved successfully.');
+    SnackbarHelper.showSuccess(
+        context, 'Lucky draw result saved successfully.');
   }
 
   void _showResultDialog(
@@ -307,13 +363,21 @@ class _PendingWinnerCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Congratulations!', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+            Text('Congratulations!',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
-            Text('${winner.fullName} has won the kameti for Month $cycleNumber.'),
+            Text(
+                '${winner.fullName} has won the kameti for Month $cycleNumber.'),
             Text('Amount: ${CurrencyFormatter.pkr(amount)}'),
             Text('Draw Date: ${DateFormatter.display(DateTime.now())}'),
             const SizedBox(height: 14),
-            AppButton(label: 'Save Result', icon: Icons.save_outlined, onPressed: onSave),
+            AppButton(
+                label: 'Save Result',
+                icon: Icons.save_outlined,
+                onPressed: onSave),
           ],
         ),
       ),

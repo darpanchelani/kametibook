@@ -12,7 +12,9 @@ class CycleProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = expectedAmount <= 0 ? 0.0 : (collectedAmount / expectedAmount).clamp(0.0, 1.0);
+    final progress = expectedAmount <= 0
+        ? 0.0
+        : (collectedAmount / expectedAmount).clamp(0.0, 1.0);
     return LinearProgressIndicator(value: progress);
   }
 }

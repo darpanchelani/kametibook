@@ -31,7 +31,9 @@ class BiddingSummaryCard extends StatelessWidget {
             _Item(label: 'Excluded', value: '$excludedCount'),
             _Item(label: 'Received', value: '$receivedCount'),
             _Item(label: 'Bids', value: '$bidsCount'),
-            _Item(label: 'Total Pool', value: CurrencyFormatter.pkr(totalPoolAmount)),
+            _Item(
+                label: 'Total Pool',
+                value: CurrencyFormatter.pkr(totalPoolAmount)),
           ],
         ),
       ),
@@ -51,7 +53,8 @@ class _Item extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.black54, fontSize: 12)),
+          Text(label,
+              style: const TextStyle(color: Colors.black54, fontSize: 12)),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
         ],
       ),

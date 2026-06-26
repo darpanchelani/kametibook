@@ -56,7 +56,10 @@ class _AnimatedNameSelectorState extends State<AnimatedNameSelector> {
           child: Text(
             _name,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w900),
           ),
         ),
       ),

@@ -17,7 +17,8 @@ class ExcludedMemberCard extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: const Icon(Icons.block_outlined),
-        title: Text(member.fullName, style: const TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(member.fullName,
+            style: const TextStyle(fontWeight: FontWeight.w800)),
         subtitle: Text(reason),
       ),
     );

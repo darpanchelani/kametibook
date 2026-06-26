@@ -33,20 +33,30 @@ class LedgerEntryCard extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Expanded(child: Text(entry.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900))),
-              Text('$sign${CurrencyFormatter.pkr(entry.amount)}', style: const TextStyle(fontWeight: FontWeight.w900)),
+              Expanded(
+                  child: Text(entry.title,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w900))),
+              Text('$sign${CurrencyFormatter.pkr(entry.amount)}',
+                  style: const TextStyle(fontWeight: FontWeight.w900)),
             ]),
             const SizedBox(height: 8),
             Wrap(spacing: 8, runSpacing: 8, children: [
               LedgerTypeBadge(type: entry.entryType),
               LedgerDirectionBadge(direction: entry.direction),
-              Chip(label: Text(entry.status.label), visualDensity: VisualDensity.compact),
+              Chip(
+                  label: Text(entry.status.label),
+                  visualDensity: VisualDensity.compact),
             ]),
             const SizedBox(height: 8),
             if (member != null) Text(member!.fullName),
-            Text('Cycle: ${entry.cycleId.isEmpty ? '-' : entry.cycleId.split('-cycle-').last.split('-').first}'),
+            Text(
+                'Cycle: ${entry.cycleId.isEmpty ? '-' : entry.cycleId.split('-cycle-').last.split('-').first}'),
             Text(DateFormatter.display(entry.entryDate)),
             ProofIndicator(proofPath: entry.proofPath),
           ]),

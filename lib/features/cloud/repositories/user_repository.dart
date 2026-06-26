@@ -11,15 +11,18 @@ abstract class UserRepository {
 }
 
 class FirebaseUserRepository implements UserRepository {
-  FirebaseUserRepository({FirebaseFirestore? firestore}) : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirebaseUserRepository({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
 
   @override
-  Future<void> createUserProfile(UserProfileModel profile) => _firestore.collection('users').doc(profile.id).set(profile.toMap());
+  Future<void> createUserProfile(UserProfileModel profile) =>
+      _firestore.collection('users').doc(profile.id).set(profile.toMap());
 
   @override
-  Future<void> updateUserProfile(UserProfileModel profile) => _firestore.collection('users').doc(profile.id).update(profile.toMap());
+  Future<void> updateUserProfile(UserProfileModel profile) =>
+      _firestore.collection('users').doc(profile.id).update(profile.toMap());
 
   @override
   Future<UserProfileModel?> getUserProfile(String userId) async {
@@ -29,9 +32,14 @@ class FirebaseUserRepository implements UserRepository {
 
   @override
   Stream<UserProfileModel?> streamUserProfile(String userId) {
-    return _firestore.collection('users').doc(userId).snapshots().map((doc) => doc.exists ? UserProfileModel.fromMap(doc.data() ?? {}) : null);
+    return _firestore.collection('users').doc(userId).snapshots().map((doc) =>
+        doc.exists ? UserProfileModel.fromMap(doc.data() ?? {}) : null);
   }
 
   @override
-  Future<void> updateFcmToken(String userId, String token) => _firestore.collection('users').doc(userId).update({'fcmToken': token, 'updatedAt': DateTime.now().millisecondsSinceEpoch});
+  Future<void> updateFcmToken(String userId, String token) =>
+      _firestore.collection('users').doc(userId).update({
+        'fcmToken': token,
+        'updatedAt': DateTime.now().millisecondsSinceEpoch
+      });
 }

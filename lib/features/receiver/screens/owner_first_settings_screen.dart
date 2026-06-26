@@ -15,7 +15,9 @@ class OwnerFirstSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final kameti = _findKameti(ref.watch(kametiControllerProvider), kametiId);
     if (kameti == null) {
-      return Scaffold(appBar: AppBar(title: const Text('Owner First Settings')), body: const Center(child: Text('Kameti not found')));
+      return Scaffold(
+          appBar: AppBar(title: const Text('Owner First Settings')),
+          body: const Center(child: Text('Kameti not found')));
     }
     var ownerFirst = kameti.ownerReceivesFirstCycle;
     var requirePayment = kameti.requirePaymentBeforeReceiving;
@@ -39,9 +41,11 @@ class OwnerFirstSettingsScreen extends ConsumerWidget {
               ),
               DropdownButtonFormField<AfterOwnerAllocationMode>(
                 initialValue: mode,
-                decoration: const InputDecoration(labelText: 'After owner allocation mode'),
+                decoration: const InputDecoration(
+                    labelText: 'After owner allocation mode'),
                 items: AfterOwnerAllocationMode.values
-                    .map((item) => DropdownMenuItem(value: item, child: Text(item.label)))
+                    .map((item) =>
+                        DropdownMenuItem(value: item, child: Text(item.label)))
                     .toList(),
                 onChanged: (value) => setState(() => mode = value ?? mode),
               ),
@@ -50,13 +54,16 @@ class OwnerFirstSettingsScreen extends ConsumerWidget {
                 label: 'Save Settings',
                 icon: Icons.save_outlined,
                 onPressed: () {
-                  ref.read(kametiControllerProvider.notifier).updateReceiverSettings(
+                  ref
+                      .read(kametiControllerProvider.notifier)
+                      .updateReceiverSettings(
                         id: kameti.id,
                         ownerReceivesFirstCycle: ownerFirst,
                         requirePaymentBeforeReceiving: requirePayment,
                         afterOwnerAllocationMode: mode,
                       );
-                  SnackbarHelper.showSuccess(context, 'Owner first settings saved.');
+                  SnackbarHelper.showSuccess(
+                      context, 'Owner first settings saved.');
                   Navigator.of(context).pop();
                 },
               ),

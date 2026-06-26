@@ -21,7 +21,8 @@ class SubmitBidBottomSheet extends StatefulWidget {
   final MemberModel? initialMember;
   final double? initialAmount;
   final String initialNote;
-  final String? Function(MemberModel member, double amount, String note) onSubmit;
+  final String? Function(MemberModel member, double amount, String note)
+      onSubmit;
 
   @override
   State<SubmitBidBottomSheet> createState() => _SubmitBidBottomSheetState();
@@ -38,7 +39,8 @@ class _SubmitBidBottomSheetState extends State<SubmitBidBottomSheet> {
   void initState() {
     super.initState();
     _member = widget.initialMember;
-    _amountController = TextEditingController(text: widget.initialAmount?.toStringAsFixed(0) ?? '');
+    _amountController = TextEditingController(
+        text: widget.initialAmount?.toStringAsFixed(0) ?? '');
     _noteController = TextEditingController(text: widget.initialNote);
   }
 
@@ -53,12 +55,14 @@ class _SubmitBidBottomSheetState extends State<SubmitBidBottomSheet> {
     if (!_formKey.currentState!.validate()) return;
     final member = _member;
     if (member == null) return;
-    final amount = double.parse(_amountController.text.replaceAll(',', '').trim());
+    final amount =
+        double.parse(_amountController.text.replaceAll(',', '').trim());
     setState(() => _isLoading = true);
     final error = widget.onSubmit(member, amount, _noteController.text.trim());
     if (mounted) setState(() => _isLoading = false);
     if (error != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), behavior: SnackBarBehavior.floating));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error), behavior: SnackBarBehavior.floating));
     }
   }
 
@@ -79,33 +83,58 @@ class _SubmitBidBottomSheetState extends State<SubmitBidBottomSheet> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Submit Bid', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                Text('Submit Bid',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<MemberModel>(
                   initialValue: _member,
-                  decoration: const InputDecoration(labelText: 'Select Member', prefixIcon: Icon(Icons.person_outline)),
-                  validator: (value) => value == null ? 'Member is required' : null,
+                  decoration: const InputDecoration(
+                      labelText: 'Select Member',
+                      prefixIcon: Icon(Icons.person_outline)),
+                  validator: (value) =>
+                      value == null ? 'Member is required' : null,
                   items: widget.members
-                      .map((member) => DropdownMenuItem(value: member, child: Text(member.fullName)))
+                      .map((member) => DropdownMenuItem(
+                          value: member, child: Text(member.fullName)))
                       .toList(),
-                  onChanged: widget.initialMember == null ? (value) => setState(() => _member = value) : null,
+                  onChanged: widget.initialMember == null
+                      ? (value) => setState(() => _member = value)
+                      : null,
                 ),
                 const SizedBox(height: 14),
                 AppTextField(
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  autofillHints: const <String>[],
+                  smartDashesType: SmartDashesType.disabled,
+                  smartQuotesType: SmartQuotesType.disabled,
                   controller: _amountController,
                   label: 'Bid Amount',
+                  hint: '0',
                   keyboardType: TextInputType.number,
                   prefixIcon: Icons.price_change_outlined,
                   validator: (value) {
-                    final required = Validators.positiveNumber(value, 'Bid amount');
+                    final required =
+                        Validators.positiveNumber(value, 'Bid amount');
                     if (required != null) return required;
-                    final amount = double.parse(value!.replaceAll(',', '').trim());
-                    if (amount >= widget.totalPoolAmount) return 'Bid must be less than total pool';
+                    final amount =
+                        double.parse(value!.replaceAll(',', '').trim());
+                    if (amount >= widget.totalPoolAmount) {
+                      return 'Bid must be less than total pool';
+                    }
                     return null;
                   },
                 ),
                 const SizedBox(height: 14),
                 AppTextField(
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  autofillHints: const <String>[],
+                  smartDashesType: SmartDashesType.disabled,
+                  smartQuotesType: SmartQuotesType.disabled,
                   controller: _noteController,
                   label: 'Note',
                   hint: 'Optional',
@@ -113,7 +142,11 @@ class _SubmitBidBottomSheetState extends State<SubmitBidBottomSheet> {
                   prefixIcon: Icons.notes_outlined,
                 ),
                 const SizedBox(height: 18),
-                AppButton(label: 'Save Bid', icon: Icons.check, isLoading: _isLoading, onPressed: _submit),
+                AppButton(
+                    label: 'Save Bid',
+                    icon: Icons.check,
+                    isLoading: _isLoading,
+                    onPressed: _submit),
               ],
             ),
           ),

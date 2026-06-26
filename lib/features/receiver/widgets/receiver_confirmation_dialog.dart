@@ -23,8 +23,12 @@ class ReceiverConfirmationDialog extends StatelessWidget {
         '${member.fullName} will receive ${CurrencyFormatter.pkr(amount)} for Month $cycleNumber. This cannot be changed later.',
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-        FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Confirm')),
+        TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel')),
+        FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Confirm')),
       ],
     );
   }

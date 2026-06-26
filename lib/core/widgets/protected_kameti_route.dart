@@ -24,7 +24,8 @@ class ProtectedKametiRoute extends ConsumerWidget {
       return const Scaffold(
         body: AppPermissionDeniedView(
           title: 'Login required',
-          message: 'Please login with an active KametiBook account to continue.',
+          message:
+              'Please login with an active KametiBook account to continue.',
         ),
       );
     }
@@ -37,7 +38,8 @@ class ProtectedKametiRoute extends ConsumerWidget {
       return const Scaffold(
         body: AppPermissionDeniedView(
           title: 'No access to this kameti',
-          message: 'You can only open kametis where you are an approved organizer or member.',
+          message:
+              'You can only open kametis where you are an approved organizer or member.',
         ),
       );
     }

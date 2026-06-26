@@ -14,7 +14,8 @@ class ReportController extends StateNotifier<List<ReportModel>> {
   ReportController() : super(const []);
 
   List<ReportModel> getReportsByKametiId(String kametiId) {
-    final reports = state.where((report) => report.kametiId == kametiId).toList();
+    final reports =
+        state.where((report) => report.kametiId == kametiId).toList();
     reports.sort((a, b) => b.generatedAt.compareTo(a.generatedAt));
     return reports;
   }
@@ -26,7 +27,10 @@ class ReportController extends StateNotifier<List<ReportModel>> {
   void updateReportFile(String reportId, String filePath, ReportStatus status) {
     state = [
       for (final report in state)
-        if (report.id == reportId) report.copyWith(filePath: filePath, status: status) else report,
+        if (report.id == reportId)
+          report.copyWith(filePath: filePath, status: status)
+        else
+          report,
     ];
   }
 
@@ -70,13 +74,19 @@ class ReportController extends StateNotifier<List<ReportModel>> {
       createdAt: now,
     );
 
-    final relevantPayments = selectedCycle == null ? payments : payments.where((p) => p.cycleId == selectedCycle.id).toList();
-    final relevantLedger = selectedCycle == null ? ledgerEntries : ledgerEntries.where((e) => e.cycleId == selectedCycle.id).toList();
+    final relevantPayments = selectedCycle == null
+        ? payments
+        : payments.where((p) => p.cycleId == selectedCycle.id).toList();
+    final relevantLedger = selectedCycle == null
+        ? ledgerEntries
+        : ledgerEntries.where((e) => e.cycleId == selectedCycle.id).toList();
     final summaryCards = <String, String>{
       'Members': '${members.length}',
       'Cycles': '${cycles.length}',
-      'Collected': CurrencyFormatter.pkr(_sumLedger(ledgerEntries, LedgerEntryType.contribution)),
-      'Payouts': CurrencyFormatter.pkr(_sumLedger(ledgerEntries, LedgerEntryType.payout)),
+      'Collected': CurrencyFormatter.pkr(
+          _sumLedger(ledgerEntries, LedgerEntryType.contribution)),
+      'Payouts': CurrencyFormatter.pkr(
+          _sumLedger(ledgerEntries, LedgerEntryType.payout)),
       'Balance': CurrencyFormatter.pkr(_balance(ledgerEntries)),
     };
 
@@ -94,18 +104,23 @@ class ReportController extends StateNotifier<List<ReportModel>> {
     if (type == ReportType.monthlyCycle && selectedCycle != null) {
       sections.addAll([
         ReportSection(title: 'Cycle Summary', rows: [
-          ['Cycle', 'Month ${selectedCycle.cycleNumber} - ${selectedCycle.monthLabel}'],
+          [
+            'Cycle',
+            'Month ${selectedCycle.cycleNumber} - ${selectedCycle.monthLabel}'
+          ],
           ['Due Date', DateFormatter.display(selectedCycle.dueDate)],
           ['Expected', CurrencyFormatter.pkr(selectedCycle.expectedAmount)],
           ['Collected', CurrencyFormatter.pkr(selectedCycle.collectedAmount)],
           ['Pending', CurrencyFormatter.pkr(selectedCycle.pendingAmount)],
         ]),
         _paymentsSection(relevantPayments, members),
-        _allocationsSection(allocations.where((a) => a.cycleId == selectedCycle.id).toList()),
+        _allocationsSection(
+            allocations.where((a) => a.cycleId == selectedCycle.id).toList()),
         _ledgerSection(relevantLedger, members),
       ]);
     } else if (type == ReportType.memberStatement && selectedMember != null) {
-      final memberPayments = payments.where((p) => p.memberId == selectedMember.id).toList();
+      final memberPayments =
+          payments.where((p) => p.memberId == selectedMember.id).toList();
       sections.addAll([
         ReportSection(title: 'Member Details', rows: [
           ['Name', selectedMember.fullName],
@@ -114,20 +129,30 @@ class ReportController extends StateNotifier<List<ReportModel>> {
           ['Role', selectedMember.role.label],
           ['Status', selectedMember.status.label],
           ['Has Received', selectedMember.hasReceivedKameti ? 'Yes' : 'No'],
-          if (includeCnic && selectedMember.cnic.isNotEmpty) ['CNIC', selectedMember.cnic],
+          if (includeCnic && selectedMember.cnic.isNotEmpty)
+            ['CNIC', selectedMember.cnic],
         ]),
         _paymentsSection(memberPayments, members),
-        _allocationsSection(allocations.where((a) => a.memberId == selectedMember.id).toList()),
-        _ledgerSection(ledgerEntries.where((e) => e.memberId == selectedMember.id).toList(), members),
+        _allocationsSection(
+            allocations.where((a) => a.memberId == selectedMember.id).toList()),
+        _ledgerSection(
+            ledgerEntries
+                .where((e) => e.memberId == selectedMember.id)
+                .toList(),
+            members),
       ]);
     } else {
       sections.addAll([
         _membersSection(members, includeCnic),
         _cyclesSection(cycles, allocations, ledgerEntries),
-        if (type == ReportType.payment || type == ReportType.fullKameti) _paymentsSection(payments, members),
-        if (type == ReportType.payout || type == ReportType.fullKameti) _allocationsSection(allocations),
-        if (type == ReportType.ledger || type == ReportType.fullKameti) _ledgerSection(ledgerEntries, members),
-        if (type == ReportType.bidding) _biddingSection(biddingSessions, bids, discountAdjustments),
+        if (type == ReportType.payment || type == ReportType.fullKameti)
+          _paymentsSection(payments, members),
+        if (type == ReportType.payout || type == ReportType.fullKameti)
+          _allocationsSection(allocations),
+        if (type == ReportType.ledger || type == ReportType.fullKameti)
+          _ledgerSection(ledgerEntries, members),
+        if (type == ReportType.bidding)
+          _biddingSection(biddingSessions, bids, discountAdjustments),
         if (type == ReportType.luckyDraw) _drawSection(draws),
       ]);
     }
@@ -145,7 +170,8 @@ class ReportController extends StateNotifier<List<ReportModel>> {
       summaryCards: summaryCards,
       sections: sections,
       warnings: warnings,
-      shareSummary: '${model.title}\n${kameti.name}\nCollected: ${summaryCards['Collected']}\nPayouts: ${summaryCards['Payouts']}\nBalance: ${summaryCards['Balance']}',
+      shareSummary:
+          '${model.title}\n${kameti.name}\nCollected: ${summaryCards['Collected']}\nPayouts: ${summaryCards['Payouts']}\nBalance: ${summaryCards['Balance']}',
     );
   }
 
@@ -156,20 +182,36 @@ class ReportController extends StateNotifier<List<ReportModel>> {
     required ReportType type,
   }) {
     final warnings = <String>[];
-    final pendingPayments = payments.where((payment) => payment.paymentStatus != PaymentStatus.paid && payment.paymentStatus != PaymentStatus.waived).length;
-    final missingProofs = allocations.where((allocation) => allocation.payoutProofPath.isEmpty).length;
-    final corrections = ledgerEntries.where((entry) => entry.entryType == LedgerEntryType.correction).length;
-    if (pendingPayments > 0) warnings.add('$pendingPayments payments are still pending.');
-    if (missingProofs > 0) warnings.add('Payout proof is missing for $missingProofs receiver allocation(s).');
+    final pendingPayments = payments
+        .where((payment) =>
+            payment.paymentStatus != PaymentStatus.paid &&
+            payment.paymentStatus != PaymentStatus.waived)
+        .length;
+    final missingProofs = allocations
+        .where((allocation) => allocation.payoutProofPath.isEmpty)
+        .length;
+    final corrections = ledgerEntries
+        .where((entry) => entry.entryType == LedgerEntryType.correction)
+        .length;
+    if (pendingPayments > 0) {
+      warnings.add('$pendingPayments payments are still pending.');
+    }
+    if (missingProofs > 0) {
+      warnings.add(
+          'Payout proof is missing for $missingProofs receiver allocation(s).');
+    }
     if (corrections > 0) warnings.add('Ledger has manual correction entries.');
     return warnings;
   }
 
-  String _titleFor(ReportType type, PaymentCycleModel? cycle, MemberModel? member) {
+  String _titleFor(
+      ReportType type, PaymentCycleModel? cycle, MemberModel? member) {
     return switch (type) {
-      ReportType.monthlyCycle => 'Monthly Cycle Report${cycle == null ? '' : ' - Month ${cycle.cycleNumber}'}',
+      ReportType.monthlyCycle =>
+        'Monthly Cycle Report${cycle == null ? '' : ' - Month ${cycle.cycleNumber}'}',
       ReportType.fullKameti => 'Full Kameti Report',
-      ReportType.memberStatement => 'Member Statement${member == null ? '' : ' - ${member.fullName}'}',
+      ReportType.memberStatement =>
+        'Member Statement${member == null ? '' : ' - ${member.fullName}'}',
       ReportType.payment => 'Payment Report',
       ReportType.payout => 'Payout / Receiver Report',
       ReportType.ledger => 'Ledger Report',
@@ -178,13 +220,22 @@ class ReportController extends StateNotifier<List<ReportModel>> {
     };
   }
 
-  String _summaryText(KametiModel kameti, PaymentCycleModel? cycle, List<LedgerEntryModel> ledgerEntries) {
+  String _summaryText(KametiModel kameti, PaymentCycleModel? cycle,
+      List<LedgerEntryModel> ledgerEntries) {
     return '${kameti.name}${cycle == null ? '' : ' - Month ${cycle.cycleNumber}'} | Balance: ${CurrencyFormatter.pkr(_balance(ledgerEntries))}';
   }
 
   ReportSection _membersSection(List<MemberModel> members, bool includeCnic) {
     return ReportSection(title: 'Members', rows: [
-      ['Name', 'Phone', 'City', 'Role', 'Status', 'Received', if (includeCnic) 'CNIC'],
+      [
+        'Name',
+        'Phone',
+        'City',
+        'Role',
+        'Status',
+        'Received',
+        if (includeCnic) 'CNIC'
+      ],
       for (final member in members)
         [
           member.fullName,
@@ -198,9 +249,20 @@ class ReportController extends StateNotifier<List<ReportModel>> {
     ]);
   }
 
-  ReportSection _cyclesSection(List<PaymentCycleModel> cycles, List<ReceiverAllocationModel> allocations, List<LedgerEntryModel> ledgerEntries) {
+  ReportSection _cyclesSection(
+      List<PaymentCycleModel> cycles,
+      List<ReceiverAllocationModel> allocations,
+      List<LedgerEntryModel> ledgerEntries) {
     return ReportSection(title: 'Cycle-wise Summary', rows: [
-      ['Cycle', 'Month', 'Expected', 'Collected', 'Pending', 'Receiver', 'Balance'],
+      [
+        'Cycle',
+        'Month',
+        'Expected',
+        'Collected',
+        'Pending',
+        'Receiver',
+        'Balance'
+      ],
       for (final cycle in cycles)
         [
           '${cycle.cycleNumber}',
@@ -209,12 +271,14 @@ class ReportController extends StateNotifier<List<ReportModel>> {
           CurrencyFormatter.pkr(cycle.collectedAmount),
           CurrencyFormatter.pkr(cycle.pendingAmount),
           _allocationForCycle(allocations, cycle.id)?.memberName ?? '-',
-          CurrencyFormatter.pkr(_balance(ledgerEntries.where((e) => e.cycleId == cycle.id).toList())),
+          CurrencyFormatter.pkr(_balance(
+              ledgerEntries.where((e) => e.cycleId == cycle.id).toList())),
         ],
     ]);
   }
 
-  ReportSection _paymentsSection(List<MemberPaymentModel> payments, List<MemberModel> members) {
+  ReportSection _paymentsSection(
+      List<MemberPaymentModel> payments, List<MemberModel> members) {
     return ReportSection(title: 'Payments', rows: [
       ['Cycle', 'Member', 'Phone', 'Due', 'Paid', 'Status', 'Method', 'Proof'],
       for (final payment in payments)
@@ -246,7 +310,8 @@ class ReportController extends StateNotifier<List<ReportModel>> {
     ]);
   }
 
-  ReportSection _ledgerSection(List<LedgerEntryModel> entries, List<MemberModel> members) {
+  ReportSection _ledgerSection(
+      List<LedgerEntryModel> entries, List<MemberModel> members) {
     return ReportSection(title: 'Ledger Entries', rows: [
       ['Date', 'Type', 'Member', 'Direction', 'Amount', 'Status'],
       for (final entry in entries)
@@ -261,7 +326,8 @@ class ReportController extends StateNotifier<List<ReportModel>> {
     ]);
   }
 
-  ReportSection _biddingSection(List<BiddingSessionModel> sessions, List<BidModel> bids, List<DiscountAdjustmentModel> adjustments) {
+  ReportSection _biddingSection(List<BiddingSessionModel> sessions,
+      List<BidModel> bids, List<DiscountAdjustmentModel> adjustments) {
     return ReportSection(title: 'Bidding Summary', rows: [
       ['Cycle', 'Status', 'Winner', 'Winning', 'Pool', 'Discount'],
       for (final session in sessions)
@@ -273,7 +339,14 @@ class ReportController extends StateNotifier<List<ReportModel>> {
           CurrencyFormatter.pkr(session.totalPoolAmount),
           CurrencyFormatter.pkr(session.discountAmount),
         ],
-      ['Total bids', '${bids.length}', 'Adjustments', '${adjustments.length}', '', ''],
+      [
+        'Total bids',
+        '${bids.length}',
+        'Adjustments',
+        '${adjustments.length}',
+        '',
+        ''
+      ],
     ]);
   }
 
@@ -292,7 +365,8 @@ class ReportController extends StateNotifier<List<ReportModel>> {
     ]);
   }
 
-  ReceiverAllocationModel? _allocationForCycle(List<ReceiverAllocationModel> allocations, String cycleId) {
+  ReceiverAllocationModel? _allocationForCycle(
+      List<ReceiverAllocationModel> allocations, String cycleId) {
     for (final allocation in allocations) {
       if (allocation.cycleId == cycleId) return allocation;
     }
@@ -307,16 +381,25 @@ class ReportController extends StateNotifier<List<ReportModel>> {
   }
 
   double _sumLedger(List<LedgerEntryModel> entries, LedgerEntryType type) {
-    return entries.where((entry) => entry.entryType == type && entry.status == LedgerStatus.confirmed).fold<double>(0, (total, entry) => total + entry.amount);
+    return entries
+        .where((entry) =>
+            entry.entryType == type && entry.status == LedgerStatus.confirmed)
+        .fold<double>(0, (total, entry) => total + entry.amount);
   }
 
   double _balance(List<LedgerEntryModel> entries) {
-    final confirmed = entries.where((entry) => entry.status == LedgerStatus.confirmed);
-    final moneyIn = confirmed.where((entry) => entry.direction == LedgerDirection.moneyIn).fold<double>(0, (total, entry) => total + entry.amount);
-    final moneyOut = confirmed.where((entry) => entry.direction == LedgerDirection.moneyOut).fold<double>(0, (total, entry) => total + entry.amount);
+    final confirmed =
+        entries.where((entry) => entry.status == LedgerStatus.confirmed);
+    final moneyIn = confirmed
+        .where((entry) => entry.direction == LedgerDirection.moneyIn)
+        .fold<double>(0, (total, entry) => total + entry.amount);
+    final moneyOut = confirmed
+        .where((entry) => entry.direction == LedgerDirection.moneyOut)
+        .fold<double>(0, (total, entry) => total + entry.amount);
     return moneyIn - moneyOut;
   }
 }
 
 final reportControllerProvider =
-    StateNotifierProvider<ReportController, List<ReportModel>>((ref) => ReportController());
+    StateNotifierProvider<ReportController, List<ReportModel>>(
+        (ref) => ReportController());

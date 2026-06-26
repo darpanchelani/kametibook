@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AlertBanner extends StatelessWidget {
-  const AlertBanner({required this.title, required this.message, required this.onTap, super.key});
+  const AlertBanner(
+      {required this.title,
+      required this.message,
+      required this.onTap,
+      super.key});
 
   final String title;
   final String message;

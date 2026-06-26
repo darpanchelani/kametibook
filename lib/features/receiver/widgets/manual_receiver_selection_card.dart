@@ -23,7 +23,10 @@ class ManualReceiverSelectionCard extends StatelessWidget {
           initialValue: selected,
           decoration: const InputDecoration(labelText: 'Select receiver'),
           validator: (value) => value == null ? 'Receiver is required' : null,
-          items: members.map((member) => DropdownMenuItem(value: member, child: Text(member.fullName))).toList(),
+          items: members
+              .map((member) =>
+                  DropdownMenuItem(value: member, child: Text(member.fullName)))
+              .toList(),
           onChanged: onChanged,
         ),
       ),

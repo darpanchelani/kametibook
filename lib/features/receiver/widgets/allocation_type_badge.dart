@@ -15,7 +15,11 @@ class AllocationTypeBadge extends StatelessWidget {
         color: Colors.blue.shade700.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(30),
       ),
-      child: Text(type.label, style: TextStyle(color: Colors.blue.shade700, fontWeight: FontWeight.w800, fontSize: 12)),
+      child: Text(type.label,
+          style: TextStyle(
+              color: Colors.blue.shade700,
+              fontWeight: FontWeight.w800,
+              fontSize: 12)),
     );
   }
 }

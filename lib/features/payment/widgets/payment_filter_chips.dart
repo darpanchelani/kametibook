@@ -18,7 +18,10 @@ class PaymentFilterChips extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        FilterChip(label: const Text('All'), selected: selected == null, onSelected: (_) => onChanged(null)),
+        FilterChip(
+            label: const Text('All'),
+            selected: selected == null,
+            onSelected: (_) => onChanged(null)),
         for (final status in PaymentStatus.values)
           FilterChip(
             label: Text(status.label),

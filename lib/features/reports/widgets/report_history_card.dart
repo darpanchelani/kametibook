@@ -21,8 +21,10 @@ class ReportHistoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        title: Text(report.title, style: const TextStyle(fontWeight: FontWeight.w900)),
-        subtitle: Text('${report.reportType.label} | ${DateFormatter.display(report.generatedAt)}\n${report.filePath.isEmpty ? 'No PDF exported yet' : report.filePath}'),
+        title: Text(report.title,
+            style: const TextStyle(fontWeight: FontWeight.w900)),
+        subtitle: Text(
+            '${report.reportType.label} | ${DateFormatter.display(report.generatedAt)}\n${report.filePath.isEmpty ? 'No PDF exported yet' : report.filePath}'),
         isThreeLine: true,
         trailing: PopupMenuButton<String>(
           onSelected: (value) {

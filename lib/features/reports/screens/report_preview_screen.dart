@@ -22,7 +22,8 @@ class ReportPreviewScreen extends ConsumerStatefulWidget {
   final ReportData data;
 
   @override
-  ConsumerState<ReportPreviewScreen> createState() => _ReportPreviewScreenState();
+  ConsumerState<ReportPreviewScreen> createState() =>
+      _ReportPreviewScreenState();
 }
 
 class _ReportPreviewScreenState extends ConsumerState<ReportPreviewScreen> {
@@ -44,10 +45,15 @@ class _ReportPreviewScreenState extends ConsumerState<ReportPreviewScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(_data.model.title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+            Text(_data.model.title,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 4),
             Text(_data.kametiName),
-            Text('Generated: ${DateFormatter.display(_data.model.generatedAt)}'),
+            Text(
+                'Generated: ${DateFormatter.display(_data.model.generatedAt)}'),
             const SizedBox(height: 14),
             GridView.count(
               crossAxisCount: MediaQuery.sizeOf(context).width > 520 ? 4 : 2,
@@ -64,13 +70,15 @@ class _ReportPreviewScreenState extends ConsumerState<ReportPreviewScreen> {
               ReportWarningCard(warnings: _data.warnings),
             ],
             const SizedBox(height: 12),
-            for (final section in _data.sections) _ReportPreviewSection(section: section),
+            for (final section in _data.sections)
+              _ReportPreviewSection(section: section),
             const SizedBox(height: 12),
             const Card(
               child: ListTile(
                 leading: Icon(Icons.privacy_tip_outlined),
                 title: Text('Privacy'),
-                subtitle: Text('CNIC is hidden by default. Share reports only with trusted people.'),
+                subtitle: Text(
+                    'CNIC is hidden by default. Share reports only with trusted people.'),
               ),
             ),
           ],
@@ -109,9 +117,12 @@ class _ReportPreviewScreenState extends ConsumerState<ReportPreviewScreen> {
     setState(() => _isExporting = true);
     try {
       final path = await ReportPdfService.exportReportToPdf(_data);
-      final updatedModel = _data.model.copyWith(filePath: path, status: ReportStatus.exported);
+      final updatedModel =
+          _data.model.copyWith(filePath: path, status: ReportStatus.exported);
       setState(() => _data = _data.copyWith(model: updatedModel));
-      ref.read(reportControllerProvider.notifier).saveReportHistory(updatedModel);
+      ref
+          .read(reportControllerProvider.notifier)
+          .saveReportHistory(updatedModel);
       ref.read(notificationControllerProvider.notifier).createNotification(
             ref.read(notificationControllerProvider.notifier).buildNotification(
                   userId: ref.read(authControllerProvider).user?.id ?? '',
@@ -119,7 +130,8 @@ class _ReportPreviewScreenState extends ConsumerState<ReportPreviewScreen> {
                   relatedReportId: updatedModel.id,
                   type: AppNotificationType.reportGenerated,
                   title: 'Report Generated',
-                  message: '${updatedModel.title} has been generated successfully.',
+                  message:
+                      '${updatedModel.title} has been generated successfully.',
                   actionType: NotificationActionType.openReport,
                   actionRoute: AppRoutes.reportHistory,
                 ),
@@ -127,7 +139,8 @@ class _ReportPreviewScreenState extends ConsumerState<ReportPreviewScreen> {
       ref.read(securityControllerProvider.notifier).createAuditLog(
             kametiId: updatedModel.kametiId,
             userId: ref.read(authControllerProvider).user?.id ?? '',
-            userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+            userName:
+                ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
             userRole: 'organizer',
             actionType: AuditActionType.reportGenerated,
             entityType: AuditEntityType.report,
@@ -135,7 +148,9 @@ class _ReportPreviewScreenState extends ConsumerState<ReportPreviewScreen> {
             description: '${updatedModel.title} exported as PDF.',
             severity: AuditSeverity.medium,
           );
-      if (mounted) SnackbarHelper.showSuccess(context, 'PDF generated successfully.');
+      if (mounted) {
+        SnackbarHelper.showSuccess(context, 'PDF generated successfully.');
+      }
     } catch (_) {
       if (mounted) SnackbarHelper.showError(context, 'PDF export failed.');
     } finally {
@@ -144,8 +159,11 @@ class _ReportPreviewScreenState extends ConsumerState<ReportPreviewScreen> {
   }
 
   Future<void> _sharePdf() async {
-    await ReportPdfService.shareReportPdf(_data.model.filePath, text: _data.shareSummary);
-    ref.read(reportControllerProvider.notifier).saveReportHistory(_data.model.copyWith(status: ReportStatus.shared));
+    await ReportPdfService.shareReportPdf(_data.model.filePath,
+        text: _data.shareSummary);
+    ref
+        .read(reportControllerProvider.notifier)
+        .saveReportHistory(_data.model.copyWith(status: ReportStatus.shared));
   }
 
   Future<void> _shareSummary() async {
@@ -160,14 +178,19 @@ class _ReportPreviewSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rows = section.rows.length <= 7 ? section.rows : section.rows.take(7).toList();
+    final rows =
+        section.rows.length <= 7 ? section.rows : section.rows.take(7).toList();
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(section.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+            Text(section.title,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 10),
             if (section.rows.isEmpty)
               const Text('No records.')
@@ -175,17 +198,23 @@ class _ReportPreviewSection extends StatelessWidget {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: DataTable(
-                  headingTextStyle: const TextStyle(fontWeight: FontWeight.w900),
-                  columns: [for (final cell in rows.first) DataColumn(label: Text(cell))],
+                  headingTextStyle:
+                      const TextStyle(fontWeight: FontWeight.w900),
+                  columns: [
+                    for (final cell in rows.first) DataColumn(label: Text(cell))
+                  ],
                   rows: [
                     for (final row in rows.skip(1))
-                      DataRow(cells: [for (final cell in row) DataCell(Text(cell))]),
+                      DataRow(cells: [
+                        for (final cell in row) DataCell(Text(cell))
+                      ]),
                   ],
                 ),
               ),
             if (section.rows.length > rows.length) ...[
               const SizedBox(height: 8),
-              Text('${section.rows.length - rows.length} more rows will be included in the PDF.'),
+              Text(
+                  '${section.rows.length - rows.length} more rows will be included in the PDF.'),
             ],
           ],
         ),

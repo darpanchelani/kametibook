@@ -20,7 +20,8 @@ class MemberInfoTile extends StatelessWidget {
       title: Text(label, style: const TextStyle(color: Colors.black54)),
       subtitle: Text(
         value.isEmpty ? '-' : value,
-        style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.black87),
+        style:
+            const TextStyle(fontWeight: FontWeight.w800, color: Colors.black87),
       ),
     );
   }

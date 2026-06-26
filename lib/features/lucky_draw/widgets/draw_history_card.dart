@@ -31,7 +31,10 @@ class DrawHistoryCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Month ${draw.cycleNumber}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w900),
                     ),
                   ),
                   DrawStatusBadge(status: draw.status),

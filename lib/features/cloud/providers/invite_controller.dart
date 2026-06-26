@@ -61,7 +61,11 @@ class InviteController extends StateNotifier<List<KametiInviteModel>> {
   void rejectInvite(String inviteId) {
     state = [
       for (final invite in state)
-        if (invite.id == inviteId) invite.copyWith(status: KametiInviteStatus.rejected, updatedAt: DateTime.now()) else invite,
+        if (invite.id == inviteId)
+          invite.copyWith(
+              status: KametiInviteStatus.rejected, updatedAt: DateTime.now())
+        else
+          invite,
     ];
   }
 
@@ -72,4 +76,6 @@ class InviteController extends StateNotifier<List<KametiInviteModel>> {
   }
 }
 
-final inviteControllerProvider = StateNotifierProvider<InviteController, List<KametiInviteModel>>((ref) => InviteController());
+final inviteControllerProvider =
+    StateNotifierProvider<InviteController, List<KametiInviteModel>>(
+        (ref) => InviteController());

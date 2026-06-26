@@ -30,7 +30,8 @@ class CyclePaymentsScreen extends ConsumerStatefulWidget {
   final String cycleId;
 
   @override
-  ConsumerState<CyclePaymentsScreen> createState() => _CyclePaymentsScreenState();
+  ConsumerState<CyclePaymentsScreen> createState() =>
+      _CyclePaymentsScreenState();
 }
 
 class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
@@ -65,7 +66,9 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
       final matchesSearch = query.isEmpty ||
           (member?.fullName.toLowerCase().contains(query) ?? false) ||
           (member?.phone.toLowerCase().contains(query) ?? false);
-      return matchesFilter && matchesSearch && member?.status != MemberStatus.removed;
+      return matchesFilter &&
+          matchesSearch &&
+          member?.status != MemberStatus.removed;
     }).toList();
 
     return Scaffold(
@@ -82,18 +85,28 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
               paidCount: paymentController.getPaidMembersCount(cycle.id),
               pendingCount: paymentController.getPendingMembersCount(cycle.id),
               lateCount: paymentController.getLateMembersCount(cycle.id),
-              rejectedCount: paymentController.getRejectedMembersCount(cycle.id),
+              rejectedCount:
+                  paymentController.getRejectedMembersCount(cycle.id),
             ),
             const SizedBox(height: 8),
             Text('Due Date: ${DateFormatter.display(cycle.dueDate)}'),
             const SizedBox(height: 14),
             TextField(
+              enableSuggestions: false,
+              autocorrect: false,
+              autofillHints: const <String>[],
+              smartDashesType: SmartDashesType.disabled,
+              smartQuotesType: SmartQuotesType.disabled,
               controller: _searchController,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(labelText: 'Search by member name or phone', prefixIcon: Icon(Icons.search)),
+              decoration: const InputDecoration(
+                  labelText: 'Search by member name or phone',
+                  prefixIcon: Icon(Icons.search)),
             ),
             const SizedBox(height: 12),
-            PaymentFilterChips(selected: _filter, onChanged: (value) => setState(() => _filter = value)),
+            PaymentFilterChips(
+                selected: _filter,
+                onChanged: (value) => setState(() => _filter = value)),
             const SizedBox(height: 16),
             AppButton(
               label: 'Add Penalty',
@@ -103,7 +116,9 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
             ),
             const SizedBox(height: 12),
             if (filtered.isEmpty)
-              const EmptyState(icon: Icons.receipt_long_outlined, title: 'No payments found.')
+              const EmptyState(
+                  icon: Icons.receipt_long_outlined,
+                  title: 'No payments found.')
             else
               ...filtered.map((payment) {
                 final member = memberController.getMember(payment.memberId);
@@ -114,24 +129,46 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
                   onMarkPending: () {
                     paymentController.markPaymentPending(payment.id);
                     _syncPaymentLedger(payment.kametiId);
-                    _auditPayment(payment, AuditActionType.paymentStatusChanged, 'Payment marked pending.', oldValue: payment.paymentStatus.name, newValue: PaymentStatus.pending.name);
-                    _createPaymentNotification(payment, AppNotificationType.paymentDueReminder, 'Payment Pending', 'Payment marked as pending.');
-                    SnackbarHelper.showSuccess(context, 'Payment marked as pending.');
+                    _auditPayment(payment, AuditActionType.paymentStatusChanged,
+                        'Payment marked pending.',
+                        oldValue: payment.paymentStatus.name,
+                        newValue: PaymentStatus.pending.name);
+                    _createPaymentNotification(
+                        payment,
+                        AppNotificationType.paymentDueReminder,
+                        'Payment Pending',
+                        'Payment marked as pending.');
+                    SnackbarHelper.showSuccess(
+                        context, 'Payment marked as pending.');
                   },
                   onMarkLate: () => _markLate(payment),
                   onReject: () => _rejectPayment(payment),
                   onEdit: () => _openMarkPaid(payment),
-                  onSubmitProof: () => Navigator.of(context).pushNamed(AppRoutes.submitPaymentProof, arguments: payment.id),
-	                  onApproveProof: () {
-                    ref.read(paymentControllerProvider.notifier).approvePaymentProof(
+                  onSubmitProof: () => Navigator.of(context).pushNamed(
+                      AppRoutes.submitPaymentProof,
+                      arguments: payment.id),
+                  onApproveProof: () {
+                    ref
+                        .read(paymentControllerProvider.notifier)
+                        .approvePaymentProof(
                           paymentId: payment.id,
-                          approvedBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+                          approvedBy:
+                              ref.read(authControllerProvider).user?.fullName ??
+                                  'Organizer',
                         );
                     _syncPaymentLedger(payment.kametiId);
-                    _auditPayment(payment, AuditActionType.paymentApproved, 'Payment proof approved.', oldValue: payment.paymentStatus.name, newValue: PaymentStatus.paid.name);
-                    _createPaymentNotification(payment, AppNotificationType.paymentApproved, 'Payment Approved', 'Payment proof approved.');
-	                    SnackbarHelper.showSuccess(context, 'Payment proof approved.');
-	                  },
+                    _auditPayment(payment, AuditActionType.paymentApproved,
+                        'Payment proof approved.',
+                        oldValue: payment.paymentStatus.name,
+                        newValue: PaymentStatus.paid.name);
+                    _createPaymentNotification(
+                        payment,
+                        AppNotificationType.paymentApproved,
+                        'Payment Approved',
+                        'Payment proof approved.');
+                    SnackbarHelper.showSuccess(
+                        context, 'Payment proof approved.');
+                  },
                   onReportIssue: () => Navigator.of(context).pushNamed(
                     AppRoutes.createDispute,
                     arguments: CreateDisputeArgs(
@@ -141,7 +178,7 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
                       defaultType: DisputeType.paymentIssue,
                     ),
                   ),
-	                );
+                );
               }),
           ],
         ),
@@ -156,10 +193,19 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
       builder: (context) => MarkPaymentBottomSheet(
         payment: payment,
         onSubmit: (data) {
-          ref.read(paymentControllerProvider.notifier).markPaymentPaid(payment.id, data);
+          ref
+              .read(paymentControllerProvider.notifier)
+              .markPaymentPaid(payment.id, data);
           _syncPaymentLedger(payment.kametiId);
-          _auditPayment(payment, AuditActionType.paymentApproved, 'Payment marked paid.', oldValue: payment.paymentStatus.name, newValue: PaymentStatus.paid.name);
-          _createPaymentNotification(payment, AppNotificationType.paymentMarkedPaid, 'Payment Received', 'Payment marked as paid.');
+          _auditPayment(
+              payment, AuditActionType.paymentApproved, 'Payment marked paid.',
+              oldValue: payment.paymentStatus.name,
+              newValue: PaymentStatus.paid.name);
+          _createPaymentNotification(
+              payment,
+              AppNotificationType.paymentMarkedPaid,
+              'Payment Received',
+              'Payment marked as paid.');
           Navigator.of(context).pop();
           SnackbarHelper.showSuccess(this.context, 'Payment marked as paid.');
         },
@@ -168,43 +214,63 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
   }
 
   Future<void> _markLate(MemberPaymentModel payment) async {
-    final note = await _noteDialog(title: 'Mark Payment Late', hint: 'Optional note');
+    final note =
+        await _noteDialog(title: 'Mark Payment Late', hint: 'Optional note');
     if (!mounted) return;
-    ref.read(paymentControllerProvider.notifier).markPaymentLate(payment.id, note ?? '');
+    ref
+        .read(paymentControllerProvider.notifier)
+        .markPaymentLate(payment.id, note ?? '');
     _syncPaymentLedger(payment.kametiId);
-    _auditPayment(payment, AuditActionType.paymentStatusChanged, 'Payment marked late.', oldValue: payment.paymentStatus.name, newValue: PaymentStatus.late.name);
-    _createPaymentNotification(payment, AppNotificationType.paymentOverdue, 'Payment Overdue', 'Payment marked as late.');
+    _auditPayment(
+        payment, AuditActionType.paymentStatusChanged, 'Payment marked late.',
+        oldValue: payment.paymentStatus.name,
+        newValue: PaymentStatus.late.name);
+    _createPaymentNotification(payment, AppNotificationType.paymentOverdue,
+        'Payment Overdue', 'Payment marked as late.');
     SnackbarHelper.showSuccess(context, 'Payment marked as late.');
   }
 
   Future<void> _rejectPayment(MemberPaymentModel payment) async {
-    final reason = await _noteDialog(title: 'Reject Payment', hint: 'Rejection reason');
+    final reason =
+        await _noteDialog(title: 'Reject Payment', hint: 'Rejection reason');
     if (!mounted) return;
-    ref.read(paymentControllerProvider.notifier).rejectPayment(payment.id, reason ?? '');
+    ref
+        .read(paymentControllerProvider.notifier)
+        .rejectPayment(payment.id, reason ?? '');
     _syncPaymentLedger(payment.kametiId);
-    _auditPayment(payment, AuditActionType.paymentRejected, 'Payment rejected.', oldValue: payment.paymentStatus.name, newValue: PaymentStatus.rejected.name);
-    _createPaymentNotification(payment, AppNotificationType.paymentRejected, 'Payment Rejected', 'Payment was rejected. Please review.');
+    _auditPayment(payment, AuditActionType.paymentRejected, 'Payment rejected.',
+        oldValue: payment.paymentStatus.name,
+        newValue: PaymentStatus.rejected.name);
+    _createPaymentNotification(payment, AppNotificationType.paymentRejected,
+        'Payment Rejected', 'Payment was rejected. Please review.');
     SnackbarHelper.showSuccess(context, 'Payment rejected.');
   }
 
   void _syncPaymentLedger(String kametiId) {
     ref.read(ledgerControllerProvider.notifier).syncLedgerForKameti(
-          kametiId: kametiId,
-          payments: ref.read(paymentControllerProvider).payments,
-          allocations: const [],
-          biddingSessions: const [],
-          discountAdjustments: const [],
-        );
+      kametiId: kametiId,
+      payments: ref.read(paymentControllerProvider).payments,
+      allocations: const [],
+      biddingSessions: const [],
+      discountAdjustments: const [],
+    );
   }
 
-  void _createPaymentNotification(MemberPaymentModel payment, AppNotificationType type, String title, String fallbackMessage) {
-    final member = ref.read(memberControllerProvider.notifier).getMember(payment.memberId);
-    final kameti = ref.read(kametiControllerProvider.notifier).byId(payment.kametiId);
-    final cycle = ref.read(paymentControllerProvider.notifier).getCycle(payment.cycleId);
+  void _createPaymentNotification(MemberPaymentModel payment,
+      AppNotificationType type, String title, String fallbackMessage) {
+    final member =
+        ref.read(memberControllerProvider.notifier).getMember(payment.memberId);
+    final kameti =
+        ref.read(kametiControllerProvider.notifier).byId(payment.kametiId);
+    final cycle =
+        ref.read(paymentControllerProvider.notifier).getCycle(payment.cycleId);
     final message = switch (type) {
-      AppNotificationType.paymentMarkedPaid => '${member?.fullName ?? 'Member'} paid ${payment.amountDue.toStringAsFixed(0)} for ${kameti?.name ?? 'kameti'} Cycle ${cycle?.cycleNumber ?? 0}.',
-      AppNotificationType.paymentRejected => 'Payment for ${member?.fullName ?? 'member'} was rejected. Please review.',
-      AppNotificationType.paymentOverdue => '${member?.fullName ?? 'Member'} payment is overdue for Cycle ${cycle?.cycleNumber ?? 0}.',
+      AppNotificationType.paymentMarkedPaid =>
+        '${member?.fullName ?? 'Member'} paid ${payment.amountDue.toStringAsFixed(0)} for ${kameti?.name ?? 'kameti'} Cycle ${cycle?.cycleNumber ?? 0}.',
+      AppNotificationType.paymentRejected =>
+        'Payment for ${member?.fullName ?? 'member'} was rejected. Please review.',
+      AppNotificationType.paymentOverdue =>
+        '${member?.fullName ?? 'Member'} payment is overdue for Cycle ${cycle?.cycleNumber ?? 0}.',
       _ => fallbackMessage,
     };
     ref.read(notificationControllerProvider.notifier).createNotification(
@@ -217,14 +283,18 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
                 type: type,
                 title: title,
                 message: message,
-                priority: type == AppNotificationType.paymentMarkedPaid ? NotificationPriority.normal : NotificationPriority.high,
+                priority: type == AppNotificationType.paymentMarkedPaid
+                    ? NotificationPriority.normal
+                    : NotificationPriority.high,
                 actionType: NotificationActionType.openPayment,
                 actionRoute: AppRoutes.cyclePayments,
               ),
         );
   }
 
-  void _auditPayment(MemberPaymentModel payment, AuditActionType action, String description, {String oldValue = '', String newValue = ''}) {
+  void _auditPayment(
+      MemberPaymentModel payment, AuditActionType action, String description,
+      {String oldValue = '', String newValue = ''}) {
     final user = ref.read(authControllerProvider).user;
     ref.read(securityControllerProvider.notifier).createAuditLog(
           kametiId: payment.kametiId,
@@ -237,7 +307,9 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
           oldValue: oldValue,
           newValue: newValue,
           description: description,
-          severity: action == AuditActionType.paymentRejected ? AuditSeverity.high : AuditSeverity.medium,
+          severity: action == AuditActionType.paymentRejected
+              ? AuditSeverity.high
+              : AuditSeverity.medium,
         );
   }
 
@@ -248,20 +320,32 @@ class _CyclePaymentsScreenState extends ConsumerState<CyclePaymentsScreen> {
       builder: (context) => AlertDialog(
         title: Text(title),
         content: TextField(
+          enableSuggestions: false,
+          autocorrect: false,
+          autofillHints: const <String>[],
+          smartDashesType: SmartDashesType.disabled,
+          smartQuotesType: SmartQuotesType.disabled,
           controller: controller,
           maxLines: 3,
           decoration: InputDecoration(hintText: hint),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: const Text('Save')),
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(controller.text.trim()),
+              child: const Text('Save')),
         ],
       ),
     );
   }
 
   Future<void> _addPenalty(String cycleId, String kametiId) async {
-    final members = ref.read(memberControllerProvider.notifier).getMembersByKametiId(kametiId);
+    final members = ref
+        .read(memberControllerProvider.notifier)
+        .getMembersByKametiId(kametiId);
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,

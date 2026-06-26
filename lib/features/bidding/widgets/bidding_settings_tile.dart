@@ -30,15 +30,20 @@ class BiddingSettingsTile extends StatelessWidget {
               value: requirePayment,
               onChanged: enabled ? onRequirePaymentChanged : null,
               title: const Text('Require payment before bidding'),
-              subtitle: const Text('Only paid members in the current cycle can submit bids.'),
+              subtitle: const Text(
+                  'Only paid members in the current cycle can submit bids.'),
             ),
             DropdownButtonFormField<DiscountDistributionType>(
               initialValue: distributionType,
-              decoration: const InputDecoration(labelText: 'Discount Distribution'),
+              decoration:
+                  const InputDecoration(labelText: 'Discount Distribution'),
               items: DiscountDistributionType.values
-                  .map((type) => DropdownMenuItem(value: type, child: Text(type.label)))
+                  .map((type) =>
+                      DropdownMenuItem(value: type, child: Text(type.label)))
                   .toList(),
-              onChanged: enabled ? (value) => onDistributionChanged(value ?? distributionType) : null,
+              onChanged: enabled
+                  ? (value) => onDistributionChanged(value ?? distributionType)
+                  : null,
             ),
           ],
         ),

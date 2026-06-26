@@ -17,7 +17,8 @@ class ReportHistoryScreen extends ConsumerStatefulWidget {
   final String kametiId;
 
   @override
-  ConsumerState<ReportHistoryScreen> createState() => _ReportHistoryScreenState();
+  ConsumerState<ReportHistoryScreen> createState() =>
+      _ReportHistoryScreenState();
 }
 
 class _ReportHistoryScreenState extends ConsumerState<ReportHistoryScreen> {
@@ -26,7 +27,8 @@ class _ReportHistoryScreenState extends ConsumerState<ReportHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final reports = ref.watch(reportControllerProvider).where((report) {
-      return report.kametiId == widget.kametiId && (_filter == null || report.reportType == _filter);
+      return report.kametiId == widget.kametiId &&
+          (_filter == null || report.reportType == _filter);
     }).toList()
       ..sort((a, b) => b.generatedAt.compareTo(a.generatedAt));
 
@@ -40,10 +42,16 @@ class _ReportHistoryScreenState extends ConsumerState<ReportHistoryScreen> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  ChoiceChip(label: const Text('All'), selected: _filter == null, onSelected: (_) => setState(() => _filter = null)),
+                  ChoiceChip(
+                      label: const Text('All'),
+                      selected: _filter == null,
+                      onSelected: (_) => setState(() => _filter = null)),
                   const SizedBox(width: 8),
                   for (final type in ReportType.values) ...[
-                    ChoiceChip(label: Text(type.label), selected: _filter == type, onSelected: (_) => setState(() => _filter = type)),
+                    ChoiceChip(
+                        label: Text(type.label),
+                        selected: _filter == type,
+                        onSelected: (_) => setState(() => _filter = type)),
                     const SizedBox(width: 8),
                   ],
                 ],
@@ -51,7 +59,9 @@ class _ReportHistoryScreenState extends ConsumerState<ReportHistoryScreen> {
             ),
             Expanded(
               child: reports.isEmpty
-                  ? const EmptyState(icon: Icons.description_outlined, title: 'No reports generated yet.')
+                  ? const EmptyState(
+                      icon: Icons.description_outlined,
+                      title: 'No reports generated yet.')
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                       itemCount: reports.length,
@@ -62,7 +72,9 @@ class _ReportHistoryScreenState extends ConsumerState<ReportHistoryScreen> {
                           report: report,
                           onOpen: () => _openReport(report),
                           onShare: () => _shareReport(report),
-                          onDelete: () => ref.read(reportControllerProvider.notifier).deleteReportHistory(report.id),
+                          onDelete: () => ref
+                              .read(reportControllerProvider.notifier)
+                              .deleteReportHistory(report.id),
                         );
                       },
                     ),
@@ -76,18 +88,26 @@ class _ReportHistoryScreenState extends ConsumerState<ReportHistoryScreen> {
   Future<void> _openReport(ReportModel report) async {
     final file = File(report.filePath);
     if (report.filePath.isEmpty || !await file.exists()) {
-      if (mounted) SnackbarHelper.showError(context, 'File not found. Please regenerate report.');
+      if (mounted) {
+        SnackbarHelper.showError(
+            context, 'File not found. Please regenerate report.');
+      }
       return;
     }
-    await Printing.layoutPdf(name: report.title, onLayout: (_) => file.readAsBytes());
+    await Printing.layoutPdf(
+        name: report.title, onLayout: (_) => file.readAsBytes());
   }
 
   Future<void> _shareReport(ReportModel report) async {
     final file = File(report.filePath);
     if (report.filePath.isEmpty || !await file.exists()) {
-      if (mounted) SnackbarHelper.showError(context, 'File not found. Please regenerate report.');
+      if (mounted) {
+        SnackbarHelper.showError(
+            context, 'File not found. Please regenerate report.');
+      }
       return;
     }
-    await ReportPdfService.shareReportPdf(report.filePath, text: report.summary);
+    await ReportPdfService.shareReportPdf(report.filePath,
+        text: report.summary);
   }
 }

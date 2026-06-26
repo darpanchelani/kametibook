@@ -16,31 +16,44 @@ class ReportPdfService {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(24),
         build: (context) => [
-          pw.Header(level: 0, child: pw.Text('KametiBook', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold))),
-          pw.Text(data.model.title, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+          pw.Header(
+              level: 0,
+              child: pw.Text('KametiBook',
+                  style: pw.TextStyle(
+                      fontSize: 24, fontWeight: pw.FontWeight.bold))),
+          pw.Text(data.model.title,
+              style:
+                  pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
           pw.Text(data.kametiName),
-          pw.Text('Generated: ${DateFormatter.display(data.model.generatedAt)}'),
+          pw.Text(
+              'Generated: ${DateFormatter.display(data.model.generatedAt)}'),
           pw.SizedBox(height: 14),
-          pw.Text('Summary', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          pw.Text('Summary',
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
           pw.TableHelper.fromTextArray(
             headers: const ['Metric', 'Value'],
-            data: data.summaryCards.entries.map((entry) => [entry.key, entry.value]).toList(),
+            data: data.summaryCards.entries
+                .map((entry) => [entry.key, entry.value])
+                .toList(),
           ),
           if (data.warnings.isNotEmpty) ...[
             pw.SizedBox(height: 12),
-            pw.Text('Warnings', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.Text('Warnings',
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             ...data.warnings.map((warning) => pw.Bullet(text: warning)),
           ],
           for (final section in data.sections) ...[
             pw.SizedBox(height: 14),
-            pw.Text(section.title, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.Text(section.title,
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             if (section.rows.isEmpty)
               pw.Text('No records.')
             else
               pw.TableHelper.fromTextArray(
                 headers: section.rows.first,
                 data: section.rows.skip(1).toList(),
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8),
+                headerStyle:
+                    pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8),
                 cellStyle: const pw.TextStyle(fontSize: 8),
                 cellAlignment: pw.Alignment.centerLeft,
               ),
@@ -55,20 +68,23 @@ class ReportPdfService {
         ],
         footer: (context) => pw.Align(
           alignment: pw.Alignment.centerRight,
-          child: pw.Text('Page ${context.pageNumber} of ${context.pagesCount}', style: const pw.TextStyle(fontSize: 8)),
+          child: pw.Text('Page ${context.pageNumber} of ${context.pagesCount}',
+              style: const pw.TextStyle(fontSize: 8)),
         ),
       ),
     );
 
     final dir = await getApplicationDocumentsDirectory();
-    final fileName = '${_sanitize(data.model.title)}_${_sanitize(data.kametiName)}.pdf';
+    final fileName =
+        '${_sanitize(data.model.title)}_${_sanitize(data.kametiName)}.pdf';
     final file = File('${dir.path}/$fileName');
     await file.writeAsBytes(await pdf.save());
     return file.path;
   }
 
   static Future<void> shareReportPdf(String filePath, {String? text}) async {
-    await SharePlus.instance.share(ShareParams(files: [XFile(filePath)], text: text));
+    await SharePlus.instance
+        .share(ShareParams(files: [XFile(filePath)], text: text));
   }
 
   static Future<void> shareReportSummary(String summary) async {
@@ -76,6 +92,8 @@ class ReportPdfService {
   }
 
   static String _sanitize(String input) {
-    return input.replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_').replaceAll(RegExp(r'_+'), '_');
+    return input
+        .replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_');
   }
 }

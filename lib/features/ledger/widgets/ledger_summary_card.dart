@@ -16,11 +16,21 @@ class LedgerSummaryCard extends StatelessWidget {
           spacing: 14,
           runSpacing: 10,
           children: [
-            _Item(label: 'Contributions', value: CurrencyFormatter.pkr(summary.totalContributions)),
-            _Item(label: 'Payouts', value: CurrencyFormatter.pkr(summary.totalPayouts)),
-            _Item(label: 'Discounts', value: CurrencyFormatter.pkr(summary.totalDiscounts)),
-            _Item(label: 'Penalties', value: CurrencyFormatter.pkr(summary.totalPenalties)),
-            _Item(label: 'Balance', value: CurrencyFormatter.pkr(summary.groupBalance)),
+            _Item(
+                label: 'Contributions',
+                value: CurrencyFormatter.pkr(summary.totalContributions)),
+            _Item(
+                label: 'Payouts',
+                value: CurrencyFormatter.pkr(summary.totalPayouts)),
+            _Item(
+                label: 'Discounts',
+                value: CurrencyFormatter.pkr(summary.totalDiscounts)),
+            _Item(
+                label: 'Penalties',
+                value: CurrencyFormatter.pkr(summary.totalPenalties)),
+            _Item(
+                label: 'Balance',
+                value: CurrencyFormatter.pkr(summary.groupBalance)),
           ],
         ),
       ),
@@ -36,7 +46,8 @@ class _Item extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox(
         width: 135,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: const TextStyle(color: Colors.black54, fontSize: 12)),
+          Text(label,
+              style: const TextStyle(color: Colors.black54, fontSize: 12)),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
         ]),
       );

@@ -20,7 +20,9 @@ class ConfirmationDialog extends StatelessWidget {
       title: Text(title),
       content: Text(message),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+        TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel')),
         FilledButton(
           style: isDestructive
               ? FilledButton.styleFrom(backgroundColor: Colors.red.shade700)

@@ -137,7 +137,9 @@ class MemberPaymentModel {
   final String rejectionReason;
   final String proofUrl;
 
-  bool get countsAsPaid => paymentStatus == PaymentStatus.paid || paymentStatus == PaymentStatus.waived;
+  bool get countsAsPaid =>
+      paymentStatus == PaymentStatus.paid ||
+      paymentStatus == PaymentStatus.waived;
 
   MemberPaymentModel copyWith({
     String? id,
@@ -172,7 +174,8 @@ class MemberPaymentModel {
       amountDue: amountDue ?? this.amountDue,
       amountPaid: amountPaid ?? this.amountPaid,
       paymentStatus: paymentStatus ?? this.paymentStatus,
-      paymentMethod: clearPaymentMethod ? null : paymentMethod ?? this.paymentMethod,
+      paymentMethod:
+          clearPaymentMethod ? null : paymentMethod ?? this.paymentMethod,
       proofImagePath: proofImagePath ?? this.proofImagePath,
       note: note ?? this.note,
       paidAt: clearPaidAt ? null : paidAt ?? this.paidAt,

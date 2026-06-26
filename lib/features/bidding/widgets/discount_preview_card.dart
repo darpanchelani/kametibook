@@ -26,7 +26,11 @@ class DiscountPreviewCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Discount Preview', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+            Text('Discount Preview',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
             Text('Total Pool: ${CurrencyFormatter.pkr(totalPool)}'),
             Text('Winning Bid: ${CurrencyFormatter.pkr(winningBid)}'),
@@ -35,7 +39,8 @@ class DiscountPreviewCard extends StatelessWidget {
             if (adjustments.isEmpty)
               const Text('No discount adjustments generated.')
             else
-              ...adjustments.map((item) => DiscountAdjustmentCard(adjustment: item)),
+              ...adjustments
+                  .map((item) => DiscountAdjustmentCard(adjustment: item)),
           ],
         ),
       ),

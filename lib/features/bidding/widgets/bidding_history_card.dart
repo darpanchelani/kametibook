@@ -33,7 +33,10 @@ class BiddingHistoryCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Month ${session.cycleNumber}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w900),
                     ),
                   ),
                   BiddingStatusBadge(status: session.status),
@@ -41,11 +44,15 @@ class BiddingHistoryCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text('Winner: $winnerName'),
-              Text('Winning Amount: ${CurrencyFormatter.pkr(session.winningAmount)}'),
-              Text('Total Pool: ${CurrencyFormatter.pkr(session.totalPoolAmount)}'),
-              Text('Discount: ${CurrencyFormatter.pkr(session.discountAmount)}'),
+              Text(
+                  'Winning Amount: ${CurrencyFormatter.pkr(session.winningAmount)}'),
+              Text(
+                  'Total Pool: ${CurrencyFormatter.pkr(session.totalPoolAmount)}'),
+              Text(
+                  'Discount: ${CurrencyFormatter.pkr(session.discountAmount)}'),
               Text('Distribution: ${session.discountDistributionType.label}'),
-              if (session.endTime != null) Text('Completed: ${DateFormatter.display(session.endTime!)}'),
+              if (session.endTime != null)
+                Text('Completed: ${DateFormatter.display(session.endTime!)}'),
             ],
           ),
         ),

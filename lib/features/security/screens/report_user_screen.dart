@@ -33,23 +33,46 @@ class _ReportUserScreenState extends ConsumerState<ReportUserScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final member = ref.watch(memberControllerProvider).where((item) => item.id == widget.args.memberId).firstOrNull;
+    final member = ref
+        .watch(memberControllerProvider)
+        .where((item) => item.id == widget.args.memberId)
+        .firstOrNull;
     return Scaffold(
       appBar: AppBar(title: const Text('Report User')),
       body: SafeArea(
         child: ListView(padding: const EdgeInsets.all(16), children: [
-          if (member != null) Text(member.fullName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+          if (member != null)
+            Text(member.fullName,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900)),
           const SizedBox(height: 12),
           DropdownButtonFormField<ReportUserReason>(
             initialValue: _reason,
             decoration: const InputDecoration(labelText: 'Reason'),
-            items: ReportUserReason.values.map((reason) => DropdownMenuItem(value: reason, child: Text(reason.label))).toList(),
-            onChanged: (value) => setState(() => _reason = value ?? ReportUserReason.other),
+            items: ReportUserReason.values
+                .map((reason) =>
+                    DropdownMenuItem(value: reason, child: Text(reason.label)))
+                .toList(),
+            onChanged: (value) =>
+                setState(() => _reason = value ?? ReportUserReason.other),
           ),
           const SizedBox(height: 12),
-          TextField(controller: _descriptionController, maxLines: 5, decoration: const InputDecoration(labelText: 'Description')),
+          TextField(
+              enableSuggestions: false,
+              autocorrect: false,
+              autofillHints: const <String>[],
+              smartDashesType: SmartDashesType.disabled,
+              smartQuotesType: SmartQuotesType.disabled,
+              controller: _descriptionController,
+              maxLines: 5,
+              decoration: const InputDecoration(labelText: 'Description')),
           const SizedBox(height: 16),
-          FilledButton.icon(onPressed: _submit, icon: const Icon(Icons.report_outlined), label: const Text('Submit Report')),
+          FilledButton.icon(
+              onPressed: _submit,
+              icon: const Icon(Icons.report_outlined),
+              label: const Text('Submit Report')),
         ]),
       ),
     );

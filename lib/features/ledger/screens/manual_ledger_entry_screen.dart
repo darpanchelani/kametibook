@@ -13,14 +13,16 @@ class ManualLedgerEntryScreen extends ConsumerStatefulWidget {
   final String kametiId;
 
   @override
-  ConsumerState<ManualLedgerEntryScreen> createState() => _ManualLedgerEntryScreenState();
+  ConsumerState<ManualLedgerEntryScreen> createState() =>
+      _ManualLedgerEntryScreenState();
 }
 
-class _ManualLedgerEntryScreenState extends ConsumerState<ManualLedgerEntryScreen> {
+class _ManualLedgerEntryScreenState
+    extends ConsumerState<ManualLedgerEntryScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _amountController = TextEditingController(text: '0');
+  final _amountController = TextEditingController();
   LedgerEntryType _type = LedgerEntryType.manualNote;
   LedgerDirection _direction = LedgerDirection.neutral;
   DateTime _date = DateTime.now();
@@ -44,8 +46,14 @@ class _ManualLedgerEntryScreenState extends ConsumerState<ManualLedgerEntryScree
             DropdownButtonFormField<LedgerEntryType>(
               initialValue: _type,
               decoration: const InputDecoration(labelText: 'Entry Type'),
-              items: [LedgerEntryType.correction, LedgerEntryType.refund, LedgerEntryType.manualNote, LedgerEntryType.penalty]
-                  .map((type) => DropdownMenuItem(value: type, child: Text(type.label)))
+              items: [
+                LedgerEntryType.correction,
+                LedgerEntryType.refund,
+                LedgerEntryType.manualNote,
+                LedgerEntryType.penalty
+              ]
+                  .map((type) =>
+                      DropdownMenuItem(value: type, child: Text(type.label)))
                   .toList(),
               onChanged: (value) => setState(() => _type = value ?? _type),
             ),
@@ -53,22 +61,59 @@ class _ManualLedgerEntryScreenState extends ConsumerState<ManualLedgerEntryScree
             DropdownButtonFormField<LedgerDirection>(
               initialValue: _direction,
               decoration: const InputDecoration(labelText: 'Direction'),
-              items: LedgerDirection.values.map((direction) => DropdownMenuItem(value: direction, child: Text(direction.label))).toList(),
-              onChanged: (value) => setState(() => _direction = value ?? _direction),
+              items: LedgerDirection.values
+                  .map((direction) => DropdownMenuItem(
+                      value: direction, child: Text(direction.label)))
+                  .toList(),
+              onChanged: (value) =>
+                  setState(() => _direction = value ?? _direction),
             ),
             const SizedBox(height: 14),
-            AppTextField(controller: _titleController, label: 'Title', validator: (value) => value == null || value.trim().isEmpty ? 'Title is required' : null),
+            AppTextField(
+                enableSuggestions: false,
+                autocorrect: false,
+                autofillHints: const <String>[],
+                smartDashesType: SmartDashesType.disabled,
+                smartQuotesType: SmartQuotesType.disabled,
+                controller: _titleController,
+                label: 'Title',
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Title is required'
+                    : null),
             const SizedBox(height: 14),
-            AppTextField(controller: _amountController, label: 'Amount', keyboardType: TextInputType.number),
+            AppTextField(
+                enableSuggestions: false,
+                autocorrect: false,
+                autofillHints: const <String>[],
+                smartDashesType: SmartDashesType.disabled,
+                smartQuotesType: SmartQuotesType.disabled,
+                controller: _amountController,
+                label: 'Amount',
+                hint: '0',
+                keyboardType: TextInputType.number),
             const SizedBox(height: 14),
-            AppTextField(controller: _descriptionController, label: 'Description', maxLines: 3),
+            AppTextField(
+                enableSuggestions: false,
+                autocorrect: false,
+                autofillHints: const <String>[],
+                smartDashesType: SmartDashesType.disabled,
+                smartQuotesType: SmartQuotesType.disabled,
+                controller: _descriptionController,
+                label: 'Description',
+                maxLines: 3),
             const SizedBox(height: 14),
             InkWell(
               onTap: () async {
-                final picked = await showDatePicker(context: context, firstDate: DateTime(2020), lastDate: DateTime(2035), initialDate: _date);
+                final picked = await showDatePicker(
+                    context: context,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2035),
+                    initialDate: _date);
                 if (picked != null) setState(() => _date = picked);
               },
-              child: InputDecorator(decoration: const InputDecoration(labelText: 'Date'), child: Text(_date.toIso8601String().split('T').first)),
+              child: InputDecorator(
+                  decoration: const InputDecoration(labelText: 'Date'),
+                  child: Text(_date.toIso8601String().split('T').first)),
             ),
             const SizedBox(height: 20),
             AppButton(label: 'Save Entry', onPressed: _save),
@@ -80,9 +125,11 @@ class _ManualLedgerEntryScreenState extends ConsumerState<ManualLedgerEntryScree
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
-    final amount = double.tryParse(_amountController.text.replaceAll(',', '').trim()) ?? 0;
+    final amount =
+        double.tryParse(_amountController.text.replaceAll(',', '').trim()) ?? 0;
     if (_direction != LedgerDirection.neutral && amount <= 0) {
-      SnackbarHelper.showError(context, 'Amount is required for money in/out entries.');
+      SnackbarHelper.showError(
+          context, 'Amount is required for money in/out entries.');
       return;
     }
     final now = DateTime.now();
@@ -105,7 +152,8 @@ class _ManualLedgerEntryScreenState extends ConsumerState<ManualLedgerEntryScree
             proofPath: '',
             status: LedgerStatus.confirmed,
             entryDate: _date,
-            createdBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+            createdBy:
+                ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
             createdAt: now,
             updatedAt: now,
           ),

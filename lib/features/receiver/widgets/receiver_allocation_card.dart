@@ -7,7 +7,8 @@ import 'allocation_type_badge.dart';
 import 'receiver_status_badge.dart';
 
 class ReceiverAllocationCard extends StatelessWidget {
-  const ReceiverAllocationCard({required this.allocation, this.onMarkPayoutPaid, super.key});
+  const ReceiverAllocationCard(
+      {required this.allocation, this.onMarkPayoutPaid, super.key});
 
   final ReceiverAllocationModel allocation;
   final VoidCallback? onMarkPayoutPaid;
@@ -25,22 +26,32 @@ class ReceiverAllocationCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Receiver: ${allocation.memberName}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
                 ReceiverStatusBadge(status: allocation.status),
               ],
             ),
             const SizedBox(height: 8),
-            Wrap(spacing: 8, runSpacing: 8, children: [AllocationTypeBadge(type: allocation.allocationType)]),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              AllocationTypeBadge(type: allocation.allocationType)
+            ]),
             const SizedBox(height: 8),
             Text('Amount: ${CurrencyFormatter.pkr(allocation.amount)}'),
             Text('Cycle: Month ${allocation.cycleNumber}'),
             Text('Payout: ${allocation.payoutStatus.label}'),
-            Text(allocation.payoutProofPath.isEmpty ? 'No proof' : 'Proof attached'),
-            if (allocation.confirmedAt != null) Text('Confirmed: ${DateFormatter.display(allocation.confirmedAt!)}'),
+            Text(allocation.payoutProofPath.isEmpty
+                ? 'No proof'
+                : 'Proof attached'),
+            if (allocation.confirmedAt != null)
+              Text(
+                  'Confirmed: ${DateFormatter.display(allocation.confirmedAt!)}'),
             if (allocation.notes.isNotEmpty) Text('Notes: ${allocation.notes}'),
-            if (onMarkPayoutPaid != null && allocation.payoutStatus != PayoutStatus.confirmed) ...[
+            if (onMarkPayoutPaid != null &&
+                allocation.payoutStatus != PayoutStatus.confirmed) ...[
               const SizedBox(height: 10),
               OutlinedButton.icon(
                 onPressed: onMarkPayoutPaid,

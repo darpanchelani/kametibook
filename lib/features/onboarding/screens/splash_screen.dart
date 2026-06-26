@@ -20,9 +20,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     super.initState();
     Timer(const Duration(seconds: 2), () async {
       if (!mounted) return;
-      final isLoggedIn = await ref.read(authControllerProvider.notifier).refreshSession();
+      final isLoggedIn =
+          await ref.read(authControllerProvider.notifier).refreshSession();
       if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed(isLoggedIn ? AppRoutes.main : AppRoutes.onboarding);
+      Navigator.of(context).pushReplacementNamed(
+          isLoggedIn ? AppRoutes.main : AppRoutes.onboarding);
     });
   }
 
@@ -45,21 +47,26 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                     borderRadius: BorderRadius.circular(26),
                     boxShadow: [
                       BoxShadow(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.24),
+                        color:
+                            theme.colorScheme.primary.withValues(alpha: 0.24),
                         blurRadius: 24,
                         offset: const Offset(0, 12),
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 46),
+                  child: const Icon(Icons.account_balance_wallet_outlined,
+                      color: Colors.white, size: 46),
                 ),
                 const SizedBox(height: 22),
                 Text(
                   AppConstants.appName,
-                  style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900),
+                  style: theme.textTheme.headlineMedium
+                      ?.copyWith(fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 8),
-                Text(AppConstants.tagline, style: theme.textTheme.bodyLarge?.copyWith(color: Colors.black54)),
+                Text(AppConstants.tagline,
+                    style: theme.textTheme.bodyLarge
+                        ?.copyWith(color: Colors.black54)),
                 const SizedBox(height: 34),
                 const CircularProgressIndicator(),
               ],

@@ -16,7 +16,8 @@ class FixedOrderSetupScreen extends ConsumerStatefulWidget {
   final String kametiId;
 
   @override
-  ConsumerState<FixedOrderSetupScreen> createState() => _FixedOrderSetupScreenState();
+  ConsumerState<FixedOrderSetupScreen> createState() =>
+      _FixedOrderSetupScreenState();
 }
 
 class _FixedOrderSetupScreenState extends ConsumerState<FixedOrderSetupScreen> {
@@ -24,11 +25,14 @@ class _FixedOrderSetupScreenState extends ConsumerState<FixedOrderSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final kameti = _findKameti(ref.watch(kametiControllerProvider), widget.kametiId);
+    final kameti =
+        _findKameti(ref.watch(kametiControllerProvider), widget.kametiId);
     ref.watch(memberControllerProvider);
     ref.watch(receiverControllerProvider);
     if (kameti == null) {
-      return Scaffold(appBar: AppBar(title: const Text('Fixed Order')), body: const Center(child: Text('Kameti not found')));
+      return Scaffold(
+          appBar: AppBar(title: const Text('Fixed Order')),
+          body: const Center(child: Text('Kameti not found')));
     }
     final members = ref
         .read(memberControllerProvider.notifier)
@@ -36,7 +40,9 @@ class _FixedOrderSetupScreenState extends ConsumerState<FixedOrderSetupScreen> {
         .where((member) => member.status == MemberStatus.active)
         .toList();
     if (_assignments.isEmpty) {
-      for (final slot in ref.read(receiverControllerProvider.notifier).getFixedOrderSlots(kameti.id)) {
+      for (final slot in ref
+          .read(receiverControllerProvider.notifier)
+          .getFixedOrderSlots(kameti.id)) {
         MemberModel? member;
         for (final item in members) {
           if (item.id == slot.memberId) {
@@ -54,16 +60,27 @@ class _FixedOrderSetupScreenState extends ConsumerState<FixedOrderSetupScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(kameti.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+            Text(kameti.name,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 6),
             Text('Total members: ${kameti.totalMembers}'),
             Text('Duration: ${kameti.durationMonths} months'),
             const SizedBox(height: 10),
-            const Text('Assign one member to each cycle. Each member can appear only once.'),
+            const Text(
+                'Assign one member to each cycle. Each member can appear only once.'),
             const SizedBox(height: 14),
-            AppButton(label: 'Auto Fill Order', icon: Icons.auto_fix_high_outlined, onPressed: () => _autoFill(members, kameti.totalMembers)),
+            AppButton(
+                label: 'Auto Fill Order',
+                icon: Icons.auto_fix_high_outlined,
+                onPressed: () => _autoFill(members, kameti.totalMembers)),
             const SizedBox(height: 8),
-            AppButton(label: 'Clear Order', isOutlined: true, onPressed: () => setState(_assignments.clear)),
+            AppButton(
+                label: 'Clear Order',
+                isOutlined: true,
+                onPressed: () => setState(_assignments.clear)),
             const SizedBox(height: 14),
             for (var cycle = 1; cycle <= kameti.totalMembers; cycle++)
               FixedOrderSlotCard(
@@ -79,7 +96,10 @@ class _FixedOrderSetupScreenState extends ConsumerState<FixedOrderSetupScreen> {
                 }),
               ),
             const SizedBox(height: 16),
-            AppButton(label: 'Save Order', icon: Icons.save_outlined, onPressed: () => _save(kameti)),
+            AppButton(
+                label: 'Save Order',
+                icon: Icons.save_outlined,
+                onPressed: () => _save(kameti)),
           ],
         ),
       ),
@@ -91,13 +111,16 @@ class _FixedOrderSetupScreenState extends ConsumerState<FixedOrderSetupScreen> {
       _assignments
         ..clear()
         ..addEntries([
-          for (var i = 0; i < count && i < members.length; i++) MapEntry(i + 1, members[i]),
+          for (var i = 0; i < count && i < members.length; i++)
+            MapEntry(i + 1, members[i]),
         ]);
     });
   }
 
   void _save(KametiModel kameti) {
-    final error = ref.read(receiverControllerProvider.notifier).saveFixedOrder(kameti: kameti, assignments: _assignments);
+    final error = ref
+        .read(receiverControllerProvider.notifier)
+        .saveFixedOrder(kameti: kameti, assignments: _assignments);
     if (error != null) {
       SnackbarHelper.showError(context, error);
     } else {

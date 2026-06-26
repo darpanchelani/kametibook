@@ -13,7 +13,8 @@ class MemberCountSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final remaining = (totalCount - addedCount).clamp(0, totalCount);
-    final progress = totalCount == 0 ? 0.0 : (addedCount / totalCount).clamp(0.0, 1.0);
+    final progress =
+        totalCount == 0 ? 0.0 : (addedCount / totalCount).clamp(0.0, 1.0);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -25,9 +26,13 @@ class MemberCountSummaryCard extends StatelessWidget {
               children: [
                 Text(
                   'Members: $addedCount / $totalCount',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w900),
                 ),
-                Text('Remaining: $remaining', style: const TextStyle(fontWeight: FontWeight.w700)),
+                Text('Remaining: $remaining',
+                    style: const TextStyle(fontWeight: FontWeight.w700)),
               ],
             ),
             const SizedBox(height: 12),

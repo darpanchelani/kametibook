@@ -16,7 +16,8 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
   final Map<String, UserNotificationPreferencesModel> _preferences = {};
 
   UserNotificationPreferencesModel preferencesFor(String userId) {
-    return _preferences[userId] ?? UserNotificationPreferencesModel(userId: userId);
+    return _preferences[userId] ??
+        UserNotificationPreferencesModel(userId: userId);
   }
 
   void updatePreferences(UserNotificationPreferencesModel preferences) {
@@ -25,20 +26,31 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
 
   List<NotificationModel> getNotificationsForUser(String userId) {
     final items = state
-        .where((item) => item.userId == userId && item.status != NotificationStatus.dismissed && item.status != NotificationStatus.scheduled)
+        .where((item) =>
+            item.userId == userId &&
+            item.status != NotificationStatus.dismissed &&
+            item.status != NotificationStatus.scheduled)
         .toList();
-    items.sort((a, b) => (b.triggeredAt ?? b.createdAt).compareTo(a.triggeredAt ?? a.createdAt));
+    items.sort((a, b) =>
+        (b.triggeredAt ?? b.createdAt).compareTo(a.triggeredAt ?? a.createdAt));
     return items;
   }
 
-  List<NotificationModel> getNotificationsByKametiId(String userId, String kametiId) {
-    return getNotificationsForUser(userId).where((item) => item.kametiId == kametiId).toList();
+  List<NotificationModel> getNotificationsByKametiId(
+      String userId, String kametiId) {
+    return getNotificationsForUser(userId)
+        .where((item) => item.kametiId == kametiId)
+        .toList();
   }
 
-  int getUnreadCount(String userId) => getNotificationsForUser(userId).where((item) => item.isUnread).length;
+  int getUnreadCount(String userId) =>
+      getNotificationsForUser(userId).where((item) => item.isUnread).length;
 
   int getUrgentCount(String userId) {
-    return getNotificationsForUser(userId).where((item) => item.isUnread && item.priority == NotificationPriority.urgent).length;
+    return getNotificationsForUser(userId)
+        .where((item) =>
+            item.isUnread && item.priority == NotificationPriority.urgent)
+        .length;
   }
 
   void createNotification(NotificationModel notification) {
@@ -51,7 +63,11 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     final now = DateTime.now();
     state = [
       for (final item in state)
-        if (item.id == notificationId) item.copyWith(status: NotificationStatus.read, readAt: now, updatedAt: now) else item,
+        if (item.id == notificationId)
+          item.copyWith(
+              status: NotificationStatus.read, readAt: now, updatedAt: now)
+        else
+          item,
     ];
   }
 
@@ -59,8 +75,11 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     final now = DateTime.now();
     state = [
       for (final item in state)
-        if (item.userId == userId && (kametiId == null || item.kametiId == kametiId) && item.status != NotificationStatus.dismissed)
-          item.copyWith(status: NotificationStatus.read, readAt: now, updatedAt: now)
+        if (item.userId == userId &&
+            (kametiId == null || item.kametiId == kametiId) &&
+            item.status != NotificationStatus.dismissed)
+          item.copyWith(
+              status: NotificationStatus.read, readAt: now, updatedAt: now)
         else
           item,
     ];
@@ -70,7 +89,10 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     final now = DateTime.now();
     state = [
       for (final item in state)
-        if (item.id == notificationId) item.copyWith(status: NotificationStatus.dismissed, updatedAt: now) else item,
+        if (item.id == notificationId)
+          item.copyWith(status: NotificationStatus.dismissed, updatedAt: now)
+        else
+          item,
     ];
   }
 
@@ -79,13 +101,18 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     var changed = false;
     final updated = [
       for (final item in state)
-        if (item.status == NotificationStatus.scheduled && item.scheduledAt != null && !item.scheduledAt!.isAfter(now)) ...[
-          item.copyWith(status: NotificationStatus.unread, triggeredAt: now, updatedAt: now),
-        ]
-        else
+        if (item.status == NotificationStatus.scheduled &&
+            item.scheduledAt != null &&
+            !item.scheduledAt!.isAfter(now)) ...[
+          item.copyWith(
+              status: NotificationStatus.unread,
+              triggeredAt: now,
+              updatedAt: now),
+        ] else
           item,
     ];
-    changed = updated.length == state.length && updated.indexed.any((entry) => !identical(entry.$2, state[entry.$1]));
+    changed = updated.length == state.length &&
+        updated.indexed.any((entry) => !identical(entry.$2, state[entry.$1]));
     if (changed) state = updated;
   }
 
@@ -96,15 +123,24 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     required List<MemberPaymentModel> payments,
     required List<MemberModel> members,
   }) {
-    if (!kameti.remindersEnabled || kameti.status != KametiStatus.active) return;
+    if (!kameti.remindersEnabled || kameti.status != KametiStatus.active) {
+      return;
+    }
     for (final cycle in cycles.where((cycle) => cycle.kametiId == kameti.id)) {
-      final cyclePayments = payments.where((payment) => payment.cycleId == cycle.id && !_isPaid(payment)).toList();
+      final cyclePayments = payments
+          .where((payment) => payment.cycleId == cycle.id && !_isPaid(payment))
+          .toList();
       if (cyclePayments.isEmpty) continue;
-      final beforeDate = cycle.dueDate.subtract(Duration(days: kameti.paymentReminderDaysBefore));
+      final beforeDate = cycle.dueDate
+          .subtract(Duration(days: kameti.paymentReminderDaysBefore));
       for (final payment in cyclePayments) {
         final member = _memberById(members, payment.memberId);
-        _createPaymentDueReminder(userId, kameti, cycle, payment, member, beforeDate);
-        if (kameti.paymentReminderOnDueDate) _createPaymentDueReminder(userId, kameti, cycle, payment, member, cycle.dueDate);
+        _createPaymentDueReminder(
+            userId, kameti, cycle, payment, member, beforeDate);
+        if (kameti.paymentReminderOnDueDate) {
+          _createPaymentDueReminder(
+              userId, kameti, cycle, payment, member, cycle.dueDate);
+        }
       }
     }
   }
@@ -132,7 +168,8 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
           relatedPaymentId: payment.id,
           type: AppNotificationType.paymentOverdue,
           title: 'Payment Overdue',
-          message: '${member?.fullName ?? 'Member'} payment is overdue for ${kameti.name} Cycle ${cycle.cycleNumber}.',
+          message:
+              '${member?.fullName ?? 'Member'} payment is overdue for ${kameti.name} Cycle ${cycle.cycleNumber}.',
           priority: NotificationPriority.urgent,
           actionType: NotificationActionType.openPayment,
           actionRoute: AppRoutes.cyclePayments,
@@ -146,7 +183,9 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     required List<KametiModel> kametis,
     required List<ReceiverAllocationModel> allocations,
   }) {
-    for (final allocation in allocations.where((item) => item.payoutStatus != PayoutStatus.confirmed || item.payoutProofPath.isEmpty)) {
+    for (final allocation in allocations.where((item) =>
+        item.payoutStatus != PayoutStatus.confirmed ||
+        item.payoutProofPath.isEmpty)) {
       final kameti = _kametiById(kametis, allocation.kametiId);
       if (kameti == null || !kameti.payoutProofReminderEnabled) continue;
       createNotification(
@@ -158,7 +197,8 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
           relatedAllocationId: allocation.id,
           type: AppNotificationType.payoutPending,
           title: 'Payout Proof Pending',
-          message: 'Payout proof is pending for ${allocation.memberName} in Cycle ${allocation.cycleNumber}.',
+          message:
+              'Payout proof is pending for ${allocation.memberName} in Cycle ${allocation.cycleNumber}.',
           priority: NotificationPriority.high,
           actionType: NotificationActionType.openPayout,
           actionRoute: AppRoutes.kametiDetails,
@@ -173,10 +213,18 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     required List<PaymentCycleModel> cycles,
     required List<ReceiverAllocationModel> allocations,
   }) {
-    for (final kameti in kametis.where((item) => item.status == KametiStatus.active && item.receiverPendingReminderEnabled)) {
-      final cycle = cycles.where((item) => item.kametiId == kameti.id && item.status == PaymentCycleStatus.current).firstOrNull;
+    for (final kameti in kametis.where((item) =>
+        item.status == KametiStatus.active &&
+        item.receiverPendingReminderEnabled)) {
+      final cycle = cycles
+          .where((item) =>
+              item.kametiId == kameti.id &&
+              item.status == PaymentCycleStatus.current)
+          .firstOrNull;
       if (cycle == null) continue;
-      final hasAllocation = allocations.any((item) => item.cycleId == cycle.id && item.status == ReceiverAllocationStatus.confirmed);
+      final hasAllocation = allocations.any((item) =>
+          item.cycleId == cycle.id &&
+          item.status == ReceiverAllocationStatus.confirmed);
       if (hasAllocation) continue;
       createNotification(
         buildNotification(
@@ -185,13 +233,15 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
           cycleId: cycle.id,
           type: AppNotificationType.receiverPending,
           title: 'Receiver Pending',
-          message: 'Receiver is not selected for ${kameti.name} Cycle ${cycle.cycleNumber}.',
+          message:
+              'Receiver is not selected for ${kameti.name} Cycle ${cycle.cycleNumber}.',
           priority: NotificationPriority.high,
           actionType: NotificationActionType.openKameti,
           actionRoute: AppRoutes.kametiDetails,
         ),
       );
-      if (kameti.type == KametiType.luckyDraw && kameti.luckyDrawReminderEnabled) {
+      if (kameti.type == KametiType.luckyDraw &&
+          kameti.luckyDrawReminderEnabled) {
         createNotification(
           buildNotification(
             userId: userId,
@@ -199,7 +249,8 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
             cycleId: cycle.id,
             type: AppNotificationType.luckyDrawPending,
             title: 'Lucky Draw Pending',
-            message: 'Lucky draw is pending for ${kameti.name} Cycle ${cycle.cycleNumber}.',
+            message:
+                'Lucky draw is pending for ${kameti.name} Cycle ${cycle.cycleNumber}.',
             priority: NotificationPriority.high,
             actionType: NotificationActionType.openLuckyDraw,
             actionRoute: AppRoutes.luckyDraw,
@@ -215,10 +266,18 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     required List<PaymentCycleModel> cycles,
     required List<BiddingSessionModel> sessions,
   }) {
-    for (final kameti in kametis.where((item) => item.status == KametiStatus.active && item.type == KametiType.bidding && item.biddingReminderEnabled)) {
-      final cycle = cycles.where((item) => item.kametiId == kameti.id && item.status == PaymentCycleStatus.current).firstOrNull;
+    for (final kameti in kametis.where((item) =>
+        item.status == KametiStatus.active &&
+        item.type == KametiType.bidding &&
+        item.biddingReminderEnabled)) {
+      final cycle = cycles
+          .where((item) =>
+              item.kametiId == kameti.id &&
+              item.status == PaymentCycleStatus.current)
+          .firstOrNull;
       if (cycle == null) continue;
-      final session = sessions.where((item) => item.cycleId == cycle.id).firstOrNull;
+      final session =
+          sessions.where((item) => item.cycleId == cycle.id).firstOrNull;
       if (session == null) {
         createNotification(
           buildNotification(
@@ -227,7 +286,8 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
             cycleId: cycle.id,
             type: AppNotificationType.biddingClosingSoon,
             title: 'Bidding Pending',
-            message: 'Bidding is not started for ${kameti.name} Cycle ${cycle.cycleNumber}.',
+            message:
+                'Bidding is not started for ${kameti.name} Cycle ${cycle.cycleNumber}.',
             priority: NotificationPriority.normal,
             actionType: NotificationActionType.openBidding,
             actionRoute: AppRoutes.bidding,
@@ -271,7 +331,9 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     DateTime? scheduledAt,
   }) {
     final now = DateTime.now();
-    final status = scheduledAt != null && scheduledAt.isAfter(now) ? NotificationStatus.scheduled : NotificationStatus.unread;
+    final status = scheduledAt != null && scheduledAt.isAfter(now)
+        ? NotificationStatus.scheduled
+        : NotificationStatus.unread;
     return NotificationModel(
       id: 'notification-${type.name}-$kametiId-$cycleId-$memberId-$relatedPaymentId-$relatedAllocationId-$relatedBiddingSessionId-$relatedDrawId-$relatedReportId-${_dateKey(scheduledAt ?? now)}',
       userId: userId,
@@ -298,7 +360,8 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     );
   }
 
-  void createKametiStartedNotification({required String userId, required KametiModel kameti}) {
+  void createKametiStartedNotification(
+      {required String userId, required KametiModel kameti}) {
     createNotification(buildNotification(
       userId: userId,
       kametiId: kameti.id,
@@ -310,7 +373,10 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     ));
   }
 
-  void createMemberAddedNotification({required String userId, required KametiModel kameti, required MemberModel member}) {
+  void createMemberAddedNotification(
+      {required String userId,
+      required KametiModel kameti,
+      required MemberModel member}) {
     createNotification(buildNotification(
       userId: userId,
       kametiId: kameti.id,
@@ -323,7 +389,8 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     ));
   }
 
-  bool _hasDuplicate(NotificationModel notification) => state.any((item) => item.id == notification.id);
+  bool _hasDuplicate(NotificationModel notification) =>
+      state.any((item) => item.id == notification.id);
 
   bool _isAllowedByPreferences(NotificationModel notification) {
     final preferences = preferencesFor(notification.userId);
@@ -333,16 +400,25 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
       AppNotificationType.paymentOverdue ||
       AppNotificationType.paymentMarkedPaid ||
       AppNotificationType.paymentRejected ||
-      AppNotificationType.paymentApproved => preferences.paymentNotifications,
-      AppNotificationType.payoutPending || AppNotificationType.payoutPaid => preferences.payoutNotifications,
-      AppNotificationType.receiverPending || AppNotificationType.receiverConfirmed => preferences.receiverNotifications,
+      AppNotificationType.paymentApproved =>
+        preferences.paymentNotifications,
+      AppNotificationType.payoutPending ||
+      AppNotificationType.payoutPaid =>
+        preferences.payoutNotifications,
+      AppNotificationType.receiverPending ||
+      AppNotificationType.receiverConfirmed =>
+        preferences.receiverNotifications,
       AppNotificationType.biddingStarted ||
       AppNotificationType.biddingClosingSoon ||
       AppNotificationType.biddingClosed ||
-      AppNotificationType.biddingCompleted => preferences.biddingNotifications,
-      AppNotificationType.luckyDrawPending || AppNotificationType.luckyDrawCompleted => preferences.luckyDrawNotifications,
+      AppNotificationType.biddingCompleted =>
+        preferences.biddingNotifications,
+      AppNotificationType.luckyDrawPending ||
+      AppNotificationType.luckyDrawCompleted =>
+        preferences.luckyDrawNotifications,
       AppNotificationType.reportGenerated => preferences.reportNotifications,
-      AppNotificationType.ledgerWarning => preferences.ledgerWarningNotifications,
+      AppNotificationType.ledgerWarning =>
+        preferences.ledgerWarningNotifications,
       _ => true,
     };
   }
@@ -363,7 +439,8 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
       relatedPaymentId: payment.id,
       type: AppNotificationType.paymentDueReminder,
       title: 'Payment Due Soon',
-      message: '${CurrencyFormatter.pkr(payment.amountDue)} payment for ${member?.fullName ?? 'member'} in ${kameti.name} Cycle ${cycle.cycleNumber} is due on ${DateFormatter.display(cycle.dueDate)}.',
+      message:
+          '${CurrencyFormatter.pkr(payment.amountDue)} payment for ${member?.fullName ?? 'member'} in ${kameti.name} Cycle ${cycle.cycleNumber} is due on ${DateFormatter.display(cycle.dueDate)}.',
       priority: NotificationPriority.normal,
       actionType: NotificationActionType.openPayment,
       actionRoute: AppRoutes.cyclePayments,
@@ -371,7 +448,9 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
     ));
   }
 
-  bool _isPaid(MemberPaymentModel payment) => payment.paymentStatus == PaymentStatus.paid || payment.paymentStatus == PaymentStatus.waived;
+  bool _isPaid(MemberPaymentModel payment) =>
+      payment.paymentStatus == PaymentStatus.paid ||
+      payment.paymentStatus == PaymentStatus.waived;
   String _dateKey(DateTime date) => '${date.year}${date.month}${date.day}';
 
   KametiModel? _kametiById(List<KametiModel> kametis, String id) {
@@ -397,7 +476,8 @@ class NotificationController extends StateNotifier<List<NotificationModel>> {
 }
 
 final notificationControllerProvider =
-    StateNotifierProvider<NotificationController, List<NotificationModel>>((ref) => NotificationController());
+    StateNotifierProvider<NotificationController, List<NotificationModel>>(
+        (ref) => NotificationController());
 
 extension _FirstOrNull<T> on Iterable<T> {
   T? get firstOrNull {

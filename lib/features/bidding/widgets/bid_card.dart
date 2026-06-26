@@ -25,8 +25,11 @@ class BidCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        title: Text('${bid.memberName} - ${CurrencyFormatter.pkr(bid.bidAmount)}', style: const TextStyle(fontWeight: FontWeight.w900)),
-        subtitle: Text('${member?.phone ?? '-'}\nSubmitted: ${DateFormatter.display(bid.submittedAt)}${bid.note.isEmpty ? '' : '\n${bid.note}'}'),
+        title: Text(
+            '${bid.memberName} - ${CurrencyFormatter.pkr(bid.bidAmount)}',
+            style: const TextStyle(fontWeight: FontWeight.w900)),
+        subtitle: Text(
+            '${member?.phone ?? '-'}\nSubmitted: ${DateFormatter.display(bid.submittedAt)}${bid.note.isEmpty ? '' : '\n${bid.note}'}'),
         isThreeLine: bid.note.isNotEmpty,
         trailing: PopupMenuButton<String>(
           enabled: canEdit,

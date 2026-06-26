@@ -26,7 +26,10 @@ class FixedOrderSlotCard extends StatelessWidget {
         child: DropdownButtonFormField<MemberModel>(
           initialValue: selected,
           decoration: InputDecoration(labelText: 'Cycle $cycleNumber Receiver'),
-          items: members.map((member) => DropdownMenuItem(value: member, child: Text(member.fullName))).toList(),
+          items: members
+              .map((member) =>
+                  DropdownMenuItem(value: member, child: Text(member.fullName)))
+              .toList(),
           onChanged: enabled ? onChanged : null,
         ),
       ),

@@ -4,7 +4,8 @@ import '../../lucky_draw/widgets/excluded_member_card.dart';
 import '../../member/models/member_model.dart';
 
 class ExcludedBidderCard extends StatelessWidget {
-  const ExcludedBidderCard({required this.member, required this.reason, super.key});
+  const ExcludedBidderCard(
+      {required this.member, required this.reason, super.key});
 
   final MemberModel member;
   final String reason;

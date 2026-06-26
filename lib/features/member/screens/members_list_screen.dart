@@ -43,7 +43,8 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
   }
 
   void _ensureOrganizer() {
-    final kameti = _findKameti(ref.read(kametiControllerProvider), widget.kametiId);
+    final kameti =
+        _findKameti(ref.read(kametiControllerProvider), widget.kametiId);
     if (kameti == null) return;
     ref.read(memberControllerProvider.notifier).ensureOrganizerMember(
           kameti: kameti,
@@ -53,7 +54,8 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final kameti = _findKameti(ref.watch(kametiControllerProvider), widget.kametiId);
+    final kameti =
+        _findKameti(ref.watch(kametiControllerProvider), widget.kametiId);
     if (kameti == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Members')),
@@ -78,8 +80,11 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
       return matchesFilter && matchesSearch;
     }).toList();
     final slotsFilled = activeCount >= kameti.totalMembers;
-    final nonOrganizerActiveMembers =
-        allMembers.where((member) => member.role != MemberRole.organizer && member.status != MemberStatus.removed).length;
+    final nonOrganizerActiveMembers = allMembers
+        .where((member) =>
+            member.role != MemberRole.organizer &&
+            member.status != MemberStatus.removed)
+        .length;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Members')),
@@ -87,14 +92,21 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            MemberCountSummaryCard(addedCount: activeCount, totalCount: kameti.totalMembers),
+            MemberCountSummaryCard(
+                addedCount: activeCount, totalCount: kameti.totalMembers),
             if (slotsFilled)
               const Padding(
                 padding: EdgeInsets.only(top: 8, bottom: 8),
-                child: Text('All member slots are filled.', style: TextStyle(fontWeight: FontWeight.w800)),
+                child: Text('All member slots are filled.',
+                    style: TextStyle(fontWeight: FontWeight.w800)),
               ),
             const SizedBox(height: 12),
             TextField(
+              enableSuggestions: false,
+              autocorrect: false,
+              autofillHints: const <String>[],
+              smartDashesType: SmartDashesType.disabled,
+              smartQuotesType: SmartQuotesType.disabled,
               controller: _searchController,
               onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
@@ -107,7 +119,10 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _FilterChip(label: 'All', selected: _filter == null, onTap: () => setState(() => _filter = null)),
+                _FilterChip(
+                    label: 'All',
+                    selected: _filter == null,
+                    onTap: () => setState(() => _filter = null)),
                 _FilterChip(
                   label: 'Active',
                   selected: _filter == MemberStatus.active,
@@ -134,27 +149,36 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
             AppButton(
               label: slotsFilled ? 'All member slots are filled' : 'Add Member',
               icon: Icons.group_add_outlined,
-              onPressed: slotsFilled ? null : () => Navigator.of(context).pushNamed(AppRoutes.addMember, arguments: kameti.id),
+              onPressed: slotsFilled
+                  ? null
+                  : () => Navigator.of(context)
+                      .pushNamed(AppRoutes.addMember, arguments: kameti.id),
             ),
             const SizedBox(height: 10),
             AppButton(
               label: 'Invite Member',
               icon: Icons.ios_share_outlined,
               isOutlined: true,
-              onPressed: () => Navigator.of(context).pushNamed(AppRoutes.inviteMember, arguments: kameti.id),
+              onPressed: () => Navigator.of(context)
+                  .pushNamed(AppRoutes.inviteMember, arguments: kameti.id),
             ),
             const SizedBox(height: 14),
             if (nonOrganizerActiveMembers == 0)
               const EmptyState(
                 icon: Icons.group_add_outlined,
-                title: 'No members added yet. Add members to complete your kameti group.',
+                title:
+                    'No members added yet. Add members to complete your kameti group.',
               )
             else if (filteredMembers.isEmpty)
-              const EmptyState(icon: Icons.search_off_outlined, title: 'No members match your search.')
+              const EmptyState(
+                  icon: Icons.search_off_outlined,
+                  title: 'No members match your search.')
             else
               ...filteredMembers.map(
                 (member) {
-                  final score = ref.read(securityControllerProvider.notifier).calculateMemberTrustScore(
+                  final score = ref
+                      .read(securityControllerProvider.notifier)
+                      .calculateMemberTrustScore(
                         member: member,
                         payments: ref.read(paymentControllerProvider).payments,
                         ledgerEntries: ref.read(ledgerControllerProvider),
@@ -165,7 +189,9 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
                     canRemove: member.role != MemberRole.organizer &&
                         member.status != MemberStatus.removed &&
                         kameti.status == KametiStatus.draft,
-                    onView: () => Navigator.of(context).pushNamed(AppRoutes.memberDetails, arguments: member.id),
+                    onView: () => Navigator.of(context).pushNamed(
+                        AppRoutes.memberDetails,
+                        arguments: member.id),
                     onEdit: () => Navigator.of(context).pushNamed(
                       AppRoutes.editMember,
                       arguments: {'kametiId': kameti.id, 'memberId': member.id},
@@ -186,20 +212,24 @@ class _MembersListScreenState extends ConsumerState<MembersListScreen> {
       return;
     }
     if (kameti.status != KametiStatus.draft) {
-      SnackbarHelper.showError(context, 'Cannot remove members after kameti has started.');
+      SnackbarHelper.showError(
+          context, 'Cannot remove members after kameti has started.');
       return;
     }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => const ConfirmationDialog(
         title: 'Remove Member?',
-        message: 'Are you sure you want to remove this member from this kameti?',
+        message:
+            'Are you sure you want to remove this member from this kameti?',
         confirmLabel: 'Remove',
         isDestructive: true,
       ),
     );
     if (confirmed != true) return;
-    final error = ref.read(memberControllerProvider.notifier).removeMember(kameti: kameti, memberId: member.id);
+    final error = ref
+        .read(memberControllerProvider.notifier)
+        .removeMember(kameti: kameti, memberId: member.id);
     if (!mounted) return;
     if (error != null) {
       SnackbarHelper.showError(context, error);
@@ -229,6 +259,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilterChip(label: Text(label), selected: selected, onSelected: (_) => onTap());
+    return FilterChip(
+        label: Text(label), selected: selected, onSelected: (_) => onTap());
   }
 }

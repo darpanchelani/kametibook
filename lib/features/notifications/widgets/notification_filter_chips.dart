@@ -16,7 +16,8 @@ enum NotificationFilter {
 }
 
 class NotificationFilterChips extends StatelessWidget {
-  const NotificationFilterChips({required this.selected, required this.onChanged, super.key});
+  const NotificationFilterChips(
+      {required this.selected, required this.onChanged, super.key});
 
   final NotificationFilter selected;
   final ValueChanged<NotificationFilter> onChanged;
@@ -28,7 +29,10 @@ class NotificationFilterChips extends StatelessWidget {
       child: Row(
         children: [
           for (final filter in NotificationFilter.values) ...[
-            ChoiceChip(label: Text(filter.label), selected: selected == filter, onSelected: (_) => onChanged(filter)),
+            ChoiceChip(
+                label: Text(filter.label),
+                selected: selected == filter,
+                onSelected: (_) => onChanged(filter)),
             const SizedBox(width: 8),
           ],
         ],

@@ -36,30 +36,43 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
       return const Scaffold(
         body: AppPermissionDeniedView(
           title: 'Login required',
-          message: 'Please login with an active KametiBook account to continue.',
+          message:
+              'Please login with an active KametiBook account to continue.',
         ),
       );
     }
     final userId = authState.user!.id;
-    final unreadCount = ref.watch(notificationControllerProvider).where((item) => item.userId == userId && item.isUnread).length;
+    final unreadCount = ref
+        .watch(notificationControllerProvider)
+        .where((item) => item.userId == userId && item.isUnread)
+        .length;
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) => setState(() => _currentIndex = index),
         destinations: [
-          const NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
+          const NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: 'Home'),
           const NavigationDestination(
             icon: Icon(Icons.groups_2_outlined),
             selectedIcon: Icon(Icons.groups_2),
             label: 'My Kametis',
           ),
           NavigationDestination(
-            icon: UnreadBadge(count: unreadCount, child: const Icon(Icons.notifications_outlined)),
-            selectedIcon: UnreadBadge(count: unreadCount, child: const Icon(Icons.notifications)),
+            icon: UnreadBadge(
+                count: unreadCount,
+                child: const Icon(Icons.notifications_outlined)),
+            selectedIcon: UnreadBadge(
+                count: unreadCount, child: const Icon(Icons.notifications)),
             label: 'Notifications',
           ),
-          const NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+          const NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: 'Profile'),
         ],
       ),
     );

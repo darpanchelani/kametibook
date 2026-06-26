@@ -36,7 +36,9 @@ class _MarkPaymentBottomSheetState extends State<MarkPaymentBottomSheet> {
   void initState() {
     super.initState();
     _amountController = TextEditingController(
-      text: (widget.payment.amountPaid > 0 ? widget.payment.amountPaid : widget.payment.amountDue).toStringAsFixed(0),
+      text: widget.payment.amountPaid > 0
+          ? widget.payment.amountPaid.toStringAsFixed(0)
+          : '',
     );
     _noteController = TextEditingController(text: widget.payment.note);
     _method = widget.payment.paymentMethod ?? PaymentMethod.cash;
@@ -63,9 +65,11 @@ class _MarkPaymentBottomSheetState extends State<MarkPaymentBottomSheet> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    final amount = double.parse(_amountController.text.replaceAll(',', '').trim());
+    final amount =
+        double.parse(_amountController.text.replaceAll(',', '').trim());
     if (amount > widget.payment.amountDue) {
-      SnackbarHelper.showError(context, 'Amount paid cannot be greater than amount due.');
+      SnackbarHelper.showError(
+          context, 'Amount paid cannot be greater than amount due.');
       return;
     }
     setState(() => _isLoading = true);
@@ -99,34 +103,56 @@ class _MarkPaymentBottomSheetState extends State<MarkPaymentBottomSheet> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Mark Payment Paid', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                Text('Mark Payment Paid',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 16),
                 AppTextField(
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  autofillHints: const <String>[],
+                  smartDashesType: SmartDashesType.disabled,
+                  smartQuotesType: SmartQuotesType.disabled,
                   controller: _amountController,
                   label: 'Amount Paid',
+                  hint: '0',
                   keyboardType: TextInputType.number,
                   prefixIcon: Icons.payments_outlined,
-                  validator: (value) => Validators.positiveNumber(value, 'Amount paid'),
+                  validator: (value) =>
+                      Validators.positiveNumber(value, 'Amount paid'),
                 ),
                 const SizedBox(height: 14),
-                PaymentMethodDropdown(value: _method, onChanged: (value) => setState(() => _method = value)),
+                PaymentMethodDropdown(
+                    value: _method,
+                    onChanged: (value) => setState(() => _method = value)),
                 const SizedBox(height: 14),
                 InkWell(
                   borderRadius: BorderRadius.circular(14),
                   onTap: _pickDate,
                   child: InputDecorator(
-                    decoration: const InputDecoration(labelText: 'Paid Date', prefixIcon: Icon(Icons.event_outlined)),
+                    decoration: const InputDecoration(
+                        labelText: 'Paid Date',
+                        prefixIcon: Icon(Icons.event_outlined)),
                     child: Text(DateFormatter.display(_paidAt)),
                   ),
                 ),
                 const SizedBox(height: 14),
                 OutlinedButton.icon(
-                  onPressed: () => setState(() => _proofPath = 'mock/proof-${DateTime.now().millisecondsSinceEpoch}.jpg'),
+                  onPressed: () => setState(() => _proofPath =
+                      'mock/proof-${DateTime.now().millisecondsSinceEpoch}.jpg'),
                   icon: const Icon(Icons.attachment_outlined),
-                  label: Text(_proofPath.isEmpty ? 'Attach Proof' : 'Proof Attached'),
+                  label: Text(
+                      _proofPath.isEmpty ? 'Attach Proof' : 'Proof Attached'),
                 ),
                 const SizedBox(height: 14),
                 AppTextField(
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  autofillHints: const <String>[],
+                  smartDashesType: SmartDashesType.disabled,
+                  smartQuotesType: SmartQuotesType.disabled,
                   controller: _noteController,
                   label: 'Note',
                   hint: 'Optional',
@@ -134,7 +160,11 @@ class _MarkPaymentBottomSheetState extends State<MarkPaymentBottomSheet> {
                   prefixIcon: Icons.notes_outlined,
                 ),
                 const SizedBox(height: 18),
-                AppButton(label: 'Save Payment', icon: Icons.check, isLoading: _isLoading, onPressed: _submit),
+                AppButton(
+                    label: 'Save Payment',
+                    icon: Icons.check,
+                    isLoading: _isLoading,
+                    onPressed: _submit),
               ],
             ),
           ),

@@ -12,7 +12,8 @@ class FirebaseBootstrap {
   static Future<void> initializeIfConfigured() async {
     if (_initialized) return;
     try {
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform);
       _initialized = true;
       _lastError = null;
     } on UnsupportedError {

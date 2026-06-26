@@ -80,13 +80,18 @@ class SecurityController extends StateNotifier<SecurityState> {
   }
 
   List<AuditLogModel> getAuditLogsByKametiId(String kametiId) {
-    final logs = state.auditLogs.where((log) => log.kametiId == kametiId).toList();
+    final logs =
+        state.auditLogs.where((log) => log.kametiId == kametiId).toList();
     logs.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return logs;
   }
 
-  List<AuditLogModel> getAuditLogsByEntity(AuditEntityType entityType, String entityId) {
-    return state.auditLogs.where((log) => log.entityType == entityType && log.entityId == entityId).toList();
+  List<AuditLogModel> getAuditLogsByEntity(
+      AuditEntityType entityType, String entityId) {
+    return state.auditLogs
+        .where(
+            (log) => log.entityType == entityType && log.entityId == entityId)
+        .toList();
   }
 
   AuditLogModel? getAuditLog(String id) {
@@ -166,7 +171,8 @@ class SecurityController extends StateNotifier<SecurityState> {
               organizerResponse: response.isEmpty ? null : response,
               resolutionNote: resolutionNote.isEmpty ? null : resolutionNote,
               resolvedBy: status == DisputeStatus.resolved ? userId : null,
-              resolvedAt: status == DisputeStatus.resolved ? DateTime.now() : null,
+              resolvedAt:
+                  status == DisputeStatus.resolved ? DateTime.now() : null,
               updatedAt: DateTime.now(),
             )
           else
@@ -179,12 +185,16 @@ class SecurityController extends StateNotifier<SecurityState> {
       userId: userId,
       userName: userName,
       userRole: '',
-      actionType: status == DisputeStatus.resolved ? AuditActionType.disputeResolved : AuditActionType.disputeUpdated,
+      actionType: status == DisputeStatus.resolved
+          ? AuditActionType.disputeResolved
+          : AuditActionType.disputeUpdated,
       entityType: AuditEntityType.dispute,
       entityId: disputeId,
       newValue: status.name,
       description: 'Dispute status updated to ${status.label}.',
-      severity: status == DisputeStatus.resolved ? AuditSeverity.high : AuditSeverity.medium,
+      severity: status == DisputeStatus.resolved
+          ? AuditSeverity.high
+          : AuditSeverity.medium,
     );
   }
 
@@ -211,7 +221,9 @@ class SecurityController extends StateNotifier<SecurityState> {
   }
 
   List<DisputeModel> getDisputesByKametiId(String kametiId) {
-    final disputes = state.disputes.where((dispute) => dispute.kametiId == kametiId).toList();
+    final disputes = state.disputes
+        .where((dispute) => dispute.kametiId == kametiId)
+        .toList();
     disputes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return disputes;
   }
@@ -224,7 +236,9 @@ class SecurityController extends StateNotifier<SecurityState> {
   }
 
   List<DisputeCommentModel> getComments(String disputeId) {
-    final comments = state.comments.where((comment) => comment.disputeId == disputeId).toList();
+    final comments = state.comments
+        .where((comment) => comment.disputeId == disputeId)
+        .toList();
     comments.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return comments;
   }
@@ -234,20 +248,48 @@ class SecurityController extends StateNotifier<SecurityState> {
     required List<MemberPaymentModel> payments,
     required List<LedgerEntryModel> ledgerEntries,
   }) {
-    final memberPayments = payments.where((payment) => payment.memberId == member.id).toList();
-    final late = memberPayments.where((payment) => payment.paymentStatus == PaymentStatus.late).length;
-    final rejected = memberPayments.where((payment) => payment.paymentStatus == PaymentStatus.rejected).length;
-    final paid = memberPayments.where((payment) => payment.paymentStatus == PaymentStatus.paid).length;
-    final disputesCreated = state.disputes.where((dispute) => dispute.createdBy == member.userId || dispute.createdBy == member.id).length;
-    final disputesAgainst = state.disputes.where((dispute) => dispute.againstUserId == member.userId || dispute.againstUserId == member.id).length;
-    final manualCorrections = ledgerEntries.where((entry) => entry.memberId == member.id && entry.entryType == LedgerEntryType.correction).length;
+    final memberPayments =
+        payments.where((payment) => payment.memberId == member.id).toList();
+    final late = memberPayments
+        .where((payment) => payment.paymentStatus == PaymentStatus.late)
+        .length;
+    final rejected = memberPayments
+        .where((payment) => payment.paymentStatus == PaymentStatus.rejected)
+        .length;
+    final paid = memberPayments
+        .where((payment) => payment.paymentStatus == PaymentStatus.paid)
+        .length;
+    final disputesCreated = state.disputes
+        .where((dispute) =>
+            dispute.createdBy == member.userId ||
+            dispute.createdBy == member.id)
+        .length;
+    final disputesAgainst = state.disputes
+        .where((dispute) =>
+            dispute.againstUserId == member.userId ||
+            dispute.againstUserId == member.id)
+        .length;
+    final manualCorrections = ledgerEntries
+        .where((entry) =>
+            entry.memberId == member.id &&
+            entry.entryType == LedgerEntryType.correction)
+        .length;
 
-    final paymentScore = (70 + paid * 4 - late * 10 - rejected * 15).clamp(0, 100).toDouble();
+    final paymentScore =
+        (70 + paid * 4 - late * 10 - rejected * 15).clamp(0, 100).toDouble();
     final payoutScore = member.hasReceivedKameti ? 75.0 : 70.0;
     const biddingScore = 70.0;
-    final disputeScore = (80 - disputesAgainst * 15 - disputesCreated * 3).clamp(0, 100).toDouble();
-    final organizerScore = member.canManageGroup ? (75 - manualCorrections * 8).clamp(0, 100).toDouble() : 70.0;
-    final overall = paymentScore * 0.40 + payoutScore * 0.20 + biddingScore * 0.15 + disputeScore * 0.15 + organizerScore * 0.10;
+    final disputeScore = (80 - disputesAgainst * 15 - disputesCreated * 3)
+        .clamp(0, 100)
+        .toDouble();
+    final organizerScore = member.canManageGroup
+        ? (75 - manualCorrections * 8).clamp(0, 100).toDouble()
+        : 70.0;
+    final overall = paymentScore * 0.40 +
+        payoutScore * 0.20 +
+        biddingScore * 0.15 +
+        disputeScore * 0.15 +
+        organizerScore * 0.10;
     final now = DateTime.now();
     return TrustScoreModel(
       userId: member.userId,
@@ -274,7 +316,8 @@ class SecurityController extends StateNotifier<SecurityState> {
       negativeFactors: [
         if (late > 0) '$late late payment(s).',
         if (rejected > 0) '$rejected rejected payment proof(s).',
-        if (disputesAgainst > 0) '$disputesAgainst dispute(s) raised against this member.',
+        if (disputesAgainst > 0)
+          '$disputesAgainst dispute(s) raised against this member.',
       ],
       lastCalculatedAt: now,
       createdAt: now,
@@ -288,8 +331,10 @@ class SecurityController extends StateNotifier<SecurityState> {
     required List<LedgerEntryModel> ledgerEntries,
   }) {
     return members.where((member) {
-      final score = calculateMemberTrustScore(member: member, payments: payments, ledgerEntries: ledgerEntries);
-      return score.riskLevel == RiskLevel.risky || score.riskLevel == RiskLevel.highRisk;
+      final score = calculateMemberTrustScore(
+          member: member, payments: payments, ledgerEntries: ledgerEntries);
+      return score.riskLevel == RiskLevel.risky ||
+          score.riskLevel == RiskLevel.highRisk;
     }).toList();
   }
 
@@ -308,10 +353,12 @@ class SecurityController extends StateNotifier<SecurityState> {
     );
   }
 
-  PrivacySettingsModel privacySettingsFor(String userId) => state.privacySettings[userId] ?? PrivacySettingsModel(userId: userId);
+  PrivacySettingsModel privacySettingsFor(String userId) =>
+      state.privacySettings[userId] ?? PrivacySettingsModel(userId: userId);
 
   void updatePrivacySettings(PrivacySettingsModel settings) {
-    state = state.copyWith(privacySettings: {...state.privacySettings, settings.userId: settings});
+    state = state.copyWith(
+        privacySettings: {...state.privacySettings, settings.userId: settings});
   }
 
   void createDeletionRequest(String userId, String reason) {
@@ -324,7 +371,8 @@ class SecurityController extends StateNotifier<SecurityState> {
       requestedAt: now,
       processedAt: null,
     );
-    state = state.copyWith(deletionRequests: [request, ...state.deletionRequests]);
+    state =
+        state.copyWith(deletionRequests: [request, ...state.deletionRequests]);
   }
 
   RiskLevel _riskLevel(double score) {
@@ -336,4 +384,6 @@ class SecurityController extends StateNotifier<SecurityState> {
   }
 }
 
-final securityControllerProvider = StateNotifierProvider<SecurityController, SecurityState>((ref) => SecurityController());
+final securityControllerProvider =
+    StateNotifierProvider<SecurityController, SecurityState>(
+        (ref) => SecurityController());

@@ -28,7 +28,8 @@ class ReceiverState {
 class ReceiverController extends StateNotifier<ReceiverState> {
   ReceiverController() : super(const ReceiverState());
 
-  ReceiverAllocationModel? getCurrentCycleAllocation(String kametiId, String cycleId) {
+  ReceiverAllocationModel? getCurrentCycleAllocation(
+      String kametiId, String cycleId) {
     for (final allocation in state.allocations) {
       if (allocation.kametiId == kametiId &&
           allocation.cycleId == cycleId &&
@@ -40,18 +41,23 @@ class ReceiverController extends StateNotifier<ReceiverState> {
   }
 
   List<ReceiverAllocationModel> getAllocationsByKametiId(String kametiId) {
-    final allocations = state.allocations.where((item) => item.kametiId == kametiId).toList();
+    final allocations =
+        state.allocations.where((item) => item.kametiId == kametiId).toList();
     allocations.sort((a, b) => a.cycleNumber.compareTo(b.cycleNumber));
     return allocations;
   }
 
   List<ReceiverAllocationModel> getAllocationsByMemberId(String memberId) {
-    return state.allocations.where((item) => item.memberId == memberId).toList();
+    return state.allocations
+        .where((item) => item.memberId == memberId)
+        .toList();
   }
 
   bool hasReceiverConfirmedForCycle(String cycleId) {
     return state.allocations.any(
-      (item) => item.cycleId == cycleId && item.status == ReceiverAllocationStatus.confirmed,
+      (item) =>
+          item.cycleId == cycleId &&
+          item.status == ReceiverAllocationStatus.confirmed,
     );
   }
 
@@ -65,7 +71,8 @@ class ReceiverController extends StateNotifier<ReceiverState> {
     final eligible = <MemberModel>[];
     final excluded = <MemberModel>[];
     final reasons = <String, String>{};
-    for (final member in members.where((member) => member.kametiId == kameti.id)) {
+    for (final member
+        in members.where((member) => member.kametiId == kameti.id)) {
       MemberPaymentModel? payment;
       if (cycle != null) {
         for (final item in payments) {
@@ -84,7 +91,8 @@ class ReceiverController extends StateNotifier<ReceiverState> {
         reason = 'Already received kameti';
       } else if (payment == null) {
         reason = 'No payment record found';
-      } else if (kameti.requirePaymentBeforeReceiving && payment.paymentStatus != PaymentStatus.paid) {
+      } else if (kameti.requirePaymentBeforeReceiving &&
+          payment.paymentStatus != PaymentStatus.paid) {
         reason = 'Payment not paid for current cycle';
       }
 
@@ -112,10 +120,18 @@ class ReceiverController extends StateNotifier<ReceiverState> {
     String sourceId = '',
     String notes = '',
   }) {
-    if (kameti.status != KametiStatus.active) return 'Receiver can only be confirmed for active kametis.';
-    if (hasReceiverConfirmedForCycle(cycle.id)) return 'Receiver already confirmed for this cycle.';
-    if (member.hasReceivedKameti) return 'This member has already received kameti.';
-    if (member.status != MemberStatus.active) return 'Only active members can receive kameti.';
+    if (kameti.status != KametiStatus.active) {
+      return 'Receiver can only be confirmed for active kametis.';
+    }
+    if (hasReceiverConfirmedForCycle(cycle.id)) {
+      return 'Receiver already confirmed for this cycle.';
+    }
+    if (member.hasReceivedKameti) {
+      return 'This member has already received kameti.';
+    }
+    if (member.status != MemberStatus.active) {
+      return 'Only active members can receive kameti.';
+    }
     final now = DateTime.now();
     state = state.copyWith(
       allocations: [
@@ -153,7 +169,9 @@ class ReceiverController extends StateNotifier<ReceiverState> {
       }
     }
     if (allocation == null) return 'Allocation not found.';
-    if (allocation.status == ReceiverAllocationStatus.confirmed) return 'Confirmed allocation cannot be changed.';
+    if (allocation.status == ReceiverAllocationStatus.confirmed) {
+      return 'Confirmed allocation cannot be changed.';
+    }
     state = state.copyWith(
       allocations: [
         for (final item in state.allocations)
@@ -225,14 +243,18 @@ class ReceiverController extends StateNotifier<ReceiverState> {
   }
 
   List<FixedOrderSlotModel> getFixedOrderSlots(String kametiId) {
-    final slots = state.fixedOrderSlots.where((slot) => slot.kametiId == kametiId).toList();
+    final slots = state.fixedOrderSlots
+        .where((slot) => slot.kametiId == kametiId)
+        .toList();
     slots.sort((a, b) => a.cycleNumber.compareTo(b.cycleNumber));
     return slots;
   }
 
   FixedOrderSlotModel? getFixedOrderSlot(String kametiId, int cycleNumber) {
     for (final slot in state.fixedOrderSlots) {
-      if (slot.kametiId == kametiId && slot.cycleNumber == cycleNumber) return slot;
+      if (slot.kametiId == kametiId && slot.cycleNumber == cycleNumber) {
+        return slot;
+      }
     }
     return null;
   }
@@ -241,9 +263,13 @@ class ReceiverController extends StateNotifier<ReceiverState> {
     required KametiModel kameti,
     required Map<int, MemberModel> assignments,
   }) {
-    if (assignments.length != kameti.totalMembers) return 'Assign one member to each cycle.';
+    if (assignments.length != kameti.totalMembers) {
+      return 'Assign one member to each cycle.';
+    }
     final memberIds = assignments.values.map((member) => member.id).toSet();
-    if (memberIds.length != assignments.length) return 'Each member can appear only once.';
+    if (memberIds.length != assignments.length) {
+      return 'Each member can appear only once.';
+    }
     final now = DateTime.now();
     state = state.copyWith(
       fixedOrderSlots: [
@@ -269,10 +295,12 @@ class ReceiverController extends StateNotifier<ReceiverState> {
     required List<PaymentCycleModel> cycles,
   }) {
     var count = 0;
-    for (final kameti in kametis.where((item) => item.status == KametiStatus.active)) {
+    for (final kameti
+        in kametis.where((item) => item.status == KametiStatus.active)) {
       PaymentCycleModel? cycle;
       for (final item in cycles) {
-        if (item.kametiId == kameti.id && item.status == PaymentCycleStatus.current) {
+        if (item.kametiId == kameti.id &&
+            item.status == PaymentCycleStatus.current) {
           cycle = item;
           break;
         }
@@ -283,12 +311,15 @@ class ReceiverController extends StateNotifier<ReceiverState> {
   }
 
   int getConfirmedReceiversCount() {
-    return state.allocations.where((item) => item.status == ReceiverAllocationStatus.confirmed).length;
+    return state.allocations
+        .where((item) => item.status == ReceiverAllocationStatus.confirmed)
+        .length;
   }
 
   int getCompletedAllocationCyclesCount(List<PaymentCycleModel> cycles) {
     var count = 0;
-    for (final cycle in cycles.where((item) => item.status == PaymentCycleStatus.completed)) {
+    for (final cycle in cycles
+        .where((item) => item.status == PaymentCycleStatus.completed)) {
       if (hasReceiverConfirmedForCycle(cycle.id)) count++;
     }
     return count;

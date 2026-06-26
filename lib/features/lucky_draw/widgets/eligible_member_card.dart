@@ -18,11 +18,18 @@ class EligibleMemberCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        leading: CircleAvatar(child: Text(member.fullName.isEmpty ? '?' : member.fullName[0].toUpperCase())),
-        title: Text(member.fullName, style: const TextStyle(fontWeight: FontWeight.w800)),
-        subtitle: Text('${member.phone}\n${member.city}\nHas received kameti: No'),
+        leading: CircleAvatar(
+            child: Text(member.fullName.isEmpty
+                ? '?'
+                : member.fullName[0].toUpperCase())),
+        title: Text(member.fullName,
+            style: const TextStyle(fontWeight: FontWeight.w800)),
+        subtitle:
+            Text('${member.phone}\n${member.city}\nHas received kameti: No'),
         isThreeLine: true,
-        trailing: paymentStatus == null ? null : PaymentStatusBadge(status: paymentStatus!),
+        trailing: paymentStatus == null
+            ? null
+            : PaymentStatusBadge(status: paymentStatus!),
       ),
     );
   }

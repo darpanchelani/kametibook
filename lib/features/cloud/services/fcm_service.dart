@@ -3,7 +3,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import '../repositories/user_repository.dart';
 
 class FcmService {
-  FcmService({FirebaseMessaging? messaging}) : _messaging = messaging ?? FirebaseMessaging.instance;
+  FcmService({FirebaseMessaging? messaging})
+      : _messaging = messaging ?? FirebaseMessaging.instance;
 
   final FirebaseMessaging _messaging;
 
@@ -14,7 +15,8 @@ class FcmService {
 }
 
 class NotificationTokenManager {
-  const NotificationTokenManager({required this.fcmService, required this.userRepository});
+  const NotificationTokenManager(
+      {required this.fcmService, required this.userRepository});
 
   final FcmService fcmService;
   final UserRepository userRepository;

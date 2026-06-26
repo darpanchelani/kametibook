@@ -47,7 +47,10 @@ class PaymentCycleCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Month ${cycle.cycleNumber} - ${cycle.monthLabel}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
                 _CycleStatusChip(status: cycle.status),
@@ -56,47 +59,75 @@ class PaymentCycleCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text('Due Date: ${DateFormatter.display(cycle.dueDate)}'),
             const SizedBox(height: 12),
-            CycleProgressBar(collectedAmount: cycle.collectedAmount, expectedAmount: cycle.expectedAmount),
+            CycleProgressBar(
+                collectedAmount: cycle.collectedAmount,
+                expectedAmount: cycle.expectedAmount),
             const SizedBox(height: 12),
             Wrap(
               spacing: 12,
               runSpacing: 8,
               children: [
-                _Meta(icon: Icons.savings_outlined, text: 'Expected: ${CurrencyFormatter.pkr(cycle.expectedAmount)}'),
-                _Meta(icon: Icons.check_circle_outline, text: 'Collected: ${CurrencyFormatter.pkr(cycle.collectedAmount)}'),
-                _Meta(icon: Icons.pending_actions_outlined, text: 'Pending: ${CurrencyFormatter.pkr(cycle.pendingAmount)}'),
+                _Meta(
+                    icon: Icons.savings_outlined,
+                    text:
+                        'Expected: ${CurrencyFormatter.pkr(cycle.expectedAmount)}'),
+                _Meta(
+                    icon: Icons.check_circle_outline,
+                    text:
+                        'Collected: ${CurrencyFormatter.pkr(cycle.collectedAmount)}'),
+                _Meta(
+                    icon: Icons.pending_actions_outlined,
+                    text:
+                        'Pending: ${CurrencyFormatter.pkr(cycle.pendingAmount)}'),
                 _Meta(icon: Icons.group_outlined, text: 'Paid: $paidCount'),
-                _Meta(icon: Icons.hourglass_empty_outlined, text: 'Pending Members: $pendingCount'),
+                _Meta(
+                    icon: Icons.hourglass_empty_outlined,
+                    text: 'Pending Members: $pendingCount'),
               ],
             ),
             if (drawStatusText != null) ...[
               const SizedBox(height: 10),
-              Text(drawStatusText!, style: const TextStyle(fontWeight: FontWeight.w800)),
+              Text(drawStatusText!,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
             ],
             if (drawWarning != null) ...[
               const SizedBox(height: 6),
-              Text(drawWarning!, style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.w800)),
+              Text(drawWarning!,
+                  style: TextStyle(
+                      color: Colors.orange.shade800,
+                      fontWeight: FontWeight.w800)),
             ],
             if (biddingStatusText != null) ...[
               const SizedBox(height: 10),
-              Text(biddingStatusText!, style: const TextStyle(fontWeight: FontWeight.w800)),
+              Text(biddingStatusText!,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
             ],
             if (biddingWarning != null) ...[
               const SizedBox(height: 6),
-              Text(biddingWarning!, style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.w800)),
+              Text(biddingWarning!,
+                  style: TextStyle(
+                      color: Colors.orange.shade800,
+                      fontWeight: FontWeight.w800)),
             ],
             if (receiverStatusText != null) ...[
               const SizedBox(height: 10),
-              Text(receiverStatusText!, style: const TextStyle(fontWeight: FontWeight.w800)),
+              Text(receiverStatusText!,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
             ],
             const SizedBox(height: 14),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                FilledButton.icon(onPressed: onOpen, icon: const Icon(Icons.open_in_new), label: const Text('Open Payments')),
-                OutlinedButton(onPressed: onMarkCurrent, child: const Text('Mark Current')),
-                OutlinedButton(onPressed: onComplete, child: const Text('Complete')),
+                FilledButton.icon(
+                    onPressed: onOpen,
+                    icon: const Icon(Icons.open_in_new),
+                    label: const Text('Open Payments')),
+                OutlinedButton(
+                    onPressed: onMarkCurrent,
+                    child: const Text('Mark Current')),
+                OutlinedButton(
+                    onPressed: onComplete, child: const Text('Complete')),
               ],
             ),
           ],
@@ -121,8 +152,12 @@ class _CycleStatusChip extends StatelessWidget {
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(30)),
-      child: Text(status.label, style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 12)),
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(30)),
+      child: Text(status.label,
+          style: TextStyle(
+              color: color, fontWeight: FontWeight.w800, fontSize: 12)),
     );
   }
 }
@@ -140,7 +175,11 @@ class _Meta extends StatelessWidget {
       children: [
         Icon(icon, size: 17, color: Colors.black54),
         const SizedBox(width: 5),
-        Text(text, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+        Text(text,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: Colors.black54)),
       ],
     );
   }

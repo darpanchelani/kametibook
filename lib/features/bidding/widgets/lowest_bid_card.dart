@@ -14,8 +14,13 @@ class LowestBidCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
-          bid == null ? 'No active bids yet.' : 'Current lowest bid: ${CurrencyFormatter.pkr(bid!.bidAmount)} by ${bid!.memberName}',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+          bid == null
+              ? 'No active bids yet.'
+              : 'Current lowest bid: ${CurrencyFormatter.pkr(bid!.bidAmount)} by ${bid!.memberName}',
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontWeight: FontWeight.w900),
         ),
       ),
     );

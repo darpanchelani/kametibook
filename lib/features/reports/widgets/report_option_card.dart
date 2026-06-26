@@ -23,7 +23,9 @@ class ReportOptionCard extends StatelessWidget {
         leading: const Icon(Icons.description_outlined),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
         subtitle: Text(enabled ? description : disabledReason ?? description),
-        trailing: FilledButton(onPressed: enabled ? onGenerate : null, child: const Text('Generate')),
+        trailing: FilledButton(
+            onPressed: enabled ? onGenerate : null,
+            child: const Text('Generate')),
       ),
     );
   }

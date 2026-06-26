@@ -14,14 +14,22 @@ class NotificationTypeIcon extends StatelessWidget {
       AppNotificationType.paymentOverdue ||
       AppNotificationType.paymentMarkedPaid ||
       AppNotificationType.paymentRejected ||
-      AppNotificationType.paymentApproved => Icons.payments_outlined,
-      AppNotificationType.payoutPending || AppNotificationType.payoutPaid => Icons.outbound_outlined,
-      AppNotificationType.receiverPending || AppNotificationType.receiverConfirmed => Icons.person_pin_circle_outlined,
-      AppNotificationType.luckyDrawPending || AppNotificationType.luckyDrawCompleted => Icons.casino_outlined,
+      AppNotificationType.paymentApproved =>
+        Icons.payments_outlined,
+      AppNotificationType.payoutPending ||
+      AppNotificationType.payoutPaid =>
+        Icons.outbound_outlined,
+      AppNotificationType.receiverPending ||
+      AppNotificationType.receiverConfirmed =>
+        Icons.person_pin_circle_outlined,
+      AppNotificationType.luckyDrawPending ||
+      AppNotificationType.luckyDrawCompleted =>
+        Icons.casino_outlined,
       AppNotificationType.biddingStarted ||
       AppNotificationType.biddingClosingSoon ||
       AppNotificationType.biddingClosed ||
-      AppNotificationType.biddingCompleted => Icons.gavel_outlined,
+      AppNotificationType.biddingCompleted =>
+        Icons.gavel_outlined,
       AppNotificationType.reportGenerated => Icons.description_outlined,
       AppNotificationType.ledgerWarning => Icons.warning_amber_outlined,
       AppNotificationType.memberAdded => Icons.person_add_alt_outlined,
@@ -29,7 +37,8 @@ class NotificationTypeIcon extends StatelessWidget {
       _ => Icons.notifications_outlined,
     };
     return CircleAvatar(
-      backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+      backgroundColor:
+          Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
       child: Icon(icon, color: Theme.of(context).colorScheme.primary),
     );
   }

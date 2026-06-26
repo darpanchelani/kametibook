@@ -13,7 +13,8 @@ class LedgerController extends StateNotifier<List<LedgerEntryModel>> {
     state = [entry, ...state];
   }
 
-  void updateLedgerEntry(String entryId, LedgerEntryModel Function(LedgerEntryModel entry) update) {
+  void updateLedgerEntry(String entryId,
+      LedgerEntryModel Function(LedgerEntryModel entry) update) {
     state = [
       for (final entry in state)
         if (entry.id == entryId) update(entry) else entry,
@@ -34,9 +35,12 @@ class LedgerController extends StateNotifier<List<LedgerEntryModel>> {
     return state.where((entry) => entry.memberId == memberId).toList();
   }
 
-  LedgerEntryModel? getLedgerEntryByRelatedPaymentId(String paymentId) => _by((entry) => entry.relatedPaymentId == paymentId);
-  LedgerEntryModel? getLedgerEntryByRelatedAllocationId(String allocationId) => _by((entry) => entry.relatedAllocationId == allocationId);
-  LedgerEntryModel? getLedgerEntryByRelatedBiddingSessionId(String sessionId) => _by((entry) => entry.relatedBiddingSessionId == sessionId);
+  LedgerEntryModel? getLedgerEntryByRelatedPaymentId(String paymentId) =>
+      _by((entry) => entry.relatedPaymentId == paymentId);
+  LedgerEntryModel? getLedgerEntryByRelatedAllocationId(String allocationId) =>
+      _by((entry) => entry.relatedAllocationId == allocationId);
+  LedgerEntryModel? getLedgerEntryByRelatedBiddingSessionId(String sessionId) =>
+      _by((entry) => entry.relatedBiddingSessionId == sessionId);
 
   void syncLedgerForKameti({
     required String kametiId,
@@ -47,7 +51,8 @@ class LedgerController extends StateNotifier<List<LedgerEntryModel>> {
     String createdBy = 'Organizer',
   }) {
     final now = DateTime.now();
-    for (final payment in payments.where((payment) => payment.kametiId == kametiId)) {
+    for (final payment
+        in payments.where((payment) => payment.kametiId == kametiId)) {
       final existing = getLedgerEntryByRelatedPaymentId(payment.id);
       if (payment.paymentStatus == PaymentStatus.paid) {
         createLedgerEntry(
@@ -74,12 +79,17 @@ class LedgerController extends StateNotifier<List<LedgerEntryModel>> {
             updatedAt: now,
           ),
         );
-      } else if (existing != null && existing.status == LedgerStatus.confirmed) {
-        updateLedgerEntry(existing.id, (entry) => entry.copyWith(status: LedgerStatus.reversed, updatedAt: now));
+      } else if (existing != null &&
+          existing.status == LedgerStatus.confirmed) {
+        updateLedgerEntry(
+            existing.id,
+            (entry) =>
+                entry.copyWith(status: LedgerStatus.reversed, updatedAt: now));
       }
     }
 
-    for (final allocation in allocations.where((allocation) => allocation.kametiId == kametiId)) {
+    for (final allocation
+        in allocations.where((allocation) => allocation.kametiId == kametiId)) {
       createLedgerEntry(
         LedgerEntryModel(
           id: 'ledger-allocation-${allocation.id}',
@@ -93,12 +103,18 @@ class LedgerController extends StateNotifier<List<LedgerEntryModel>> {
           entryType: LedgerEntryType.payout,
           direction: LedgerDirection.moneyOut,
           amount: allocation.amount,
-          title: allocation.payoutStatus == PayoutStatus.confirmed ? 'Payout paid' : 'Payout pending',
+          title: allocation.payoutStatus == PayoutStatus.confirmed
+              ? 'Payout paid'
+              : 'Payout pending',
           description: allocation.payoutNote,
           paymentMethod: _payoutToPaymentMethod(allocation.payoutMethod),
           proofPath: allocation.payoutProofPath,
-          status: allocation.payoutStatus == PayoutStatus.confirmed ? LedgerStatus.confirmed : LedgerStatus.pending,
-          entryDate: allocation.payoutPaidAt ?? allocation.confirmedAt ?? allocation.selectedAt,
+          status: allocation.payoutStatus == PayoutStatus.confirmed
+              ? LedgerStatus.confirmed
+              : LedgerStatus.pending,
+          entryDate: allocation.payoutPaidAt ??
+              allocation.confirmedAt ??
+              allocation.selectedAt,
           createdBy: allocation.selectedBy,
           createdAt: now,
           updatedAt: now,
@@ -106,7 +122,9 @@ class LedgerController extends StateNotifier<List<LedgerEntryModel>> {
       );
     }
 
-    for (final session in biddingSessions.where((session) => session.kametiId == kametiId && session.status == BiddingSessionStatus.completed)) {
+    for (final session in biddingSessions.where((session) =>
+        session.kametiId == kametiId &&
+        session.status == BiddingSessionStatus.completed)) {
       createLedgerEntry(
         LedgerEntryModel(
           id: 'ledger-bidding-discount-${session.id}',
@@ -133,7 +151,8 @@ class LedgerController extends StateNotifier<List<LedgerEntryModel>> {
       );
     }
 
-    for (final adjustment in discountAdjustments.where((item) => item.kametiId == kametiId)) {
+    for (final adjustment
+        in discountAdjustments.where((item) => item.kametiId == kametiId)) {
       createLedgerEntry(
         LedgerEntryModel(
           id: 'ledger-adjustment-${adjustment.id}',
@@ -144,7 +163,9 @@ class LedgerController extends StateNotifier<List<LedgerEntryModel>> {
           relatedAllocationId: '',
           relatedBiddingSessionId: adjustment.biddingSessionId,
           relatedDiscountAdjustmentId: adjustment.id,
-          entryType: adjustment.adjustmentType == AdjustmentType.groupWallet ? LedgerEntryType.groupWallet : LedgerEntryType.discountAdjustment,
+          entryType: adjustment.adjustmentType == AdjustmentType.groupWallet
+              ? LedgerEntryType.groupWallet
+              : LedgerEntryType.discountAdjustment,
           direction: LedgerDirection.neutral,
           amount: adjustment.adjustmentAmount,
           title: 'Discount adjustment',
@@ -231,7 +252,10 @@ class LedgerController extends StateNotifier<List<LedgerEntryModel>> {
   }
 
   void reverseLedgerEntry(String entryId) {
-    updateLedgerEntry(entryId, (entry) => entry.copyWith(status: LedgerStatus.reversed, updatedAt: DateTime.now()));
+    updateLedgerEntry(
+        entryId,
+        (entry) => entry.copyWith(
+            status: LedgerStatus.reversed, updatedAt: DateTime.now()));
   }
 
   LedgerEntryModel? _by(bool Function(LedgerEntryModel entry) test) {
@@ -242,13 +266,19 @@ class LedgerController extends StateNotifier<List<LedgerEntryModel>> {
   }
 
   LedgerSummary _summary(List<LedgerEntryModel> entries) {
-    final confirmed = entries.where((entry) => entry.status == LedgerStatus.confirmed).toList();
+    final confirmed = entries
+        .where((entry) => entry.status == LedgerStatus.confirmed)
+        .toList();
     final contributions = _sum(confirmed, LedgerEntryType.contribution);
     final payouts = _sum(confirmed, LedgerEntryType.payout);
     final discounts = _sum(confirmed, LedgerEntryType.discountGenerated);
     final penalties = _sum(confirmed, LedgerEntryType.penalty);
-    final moneyIn = confirmed.where((entry) => entry.direction == LedgerDirection.moneyIn).fold<double>(0, (total, entry) => total + entry.amount);
-    final moneyOut = confirmed.where((entry) => entry.direction == LedgerDirection.moneyOut).fold<double>(0, (total, entry) => total + entry.amount);
+    final moneyIn = confirmed
+        .where((entry) => entry.direction == LedgerDirection.moneyIn)
+        .fold<double>(0, (total, entry) => total + entry.amount);
+    final moneyOut = confirmed
+        .where((entry) => entry.direction == LedgerDirection.moneyOut)
+        .fold<double>(0, (total, entry) => total + entry.amount);
     return LedgerSummary(
       totalContributions: contributions,
       totalPayouts: payouts,
@@ -259,7 +289,9 @@ class LedgerController extends StateNotifier<List<LedgerEntryModel>> {
   }
 
   double _sum(List<LedgerEntryModel> entries, LedgerEntryType type) {
-    return entries.where((entry) => entry.entryType == type).fold<double>(0, (total, entry) => total + entry.amount);
+    return entries
+        .where((entry) => entry.entryType == type)
+        .fold<double>(0, (total, entry) => total + entry.amount);
   }
 
   static PaymentMethod? _payoutToPaymentMethod(PayoutMethod? method) {

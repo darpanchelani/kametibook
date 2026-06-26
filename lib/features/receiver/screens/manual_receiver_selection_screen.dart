@@ -33,10 +33,12 @@ class ManualReceiverSelectionScreen extends ConsumerStatefulWidget {
   final ReceiverAllocationType allocationType;
 
   @override
-  ConsumerState<ManualReceiverSelectionScreen> createState() => _ManualReceiverSelectionScreenState();
+  ConsumerState<ManualReceiverSelectionScreen> createState() =>
+      _ManualReceiverSelectionScreenState();
 }
 
-class _ManualReceiverSelectionScreenState extends ConsumerState<ManualReceiverSelectionScreen> {
+class _ManualReceiverSelectionScreenState
+    extends ConsumerState<ManualReceiverSelectionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _notesController = TextEditingController();
   MemberModel? _selectedMember;
@@ -49,19 +51,24 @@ class _ManualReceiverSelectionScreenState extends ConsumerState<ManualReceiverSe
 
   @override
   Widget build(BuildContext context) {
-    final kameti = _findKameti(ref.watch(kametiControllerProvider), widget.kametiId);
+    final kameti =
+        _findKameti(ref.watch(kametiControllerProvider), widget.kametiId);
     ref.watch(memberControllerProvider);
     ref.watch(paymentControllerProvider);
     ref.watch(receiverControllerProvider);
     if (kameti == null) {
-      return Scaffold(appBar: AppBar(title: const Text('Select Receiver')), body: const Center(child: Text('Kameti not found')));
+      return Scaffold(
+          appBar: AppBar(title: const Text('Select Receiver')),
+          body: const Center(child: Text('Kameti not found')));
     }
     final memberController = ref.read(memberControllerProvider.notifier);
     final paymentController = ref.read(paymentControllerProvider.notifier);
     final receiverController = ref.read(receiverControllerProvider.notifier);
     final cycle = paymentController.getCurrentCycle(kameti.id);
     final members = memberController.getMembersByKametiId(kameti.id);
-    final payments = cycle == null ? <MemberPaymentModel>[] : paymentController.getPaymentsByCycleId(cycle.id);
+    final payments = cycle == null
+        ? <MemberPaymentModel>[]
+        : paymentController.getPaymentsByCycleId(cycle.id);
     final eligibility = receiverController.getEligibleReceivers(
       kameti: kameti,
       cycle: cycle,
@@ -69,7 +76,9 @@ class _ManualReceiverSelectionScreenState extends ConsumerState<ManualReceiverSe
       members: members,
       payments: payments,
     );
-    final allocation = cycle == null ? null : receiverController.getCurrentCycleAllocation(kameti.id, cycle.id);
+    final allocation = cycle == null
+        ? null
+        : receiverController.getCurrentCycleAllocation(kameti.id, cycle.id);
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.allocationType.label)),
@@ -79,16 +88,24 @@ class _ManualReceiverSelectionScreenState extends ConsumerState<ManualReceiverSe
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text(kameti.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+              Text(kameti.name,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w900)),
               const SizedBox(height: 6),
-              Text(cycle == null ? 'No active payment cycle found.' : 'Month ${cycle.cycleNumber} - ${cycle.monthLabel}'),
-              if (cycle != null) Text('Amount: ${CurrencyFormatter.pkr(cycle.expectedAmount)}'),
+              Text(cycle == null
+                  ? 'No active payment cycle found.'
+                  : 'Month ${cycle.cycleNumber} - ${cycle.monthLabel}'),
+              if (cycle != null)
+                Text('Amount: ${CurrencyFormatter.pkr(cycle.expectedAmount)}'),
               const SizedBox(height: 12),
               if (allocation != null)
                 Card(
                   child: ListTile(
                     title: const Text('Receiver already confirmed'),
-                    subtitle: Text('${allocation.memberName} - ${CurrencyFormatter.pkr(allocation.amount)}'),
+                    subtitle: Text(
+                        '${allocation.memberName} - ${CurrencyFormatter.pkr(allocation.amount)}'),
                   ),
                 )
               else ...[
@@ -99,6 +116,11 @@ class _ManualReceiverSelectionScreenState extends ConsumerState<ManualReceiverSe
                 ),
                 const SizedBox(height: 12),
                 AppTextField(
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  autofillHints: const <String>[],
+                  smartDashesType: SmartDashesType.disabled,
+                  smartQuotesType: SmartQuotesType.disabled,
                   controller: _notesController,
                   label: 'Notes / reason',
                   hint: 'Optional',
@@ -109,25 +131,38 @@ class _ManualReceiverSelectionScreenState extends ConsumerState<ManualReceiverSe
                 AppButton(
                   label: 'Confirm Receiver',
                   icon: Icons.lock_outline,
-                  onPressed: cycle == null ? null : () => _confirm(kameti, cycle),
+                  onPressed:
+                      cycle == null ? null : () => _confirm(kameti, cycle),
                 ),
               ],
               const SizedBox(height: 18),
-              Text('Eligible Receivers', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+              Text('Eligible Receivers',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w900)),
               if (eligibility.eligibleMembers.isEmpty)
                 const Text('No eligible receivers.')
               else
                 ...eligibility.eligibleMembers.map((member) {
-                  final payment = _paymentForMember(payments, cycle?.id ?? '', member.id);
-                  return EligibleReceiverCard(member: member, paymentStatus: payment?.paymentStatus);
+                  final payment =
+                      _paymentForMember(payments, cycle?.id ?? '', member.id);
+                  return EligibleReceiverCard(
+                      member: member, paymentStatus: payment?.paymentStatus);
                 }),
               const SizedBox(height: 18),
-              Text('Excluded Members', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+              Text('Excluded Members',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w900)),
               if (eligibility.excludedMembers.isEmpty)
                 const Text('No excluded members.')
               else
                 ...eligibility.excludedMembers.map((member) {
-                  return ExcludedReceiverCard(member: member, reason: eligibility.exclusionReasons[member.id] ?? '-');
+                  return ExcludedReceiverCard(
+                      member: member,
+                      reason: eligibility.exclusionReasons[member.id] ?? '-');
                 }),
             ],
           ),
@@ -142,19 +177,24 @@ class _ManualReceiverSelectionScreenState extends ConsumerState<ManualReceiverSe
     if (member == null) return;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => ReceiverConfirmationDialog(member: member, amount: cycle.expectedAmount, cycleNumber: cycle.cycleNumber),
+      builder: (context) => ReceiverConfirmationDialog(
+          member: member,
+          amount: cycle.expectedAmount,
+          cycleNumber: cycle.cycleNumber),
     );
     if (confirmed != true) return;
     if (!mounted) return;
-    final error = ref.read(receiverControllerProvider.notifier).confirmReceiverAllocation(
-          kameti: kameti,
-          cycle: cycle,
-          member: member,
-          allocationType: widget.allocationType,
-          amount: cycle.expectedAmount,
-          selectedBy: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
-          notes: _notesController.text.trim(),
-        );
+    final error =
+        ref.read(receiverControllerProvider.notifier).confirmReceiverAllocation(
+              kameti: kameti,
+              cycle: cycle,
+              member: member,
+              allocationType: widget.allocationType,
+              amount: cycle.expectedAmount,
+              selectedBy: ref.read(authControllerProvider).user?.fullName ??
+                  'Organizer',
+              notes: _notesController.text.trim(),
+            );
     if (error != null) {
       SnackbarHelper.showError(context, error);
       return;
@@ -175,7 +215,8 @@ class _ManualReceiverSelectionScreenState extends ConsumerState<ManualReceiverSe
                 memberId: member.id,
                 type: AppNotificationType.receiverConfirmed,
                 title: 'Receiver Confirmed',
-                message: '${member.fullName} will receive ${CurrencyFormatter.pkr(cycle.expectedAmount)} for Cycle ${cycle.cycleNumber}.',
+                message:
+                    '${member.fullName} will receive ${CurrencyFormatter.pkr(cycle.expectedAmount)} for Cycle ${cycle.cycleNumber}.',
                 priority: NotificationPriority.high,
                 actionType: NotificationActionType.openKameti,
                 actionRoute: AppRoutes.kametiDetails,
@@ -194,9 +235,12 @@ class _ManualReceiverSelectionScreenState extends ConsumerState<ManualReceiverSe
     return null;
   }
 
-  MemberPaymentModel? _paymentForMember(List<MemberPaymentModel> payments, String cycleId, String memberId) {
+  MemberPaymentModel? _paymentForMember(
+      List<MemberPaymentModel> payments, String cycleId, String memberId) {
     for (final payment in payments) {
-      if (payment.cycleId == cycleId && payment.memberId == memberId) return payment;
+      if (payment.cycleId == cycleId && payment.memberId == memberId) {
+        return payment;
+      }
     }
     return null;
   }

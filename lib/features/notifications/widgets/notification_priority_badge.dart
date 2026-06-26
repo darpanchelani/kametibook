@@ -17,8 +17,14 @@ class NotificationPriorityBadge extends StatelessWidget {
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(999)),
-      child: Text(priority.label, style: TextStyle(color: color.shade700, fontSize: 11, fontWeight: FontWeight.w800)),
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(999)),
+      child: Text(priority.label,
+          style: TextStyle(
+              color: color.shade700,
+              fontSize: 11,
+              fontWeight: FontWeight.w800)),
     );
   }
 }

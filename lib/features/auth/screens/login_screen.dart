@@ -37,7 +37,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
     if (!mounted) return;
     if (!success) {
-      SnackbarHelper.showError(context, ref.read(authControllerProvider).errorMessage);
+      SnackbarHelper.showError(
+          context, ref.read(authControllerProvider).errorMessage);
       return;
     }
     SnackbarHelper.showSuccess(context, 'Logged in successfully.');
@@ -65,24 +66,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primary,
                       borderRadius: BorderRadius.circular(22),
-                      boxShadow: [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.22), blurRadius: 24, offset: const Offset(0, 12))],
+                      boxShadow: [
+                        BoxShadow(
+                            color: theme.colorScheme.primary
+                                .withValues(alpha: 0.22),
+                            blurRadius: 24,
+                            offset: const Offset(0, 12))
+                      ],
                     ),
-                    child: const Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 42),
+                    child: const Icon(Icons.account_balance_wallet_outlined,
+                        color: Colors.white, size: 42),
                   ),
                 ),
                 const SizedBox(height: 18),
-                Text(AppConstants.appName, textAlign: TextAlign.center, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900)),
+                Text(AppConstants.appName,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium
+                        ?.copyWith(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 8),
-                Text(AppConstants.tagline, textAlign: TextAlign.center, style: theme.textTheme.bodyLarge?.copyWith(color: Colors.black54)),
+                Text(AppConstants.tagline,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyLarge
+                        ?.copyWith(color: Colors.black54)),
                 const SizedBox(height: 32),
                 if (auth.errorMessage.isNotEmpty) ...[
                   Card(
                     color: Colors.red.withValues(alpha: 0.08),
-                    child: ListTile(leading: const Icon(Icons.error_outline, color: Colors.red), title: Text(auth.errorMessage)),
+                    child: ListTile(
+                        leading:
+                            const Icon(Icons.error_outline, color: Colors.red),
+                        title: Text(auth.errorMessage)),
                   ),
                   const SizedBox(height: 12),
                 ],
                 AppTextField(
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  autofillHints: const <String>[],
+                  smartDashesType: SmartDashesType.disabled,
+                  smartQuotesType: SmartQuotesType.disabled,
                   controller: _emailController,
                   label: 'Email',
                   hint: 'you@example.com',
@@ -92,32 +114,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  autofillHints: const <String>[],
+                  smartDashesType: SmartDashesType.disabled,
+                  smartQuotesType: SmartQuotesType.disabled,
                   controller: _passwordController,
                   label: 'Password',
                   obscureText: !_showPassword,
                   prefixIcon: Icons.lock_outline,
                   validator: Validators.password,
                   suffixIcon: IconButton(
-                    onPressed: () => setState(() => _showPassword = !_showPassword),
-                    icon: Icon(_showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                    onPressed: () =>
+                        setState(() => _showPassword = !_showPassword),
+                    icon: Icon(_showPassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined),
                   ),
                 ),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => Navigator.of(context).pushNamed(AppRoutes.forgotPassword),
+                    onPressed: () => Navigator.of(context)
+                        .pushNamed(AppRoutes.forgotPassword),
                     child: const Text('Forgot Password?'),
                   ),
                 ),
                 const SizedBox(height: 8),
-                AppButton(label: 'Login', isLoading: auth.isLoading, onPressed: _login),
+                AppButton(
+                    label: 'Login',
+                    isLoading: auth.isLoading,
+                    onPressed: _login),
                 const SizedBox(height: 18),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text('New to KametiBook?'),
                     TextButton(
-                      onPressed: () => Navigator.of(context).pushNamed(AppRoutes.signup),
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed(AppRoutes.signup),
                       child: const Text('Create Account'),
                     ),
                   ],

@@ -14,8 +14,11 @@ class AppTextField extends StatelessWidget {
     this.onChanged,
     this.onSubmitted,
     this.textInputAction,
-    this.enableSuggestions = true,
-    this.autocorrect = true,
+    this.enableSuggestions = false,
+    this.autocorrect = false,
+    this.autofillHints = const <String>[],
+    this.smartDashesType = SmartDashesType.disabled,
+    this.smartQuotesType = SmartQuotesType.disabled,
     super.key,
   });
 
@@ -33,6 +36,9 @@ class AppTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final bool enableSuggestions;
   final bool autocorrect;
+  final Iterable<String>? autofillHints;
+  final SmartDashesType smartDashesType;
+  final SmartQuotesType smartQuotesType;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +53,9 @@ class AppTextField extends StatelessWidget {
       textInputAction: textInputAction,
       enableSuggestions: enableSuggestions,
       autocorrect: autocorrect,
+      autofillHints: autofillHints,
+      smartDashesType: smartDashesType,
+      smartQuotesType: smartQuotesType,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

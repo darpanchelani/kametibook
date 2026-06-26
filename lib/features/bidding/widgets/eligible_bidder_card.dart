@@ -5,7 +5,8 @@ import '../../member/models/member_model.dart';
 import '../../payment/models/payment_models.dart';
 
 class EligibleBidderCard extends StatelessWidget {
-  const EligibleBidderCard({required this.member, required this.paymentStatus, super.key});
+  const EligibleBidderCard(
+      {required this.member, required this.paymentStatus, super.key});
 
   final MemberModel member;
   final PaymentStatus? paymentStatus;

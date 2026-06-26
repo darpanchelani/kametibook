@@ -22,7 +22,8 @@ class PaymentMethodDropdown extends StatelessWidget {
       ),
       validator: (value) => value == null ? 'Payment method is required' : null,
       items: PaymentMethod.values
-          .map((method) => DropdownMenuItem(value: method, child: Text(method.label)))
+          .map((method) =>
+              DropdownMenuItem(value: method, child: Text(method.label)))
           .toList(),
       onChanged: onChanged,
     );

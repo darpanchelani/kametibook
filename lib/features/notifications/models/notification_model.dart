@@ -108,7 +108,8 @@ class NotificationModel {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  bool get isUnread => status == NotificationStatus.unread || status == NotificationStatus.sent;
+  bool get isUnread =>
+      status == NotificationStatus.unread || status == NotificationStatus.sent;
 
   NotificationModel copyWith({
     NotificationStatus? status,
@@ -193,15 +194,19 @@ class UserNotificationPreferencesModel {
       inAppEnabled: inAppEnabled ?? this.inAppEnabled,
       paymentNotifications: paymentNotifications ?? this.paymentNotifications,
       payoutNotifications: payoutNotifications ?? this.payoutNotifications,
-      receiverNotifications: receiverNotifications ?? this.receiverNotifications,
+      receiverNotifications:
+          receiverNotifications ?? this.receiverNotifications,
       biddingNotifications: biddingNotifications ?? this.biddingNotifications,
-      luckyDrawNotifications: luckyDrawNotifications ?? this.luckyDrawNotifications,
+      luckyDrawNotifications:
+          luckyDrawNotifications ?? this.luckyDrawNotifications,
       reportNotifications: reportNotifications ?? this.reportNotifications,
-      ledgerWarningNotifications: ledgerWarningNotifications ?? this.ledgerWarningNotifications,
+      ledgerWarningNotifications:
+          ledgerWarningNotifications ?? this.ledgerWarningNotifications,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       localPushEnabled: localPushEnabled ?? this.localPushEnabled,
-      hideAmountOnLockScreen: hideAmountOnLockScreen ?? this.hideAmountOnLockScreen,
+      hideAmountOnLockScreen:
+          hideAmountOnLockScreen ?? this.hideAmountOnLockScreen,
     );
   }
 }

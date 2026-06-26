@@ -112,45 +112,63 @@ class AppRoutes {
           case forgotPassword:
             return const ForgotPasswordScreen();
           case main:
-            final initialTab = settings.arguments is int ? settings.arguments as int : 0;
+            final initialTab =
+                settings.arguments is int ? settings.arguments as int : 0;
             return MainLayout(initialTab: initialTab);
           case createKameti:
             return const CreateKametiScreen();
           case kametiDetails:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: KametiDetailsScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                child: KametiDetailsScreen(kametiId: kametiId));
           case members:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: MembersListScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                child: MembersListScreen(kametiId: kametiId));
           case addMember:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, requireManager: true, child: AddMemberScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                requireManager: true,
+                child: AddMemberScreen(kametiId: kametiId));
           case editMember:
             final args = settings.arguments! as Map<String, String>;
-            return EditMemberScreen(kametiId: args['kametiId']!, memberId: args['memberId']!);
+            return EditMemberScreen(
+                kametiId: args['kametiId']!, memberId: args['memberId']!);
           case memberDetails:
             return MemberDetailsScreen(memberId: settings.arguments! as String);
           case paymentCycles:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: PaymentCyclesScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                child: PaymentCyclesScreen(kametiId: kametiId));
           case cyclePayments:
             return CyclePaymentsScreen(cycleId: settings.arguments! as String);
           case luckyDraw:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: LuckyDrawScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId, child: LuckyDrawScreen(kametiId: kametiId));
           case drawHistory:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: DrawHistoryScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                child: DrawHistoryScreen(kametiId: kametiId));
           case drawDetail:
             return DrawDetailScreen(drawId: settings.arguments! as String);
           case bidding:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: BiddingScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId, child: BiddingScreen(kametiId: kametiId));
           case biddingHistory:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: BiddingHistoryScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                child: BiddingHistoryScreen(kametiId: kametiId));
           case biddingDetail:
-            return BiddingDetailScreen(sessionId: settings.arguments! as String);
+            return BiddingDetailScreen(
+                sessionId: settings.arguments! as String);
           case manualReceiver:
             final args = settings.arguments! as Map<String, Object>;
             final kametiId = args['kametiId']! as String;
@@ -159,70 +177,111 @@ class AppRoutes {
               requireManager: true,
               child: ManualReceiverSelectionScreen(
                 kametiId: kametiId,
-                allocationType: args['allocationType']! as ReceiverAllocationType,
+                allocationType:
+                    args['allocationType']! as ReceiverAllocationType,
               ),
             );
           case fixedOrderSetup:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, requireManager: true, child: FixedOrderSetupScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                requireManager: true,
+                child: FixedOrderSetupScreen(kametiId: kametiId));
           case ownerFirstSettings:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, requireManager: true, child: OwnerFirstSettingsScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                requireManager: true,
+                child: OwnerFirstSettingsScreen(kametiId: kametiId));
           case groupLedger:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: GroupLedgerScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                child: GroupLedgerScreen(kametiId: kametiId));
           case ledgerDetail:
             return LedgerDetailScreen(entryId: settings.arguments! as String);
           case financialSummary:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: FinancialSummaryScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                child: FinancialSummaryScreen(kametiId: kametiId));
           case manualLedgerEntry:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, requireManager: true, child: ManualLedgerEntryScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                requireManager: true,
+                child: ManualLedgerEntryScreen(kametiId: kametiId));
           case reportsDashboard:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: ReportsDashboardScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                child: ReportsDashboardScreen(kametiId: kametiId));
           case reportPreview:
             return ReportPreviewScreen(data: settings.arguments! as ReportData);
           case reportHistory:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: ReportHistoryScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                child: ReportHistoryScreen(kametiId: kametiId));
           case kametiAlerts:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: KametiAlertsScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                child: KametiAlertsScreen(kametiId: kametiId));
           case reminderSettings:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, requireManager: true, child: ReminderSettingsScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                requireManager: true,
+                child: ReminderSettingsScreen(kametiId: kametiId));
           case notificationPreferences:
             return const NotificationPreferencesScreen();
           case inviteMember:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, requireManager: true, child: InviteMemberScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                requireManager: true,
+                child: InviteMemberScreen(kametiId: kametiId));
           case joinKameti:
             return const JoinKametiScreen();
           case submitPaymentProof:
-            return SubmitPaymentProofScreen(paymentId: settings.arguments! as String);
+            return SubmitPaymentProofScreen(
+                paymentId: settings.arguments! as String);
           case securityCenter:
-            final kametiId = settings.arguments is String ? settings.arguments! as String : '';
-            return kametiId.isEmpty ? SecurityCenterScreen(kametiId: kametiId) : ProtectedKametiRoute(kametiId: kametiId, child: SecurityCenterScreen(kametiId: kametiId));
+            final kametiId = settings.arguments is String
+                ? settings.arguments! as String
+                : '';
+            return kametiId.isEmpty
+                ? SecurityCenterScreen(kametiId: kametiId)
+                : ProtectedKametiRoute(
+                    kametiId: kametiId,
+                    child: SecurityCenterScreen(kametiId: kametiId));
           case auditLogs:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, requireManager: true, child: AuditLogScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId,
+                requireManager: true,
+                child: AuditLogScreen(kametiId: kametiId));
           case auditDetail:
             return AuditDetailScreen(auditId: settings.arguments! as String);
           case disputes:
             final kametiId = settings.arguments! as String;
-            return ProtectedKametiRoute(kametiId: kametiId, child: DisputesScreen(kametiId: kametiId));
+            return ProtectedKametiRoute(
+                kametiId: kametiId, child: DisputesScreen(kametiId: kametiId));
           case disputeDetail:
-            return DisputeDetailScreen(disputeId: settings.arguments! as String);
+            return DisputeDetailScreen(
+                disputeId: settings.arguments! as String);
           case createDispute:
-            return CreateDisputeScreen(args: settings.arguments! as CreateDisputeArgs);
+            return CreateDisputeScreen(
+                args: settings.arguments! as CreateDisputeArgs);
           case trustScore:
-            return TrustScoreDetailScreen(memberId: settings.arguments! as String);
+            return TrustScoreDetailScreen(
+                memberId: settings.arguments! as String);
           case privacySettings:
             return const PrivacySettingsScreen();
           case reportUser:
-            return ReportUserScreen(args: settings.arguments! as ReportUserArgs);
+            return ReportUserScreen(
+                args: settings.arguments! as ReportUserArgs);
           default:
             return const SplashScreen();
         }

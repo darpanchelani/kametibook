@@ -31,7 +31,12 @@ class _JoinKametiScreenState extends ConsumerState<JoinKametiScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final kameti = _invite == null ? null : ref.watch(kametiControllerProvider).where((item) => item.id == _invite!.kametiId).firstOrNull;
+    final kameti = _invite == null
+        ? null
+        : ref
+            .watch(kametiControllerProvider)
+            .where((item) => item.id == _invite!.kametiId)
+            .firstOrNull;
     return Scaffold(
       appBar: AppBar(title: const Text('Join Kameti')),
       body: SafeArea(
@@ -39,12 +44,20 @@ class _JoinKametiScreenState extends ConsumerState<JoinKametiScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             TextField(
+              enableSuggestions: false,
+              autocorrect: false,
+              autofillHints: const <String>[],
+              smartDashesType: SmartDashesType.disabled,
+              smartQuotesType: SmartQuotesType.disabled,
               controller: _codeController,
               textCapitalization: TextCapitalization.characters,
               decoration: const InputDecoration(labelText: 'Invite code'),
             ),
             const SizedBox(height: 12),
-            FilledButton.icon(onPressed: _validateInvite, icon: const Icon(Icons.search), label: const Text('Find Kameti')),
+            FilledButton.icon(
+                onPressed: _validateInvite,
+                icon: const Icon(Icons.search),
+                label: const Text('Find Kameti')),
             if (_invite != null && kameti != null) ...[
               const SizedBox(height: 18),
               Card(
@@ -53,14 +66,20 @@ class _JoinKametiScreenState extends ConsumerState<JoinKametiScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(kameti.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                      Text(kameti.name,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w900)),
                       Text('Organizer: ${kameti.organizerName}'),
                       Text('Type: ${kameti.type.label}'),
-                      Text('Monthly: ${CurrencyFormatter.pkr(kameti.monthlyAmount)}'),
+                      Text(
+                          'Monthly: ${CurrencyFormatter.pkr(kameti.monthlyAmount)}'),
                       Text('Duration: ${kameti.durationMonths} months'),
                       Text('Members: ${kameti.totalMembers}'),
                       Text('Start: ${DateFormatter.display(kameti.startDate)}'),
-                      if (kameti.description.isNotEmpty) Text(kameti.description),
+                      if (kameti.description.isNotEmpty)
+                        Text(kameti.description),
                     ],
                   ),
                 ),
@@ -68,9 +87,14 @@ class _JoinKametiScreenState extends ConsumerState<JoinKametiScreen> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(child: OutlinedButton(onPressed: _decline, child: const Text('Decline'))),
+                  Expanded(
+                      child: OutlinedButton(
+                          onPressed: _decline, child: const Text('Decline'))),
                   const SizedBox(width: 10),
-                  Expanded(child: FilledButton(onPressed: () => _accept(kameti), child: const Text('Accept'))),
+                  Expanded(
+                      child: FilledButton(
+                          onPressed: () => _accept(kameti),
+                          child: const Text('Accept'))),
                 ],
               ),
             ],
@@ -81,7 +105,9 @@ class _JoinKametiScreenState extends ConsumerState<JoinKametiScreen> {
   }
 
   void _validateInvite() {
-    final invite = ref.read(inviteControllerProvider.notifier).byCode(_codeController.text);
+    final invite = ref
+        .read(inviteControllerProvider.notifier)
+        .byCode(_codeController.text);
     if (invite == null) {
       SnackbarHelper.showError(context, 'Invalid invite code.');
       return;
@@ -98,8 +124,12 @@ class _JoinKametiScreenState extends ConsumerState<JoinKametiScreen> {
     if (invite == null) return;
     final user = ref.read(authControllerProvider).user;
     final now = DateTime.now();
-    final existing = ref.read(memberControllerProvider.notifier).getMembersByKametiId(kameti.id).where((member) {
-      return member.phone.replaceAll(RegExp(r'\D'), '') == invite.invitedPhone.replaceAll(RegExp(r'\D'), '');
+    final existing = ref
+        .read(memberControllerProvider.notifier)
+        .getMembersByKametiId(kameti.id)
+        .where((member) {
+      return member.phone.replaceAll(RegExp(r'\D'), '') ==
+          invite.invitedPhone.replaceAll(RegExp(r'\D'), '');
     }).firstOrNull;
     if (existing == null) {
       ref.read(memberControllerProvider.notifier).addMember(
@@ -139,8 +169,12 @@ class _JoinKametiScreenState extends ConsumerState<JoinKametiScreen> {
             ),
           );
     }
-    ref.read(kametiControllerProvider.notifier).addMemberUser(kameti.id, user?.id ?? '');
-    ref.read(inviteControllerProvider.notifier).acceptInvite(invite.id, user?.id ?? '');
+    ref
+        .read(kametiControllerProvider.notifier)
+        .addMemberUser(kameti.id, user?.id ?? '');
+    ref
+        .read(inviteControllerProvider.notifier)
+        .acceptInvite(invite.id, user?.id ?? '');
     SnackbarHelper.showSuccess(context, 'You have joined this kameti.');
     Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.main, (_) => false);
   }

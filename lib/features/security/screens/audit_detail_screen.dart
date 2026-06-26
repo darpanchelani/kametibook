@@ -11,8 +11,16 @@ class AuditDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final log = ref.watch(securityControllerProvider).auditLogs.where((item) => item.id == auditId).firstOrNull;
-    if (log == null) return Scaffold(appBar: AppBar(title: const Text('Audit Detail')), body: const Center(child: Text('Audit log not found')));
+    final log = ref
+        .watch(securityControllerProvider)
+        .auditLogs
+        .where((item) => item.id == auditId)
+        .firstOrNull;
+    if (log == null) {
+      return Scaffold(
+          appBar: AppBar(title: const Text('Audit Detail')),
+          body: const Center(child: Text('Audit log not found')));
+    }
     return Scaffold(
       appBar: AppBar(title: const Text('Audit Detail')),
       body: SafeArea(
@@ -20,20 +28,39 @@ class AuditDetailScreen extends ConsumerWidget {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(log.actionType.label, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
-                const SizedBox(height: 8),
-                AuditSeverityBadge(severity: log.severity),
-                const SizedBox(height: 12),
-                _Line(label: 'User', value: '${log.userName} (${log.userRole.isEmpty ? 'role not set' : log.userRole})'),
-                _Line(label: 'Entity', value: '${log.entityType.label} - ${log.entityId}'),
-                _Line(label: 'Old Value', value: log.oldValue.isEmpty ? '-' : log.oldValue),
-                _Line(label: 'New Value', value: log.newValue.isEmpty ? '-' : log.newValue),
-                _Line(label: 'Description', value: log.description),
-                _Line(label: 'Platform', value: log.platform),
-                _Line(label: 'Device', value: log.deviceInfo.isEmpty ? '-' : log.deviceInfo),
-                _Line(label: 'Created', value: DateFormatter.display(log.createdAt)),
-              ]),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(log.actionType.label,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 8),
+                    AuditSeverityBadge(severity: log.severity),
+                    const SizedBox(height: 12),
+                    _Line(
+                        label: 'User',
+                        value:
+                            '${log.userName} (${log.userRole.isEmpty ? 'role not set' : log.userRole})'),
+                    _Line(
+                        label: 'Entity',
+                        value: '${log.entityType.label} - ${log.entityId}'),
+                    _Line(
+                        label: 'Old Value',
+                        value: log.oldValue.isEmpty ? '-' : log.oldValue),
+                    _Line(
+                        label: 'New Value',
+                        value: log.newValue.isEmpty ? '-' : log.newValue),
+                    _Line(label: 'Description', value: log.description),
+                    _Line(label: 'Platform', value: log.platform),
+                    _Line(
+                        label: 'Device',
+                        value: log.deviceInfo.isEmpty ? '-' : log.deviceInfo),
+                    _Line(
+                        label: 'Created',
+                        value: DateFormatter.display(log.createdAt)),
+                  ]),
             ),
           ),
         ]),
@@ -50,8 +77,13 @@ class _Line extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(width: 115, child: Text(label, style: const TextStyle(color: Colors.black54))),
-          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w800))),
+          SizedBox(
+              width: 115,
+              child:
+                  Text(label, style: const TextStyle(color: Colors.black54))),
+          Expanded(
+              child: Text(value,
+                  style: const TextStyle(fontWeight: FontWeight.w800))),
         ]),
       );
 }

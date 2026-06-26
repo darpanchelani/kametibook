@@ -13,7 +13,8 @@ class DisputeDetailScreen extends ConsumerStatefulWidget {
   final String disputeId;
 
   @override
-  ConsumerState<DisputeDetailScreen> createState() => _DisputeDetailScreenState();
+  ConsumerState<DisputeDetailScreen> createState() =>
+      _DisputeDetailScreenState();
 }
 
 class _DisputeDetailScreenState extends ConsumerState<DisputeDetailScreen> {
@@ -32,7 +33,11 @@ class _DisputeDetailScreenState extends ConsumerState<DisputeDetailScreen> {
     ref.watch(securityControllerProvider);
     final controller = ref.read(securityControllerProvider.notifier);
     final dispute = controller.getDispute(widget.disputeId);
-    if (dispute == null) return Scaffold(appBar: AppBar(title: const Text('Dispute Detail')), body: const Center(child: Text('Dispute not found')));
+    if (dispute == null) {
+      return Scaffold(
+          appBar: AppBar(title: const Text('Dispute Detail')),
+          body: const Center(child: Text('Dispute not found')));
+    }
     final comments = controller.getComments(dispute.id);
     return Scaffold(
       appBar: AppBar(title: const Text('Dispute Detail')),
@@ -41,40 +46,90 @@ class _DisputeDetailScreenState extends ConsumerState<DisputeDetailScreen> {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(dispute.title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
-                const SizedBox(height: 8),
-                Wrap(spacing: 8, runSpacing: 8, children: [DisputeStatusBadge(status: dispute.status), DisputePriorityBadge(priority: dispute.priority)]),
-                const SizedBox(height: 12),
-                Text(dispute.description),
-                const SizedBox(height: 12),
-                Text('Type: ${dispute.disputeType.label}'),
-                Text('Related: ${dispute.relatedEntityType.label} - ${dispute.relatedEntityId}'),
-                Text('Created by: ${dispute.createdByName}'),
-                Text('Created: ${DateFormatter.display(dispute.createdAt)}'),
-                if (dispute.organizerResponse.isNotEmpty) Text('Organizer response: ${dispute.organizerResponse}'),
-                if (dispute.resolutionNote.isNotEmpty) Text('Resolution: ${dispute.resolutionNote}'),
-              ]),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(dispute.title,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 8),
+                    Wrap(spacing: 8, runSpacing: 8, children: [
+                      DisputeStatusBadge(status: dispute.status),
+                      DisputePriorityBadge(priority: dispute.priority)
+                    ]),
+                    const SizedBox(height: 12),
+                    Text(dispute.description),
+                    const SizedBox(height: 12),
+                    Text('Type: ${dispute.disputeType.label}'),
+                    Text(
+                        'Related: ${dispute.relatedEntityType.label} - ${dispute.relatedEntityId}'),
+                    Text('Created by: ${dispute.createdByName}'),
+                    Text(
+                        'Created: ${DateFormatter.display(dispute.createdAt)}'),
+                    if (dispute.organizerResponse.isNotEmpty)
+                      Text('Organizer response: ${dispute.organizerResponse}'),
+                    if (dispute.resolutionNote.isNotEmpty)
+                      Text('Resolution: ${dispute.resolutionNote}'),
+                  ]),
             ),
           ),
           const SizedBox(height: 12),
-          TextField(controller: _responseController, maxLines: 3, decoration: const InputDecoration(labelText: 'Response / resolution note')),
+          TextField(
+              enableSuggestions: false,
+              autocorrect: false,
+              autofillHints: const <String>[],
+              smartDashesType: SmartDashesType.disabled,
+              smartQuotesType: SmartQuotesType.disabled,
+              controller: _responseController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                  labelText: 'Response / resolution note')),
           const SizedBox(height: 8),
           Wrap(spacing: 8, runSpacing: 8, children: [
-            OutlinedButton(onPressed: () => _setStatus(dispute, DisputeStatus.underReview), child: const Text('Under Review')),
-            OutlinedButton(onPressed: () => _setStatus(dispute, DisputeStatus.waitingForResponse), child: const Text('Request Response')),
-            FilledButton(onPressed: () => _setStatus(dispute, DisputeStatus.resolved), child: const Text('Resolve')),
-            OutlinedButton(onPressed: () => _setStatus(dispute, DisputeStatus.rejected), child: const Text('Reject')),
-            OutlinedButton(onPressed: () => _setStatus(dispute, DisputeStatus.closed), child: const Text('Close')),
+            OutlinedButton(
+                onPressed: () => _setStatus(dispute, DisputeStatus.underReview),
+                child: const Text('Under Review')),
+            OutlinedButton(
+                onPressed: () =>
+                    _setStatus(dispute, DisputeStatus.waitingForResponse),
+                child: const Text('Request Response')),
+            FilledButton(
+                onPressed: () => _setStatus(dispute, DisputeStatus.resolved),
+                child: const Text('Resolve')),
+            OutlinedButton(
+                onPressed: () => _setStatus(dispute, DisputeStatus.rejected),
+                child: const Text('Reject')),
+            OutlinedButton(
+                onPressed: () => _setStatus(dispute, DisputeStatus.closed),
+                child: const Text('Close')),
           ]),
           const SizedBox(height: 18),
-          Text('Comments', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          Text('Comments',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
-          TextField(controller: _commentController, decoration: const InputDecoration(labelText: 'Add comment')),
+          TextField(
+              enableSuggestions: false,
+              autocorrect: false,
+              autofillHints: const <String>[],
+              smartDashesType: SmartDashesType.disabled,
+              smartQuotesType: SmartQuotesType.disabled,
+              controller: _commentController,
+              decoration: const InputDecoration(labelText: 'Add comment')),
           const SizedBox(height: 8),
-          FilledButton.icon(onPressed: () => _addComment(dispute), icon: const Icon(Icons.comment_outlined), label: const Text('Add Comment')),
+          FilledButton.icon(
+              onPressed: () => _addComment(dispute),
+              icon: const Icon(Icons.comment_outlined),
+              label: const Text('Add Comment')),
           const SizedBox(height: 8),
-          if (comments.isEmpty) const Text('No comments yet.') else ...comments.map((comment) => DisputeCommentCard(comment: comment)),
+          if (comments.isEmpty)
+            const Text('No comments yet.')
+          else
+            ...comments.map((comment) => DisputeCommentCard(comment: comment)),
         ]),
       ),
     );

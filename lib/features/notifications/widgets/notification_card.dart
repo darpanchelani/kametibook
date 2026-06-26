@@ -24,7 +24,9 @@ class NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: notification.isUnread ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.06) : null,
+      color: notification.isUnread
+          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.06)
+          : null,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
@@ -42,10 +44,16 @@ class NotificationCard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(notification.title, style: const TextStyle(fontWeight: FontWeight.w900)),
+                          child: Text(notification.title,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w900)),
                         ),
                         if (notification.isUnread)
-                          Container(width: 9, height: 9, decoration: const BoxDecoration(color: Colors.teal, shape: BoxShape.circle)),
+                          Container(
+                              width: 9,
+                              height: 9,
+                              decoration: const BoxDecoration(
+                                  color: Colors.teal, shape: BoxShape.circle)),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -56,16 +64,25 @@ class NotificationCard extends StatelessWidget {
                       runSpacing: 6,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        NotificationPriorityBadge(priority: notification.priority),
-                        Text(kametiName.isEmpty ? 'General' : kametiName, style: const TextStyle(color: Colors.black54)),
-                        Text(DateFormatter.display(notification.triggeredAt ?? notification.createdAt), style: const TextStyle(color: Colors.black54)),
+                        NotificationPriorityBadge(
+                            priority: notification.priority),
+                        Text(kametiName.isEmpty ? 'General' : kametiName,
+                            style: const TextStyle(color: Colors.black54)),
+                        Text(
+                            DateFormatter.display(notification.triggeredAt ??
+                                notification.createdAt),
+                            style: const TextStyle(color: Colors.black54)),
                       ],
                     ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        TextButton(onPressed: notification.isUnread ? onMarkRead : null, child: const Text('Mark read')),
-                        TextButton(onPressed: onDismiss, child: const Text('Dismiss')),
+                        TextButton(
+                            onPressed:
+                                notification.isUnread ? onMarkRead : null,
+                            child: const Text('Mark read')),
+                        TextButton(
+                            onPressed: onDismiss, child: const Text('Dismiss')),
                       ],
                     ),
                   ],

@@ -14,19 +14,23 @@ class DrawHistoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(luckyDrawControllerProvider);
-    final draws = ref.read(luckyDrawControllerProvider.notifier).getDrawsByKametiId(kametiId);
+    final draws = ref
+        .read(luckyDrawControllerProvider.notifier)
+        .getDrawsByKametiId(kametiId);
     return Scaffold(
       appBar: AppBar(title: const Text('Draw History')),
       body: SafeArea(
         child: draws.isEmpty
-            ? const EmptyState(icon: Icons.casino_outlined, title: 'No draw history yet.')
+            ? const EmptyState(
+                icon: Icons.casino_outlined, title: 'No draw history yet.')
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemBuilder: (context, index) {
                   final draw = draws[index];
                   return DrawHistoryCard(
                     draw: draw,
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.drawDetail, arguments: draw.id),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(AppRoutes.drawDetail, arguments: draw.id),
                   );
                 },
                 separatorBuilder: (_, __) => const SizedBox(height: 8),

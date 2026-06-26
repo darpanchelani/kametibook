@@ -161,7 +161,8 @@ class BiddingSessionModel {
       winnerMemberId: winnerMemberId ?? this.winnerMemberId,
       winningAmount: winningAmount ?? this.winningAmount,
       discountAmount: discountAmount ?? this.discountAmount,
-      discountDistributionType: discountDistributionType ?? this.discountDistributionType,
+      discountDistributionType:
+          discountDistributionType ?? this.discountDistributionType,
       notes: notes ?? this.notes,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

@@ -19,7 +19,8 @@ class DrawSettingsTile extends StatelessWidget {
         value: value,
         onChanged: enabled ? onChanged : null,
         title: const Text('Require payment before draw'),
-        subtitle: const Text('Only paid members in the current cycle are eligible.'),
+        subtitle:
+            const Text('Only paid members in the current cycle are eligible.'),
       ),
     );
   }

@@ -19,7 +19,8 @@ class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
@@ -38,7 +39,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     });
 
     final controller = ref.read(notificationControllerProvider.notifier);
-    final notifications = controller.getNotificationsForUser(userId).where(_matchesFilter).toList();
+    final notifications = controller
+        .getNotificationsForUser(userId)
+        .where(_matchesFilter)
+        .toList();
     final unreadCount = controller.getUnreadCount(userId);
     final kametis = ref.read(kametiControllerProvider);
 
@@ -48,11 +52,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         actions: [
           IconButton(
             tooltip: 'Preferences',
-            onPressed: () => Navigator.of(context).pushNamed(AppRoutes.notificationPreferences),
+            onPressed: () => Navigator.of(context)
+                .pushNamed(AppRoutes.notificationPreferences),
             icon: const Icon(Icons.tune_outlined),
           ),
           TextButton(
-            onPressed: unreadCount == 0 ? null : () => controller.markAllNotificationsRead(userId),
+            onPressed: unreadCount == 0
+                ? null
+                : () => controller.markAllNotificationsRead(userId),
             child: const Text('Mark all read'),
           ),
         ],
@@ -63,16 +70,24 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
-              child: Text('$unreadCount unread', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+              child: Text('$unreadCount unread',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w900)),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: NotificationFilterChips(selected: _filter, onChanged: (value) => setState(() => _filter = value)),
+              child: NotificationFilterChips(
+                  selected: _filter,
+                  onChanged: (value) => setState(() => _filter = value)),
             ),
             const SizedBox(height: 8),
             Expanded(
               child: notifications.isEmpty
-                  ? const EmptyState(icon: Icons.notifications_none_outlined, title: 'No notifications yet.')
+                  ? const EmptyState(
+                      icon: Icons.notifications_none_outlined,
+                      title: 'No notifications yet.')
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                       itemCount: notifications.length,
@@ -81,10 +96,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                         final notification = notifications[index];
                         return NotificationCard(
                           notification: notification,
-                          kametiName: _kametiName(kametis, notification.kametiId),
+                          kametiName:
+                              _kametiName(kametis, notification.kametiId),
                           onTap: () => _openNotification(notification),
-                          onMarkRead: () => controller.markNotificationRead(notification.id),
-                          onDismiss: () => controller.dismissNotification(notification.id),
+                          onMarkRead: () =>
+                              controller.markNotificationRead(notification.id),
+                          onDismiss: () =>
+                              controller.dismissNotification(notification.id),
                         );
                       },
                     ),
@@ -96,7 +114,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   void _refreshChecks(String userId) {
-    final notificationController = ref.read(notificationControllerProvider.notifier);
+    final notificationController =
+        ref.read(notificationControllerProvider.notifier);
     notificationController.processDueScheduledNotifications();
     notificationController.checkOverduePayments(
       userId: userId,
@@ -139,25 +158,46 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           AppNotificationType.payoutPending,
           AppNotificationType.payoutPaid,
         }.contains(notification.notificationType),
-      NotificationFilter.bidding => notification.notificationType.name.startsWith('bidding'),
-      NotificationFilter.draws => notification.notificationType.name.startsWith('luckyDraw'),
-      NotificationFilter.reports => notification.notificationType == AppNotificationType.reportGenerated,
-      NotificationFilter.warnings => notification.priority == NotificationPriority.urgent || notification.notificationType == AppNotificationType.ledgerWarning,
-      NotificationFilter.receiver => notification.notificationType == AppNotificationType.receiverPending || notification.notificationType == AppNotificationType.receiverConfirmed,
+      NotificationFilter.bidding =>
+        notification.notificationType.name.startsWith('bidding'),
+      NotificationFilter.draws =>
+        notification.notificationType.name.startsWith('luckyDraw'),
+      NotificationFilter.reports =>
+        notification.notificationType == AppNotificationType.reportGenerated,
+      NotificationFilter.warnings =>
+        notification.priority == NotificationPriority.urgent ||
+            notification.notificationType == AppNotificationType.ledgerWarning,
+      NotificationFilter.receiver =>
+        notification.notificationType == AppNotificationType.receiverPending ||
+            notification.notificationType ==
+                AppNotificationType.receiverConfirmed,
     };
   }
 
   void _openNotification(NotificationModel notification) {
-    ref.read(notificationControllerProvider.notifier).markNotificationRead(notification.id);
-    if (notification.actionRoute.isEmpty || notification.actionType == NotificationActionType.none) return;
+    ref
+        .read(notificationControllerProvider.notifier)
+        .markNotificationRead(notification.id);
+    if (notification.actionRoute.isEmpty ||
+        notification.actionType == NotificationActionType.none) {
+      return;
+    }
     final argument = switch (notification.actionType) {
-      NotificationActionType.openCycle || NotificationActionType.openPayment => notification.cycleId,
-      NotificationActionType.openBidding || NotificationActionType.openLuckyDraw || NotificationActionType.openLedger || NotificationActionType.openKameti || NotificationActionType.openPayout => notification.kametiId,
+      NotificationActionType.openCycle ||
+      NotificationActionType.openPayment =>
+        notification.cycleId,
+      NotificationActionType.openBidding ||
+      NotificationActionType.openLuckyDraw ||
+      NotificationActionType.openLedger ||
+      NotificationActionType.openKameti ||
+      NotificationActionType.openPayout =>
+        notification.kametiId,
       NotificationActionType.openReport => notification.kametiId,
       NotificationActionType.none => null,
     };
     if (argument == null || argument.isEmpty) return;
-    Navigator.of(context).pushNamed(notification.actionRoute, arguments: argument);
+    Navigator.of(context)
+        .pushNamed(notification.actionRoute, arguments: argument);
   }
 
   String _kametiName(List<KametiModel> kametis, String id) {

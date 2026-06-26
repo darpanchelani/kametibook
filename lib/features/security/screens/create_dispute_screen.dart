@@ -24,7 +24,8 @@ class CreateDisputeScreen extends ConsumerStatefulWidget {
   final CreateDisputeArgs args;
 
   @override
-  ConsumerState<CreateDisputeScreen> createState() => _CreateDisputeScreenState();
+  ConsumerState<CreateDisputeScreen> createState() =>
+      _CreateDisputeScreenState();
 }
 
 class _CreateDisputeScreenState extends ConsumerState<CreateDisputeScreen> {
@@ -55,20 +56,43 @@ class _CreateDisputeScreenState extends ConsumerState<CreateDisputeScreen> {
           DropdownButtonFormField<DisputeType>(
             initialValue: _type,
             decoration: const InputDecoration(labelText: 'Dispute type'),
-            items: DisputeType.values.map((type) => DropdownMenuItem(value: type, child: Text(type.label))).toList(),
-            onChanged: (value) => setState(() => _type = value ?? DisputeType.other),
+            items: DisputeType.values
+                .map((type) =>
+                    DropdownMenuItem(value: type, child: Text(type.label)))
+                .toList(),
+            onChanged: (value) =>
+                setState(() => _type = value ?? DisputeType.other),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<DisputePriority>(
             initialValue: _priority,
             decoration: const InputDecoration(labelText: 'Priority'),
-            items: DisputePriority.values.map((priority) => DropdownMenuItem(value: priority, child: Text(priority.label))).toList(),
-            onChanged: (value) => setState(() => _priority = value ?? DisputePriority.normal),
+            items: DisputePriority.values
+                .map((priority) => DropdownMenuItem(
+                    value: priority, child: Text(priority.label)))
+                .toList(),
+            onChanged: (value) =>
+                setState(() => _priority = value ?? DisputePriority.normal),
           ),
           const SizedBox(height: 12),
-          TextField(controller: _titleController, decoration: const InputDecoration(labelText: 'Title')),
+          TextField(
+              enableSuggestions: false,
+              autocorrect: false,
+              autofillHints: const <String>[],
+              smartDashesType: SmartDashesType.disabled,
+              smartQuotesType: SmartQuotesType.disabled,
+              controller: _titleController,
+              decoration: const InputDecoration(labelText: 'Title')),
           const SizedBox(height: 12),
-          TextField(controller: _descriptionController, maxLines: 5, decoration: const InputDecoration(labelText: 'Description')),
+          TextField(
+              enableSuggestions: false,
+              autocorrect: false,
+              autofillHints: const <String>[],
+              smartDashesType: SmartDashesType.disabled,
+              smartQuotesType: SmartQuotesType.disabled,
+              controller: _descriptionController,
+              maxLines: 5,
+              decoration: const InputDecoration(labelText: 'Description')),
           const SizedBox(height: 12),
           Card(
             child: ListTile(
@@ -78,14 +102,18 @@ class _CreateDisputeScreenState extends ConsumerState<CreateDisputeScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          FilledButton.icon(onPressed: _submit, icon: const Icon(Icons.report_problem_outlined), label: const Text('Submit Dispute')),
+          FilledButton.icon(
+              onPressed: _submit,
+              icon: const Icon(Icons.report_problem_outlined),
+              label: const Text('Submit Dispute')),
         ]),
       ),
     );
   }
 
   void _submit() {
-    if (_titleController.text.trim().isEmpty || _descriptionController.text.trim().isEmpty) {
+    if (_titleController.text.trim().isEmpty ||
+        _descriptionController.text.trim().isEmpty) {
       SnackbarHelper.showError(context, 'Title and description are required.');
       return;
     }

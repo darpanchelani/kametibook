@@ -22,7 +22,8 @@ class MemberRoleBadge extends StatelessWidget {
       ),
       child: Text(
         role.label,
-        style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 12),
+        style:
+            TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 12),
       ),
     );
   }

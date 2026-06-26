@@ -26,30 +26,51 @@ class FinancialSummaryScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Financial Summary')),
       body: SafeArea(
         child: ListView(padding: const EdgeInsets.all(16), children: [
-          Text('Overall Summary', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          Text('Overall Summary',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
           LedgerSummaryCard(summary: summary),
           const SizedBox(height: 12),
-          Text('Cycle-wise Summary', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          Text('Cycle-wise Summary',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
           ...cycles.map((cycle) {
-            final cycleSummary = ledgerController.calculateCycleLedgerSummary(cycle.id);
+            final cycleSummary =
+                ledgerController.calculateCycleLedgerSummary(cycle.id);
             return Card(
               child: ListTile(
                 title: Text('Month ${cycle.cycleNumber} - ${cycle.monthLabel}'),
-                subtitle: Text('Expected: ${CurrencyFormatter.pkr(cycle.expectedAmount)} | Collected: ${CurrencyFormatter.pkr(cycle.collectedAmount)} | Pending: ${CurrencyFormatter.pkr(cycle.pendingAmount)}'),
-                trailing: Text(CurrencyFormatter.pkr(cycleSummary.groupBalance), style: const TextStyle(fontWeight: FontWeight.w900)),
+                subtitle: Text(
+                    'Expected: ${CurrencyFormatter.pkr(cycle.expectedAmount)} | Collected: ${CurrencyFormatter.pkr(cycle.collectedAmount)} | Pending: ${CurrencyFormatter.pkr(cycle.pendingAmount)}'),
+                trailing: Text(CurrencyFormatter.pkr(cycleSummary.groupBalance),
+                    style: const TextStyle(fontWeight: FontWeight.w900)),
               ),
             );
           }),
           const SizedBox(height: 12),
-          Text('Member-wise Summary', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          Text('Member-wise Summary',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
           ...members.map((member) {
-            final memberSummary = ledgerController.calculateMemberLedgerSummary(member.id);
-            final net = member.receivedAmount + memberSummary.totalDiscounts - memberSummary.totalContributions - memberSummary.totalPenalties;
+            final memberSummary =
+                ledgerController.calculateMemberLedgerSummary(member.id);
+            final net = member.receivedAmount +
+                memberSummary.totalDiscounts -
+                memberSummary.totalContributions -
+                memberSummary.totalPenalties;
             return Card(
               child: ListTile(
                 title: Text(member.fullName),
-                subtitle: Text('Paid: ${CurrencyFormatter.pkr(memberSummary.totalContributions)} | Penalties: ${CurrencyFormatter.pkr(memberSummary.totalPenalties)} | Received: ${CurrencyFormatter.pkr(member.receivedAmount)}'),
-                trailing: Text(CurrencyFormatter.pkr(net), style: const TextStyle(fontWeight: FontWeight.w900)),
+                subtitle: Text(
+                    'Paid: ${CurrencyFormatter.pkr(memberSummary.totalContributions)} | Penalties: ${CurrencyFormatter.pkr(memberSummary.totalPenalties)} | Received: ${CurrencyFormatter.pkr(member.receivedAmount)}'),
+                trailing: Text(CurrencyFormatter.pkr(net),
+                    style: const TextStyle(fontWeight: FontWeight.w900)),
               ),
             );
           }),
@@ -58,7 +79,8 @@ class FinancialSummaryScreen extends ConsumerWidget {
             child: ListTile(
               leading: Icon(Icons.warning_amber_outlined),
               title: Text('Warnings'),
-              subtitle: Text('Some payments or payout proofs may still be pending.'),
+              subtitle:
+                  Text('Some payments or payout proofs may still be pending.'),
             ),
           ),
         ]),

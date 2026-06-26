@@ -21,7 +21,8 @@ class SnackbarHelper {
           content: Text(message),
           behavior: SnackBarBehavior.floating,
           backgroundColor: color,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
   }

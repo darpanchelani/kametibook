@@ -29,10 +29,14 @@ class LedgerDetailScreen extends ConsumerWidget {
       }
     }
     if (entry == null) {
-      return Scaffold(appBar: AppBar(title: const Text('Ledger Detail')), body: const Center(child: Text('Entry not found')));
+      return Scaffold(
+          appBar: AppBar(title: const Text('Ledger Detail')),
+          body: const Center(child: Text('Entry not found')));
     }
     final selectedEntry = entry;
-    final member = ref.read(memberControllerProvider.notifier).getMember(selectedEntry.memberId);
+    final member = ref
+        .read(memberControllerProvider.notifier)
+        .getMember(selectedEntry.memberId);
     return Scaffold(
       appBar: AppBar(title: const Text('Ledger Detail')),
       body: SafeArea(
@@ -40,24 +44,45 @@ class LedgerDetailScreen extends ConsumerWidget {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(selectedEntry.title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
-                const SizedBox(height: 10),
-                Wrap(spacing: 8, runSpacing: 8, children: [LedgerTypeBadge(type: selectedEntry.entryType), LedgerDirectionBadge(direction: selectedEntry.direction), Chip(label: Text(selectedEntry.status.label))]),
-                const SizedBox(height: 12),
-                _Line(label: 'Amount', value: CurrencyFormatter.pkr(selectedEntry.amount)),
-                _Line(label: 'Member', value: member?.fullName ?? '-'),
-                _Line(label: 'Payment Method', value: selectedEntry.paymentMethod?.label ?? '-'),
-                _Line(label: 'Entry Date', value: DateFormatter.display(selectedEntry.entryDate)),
-                _Line(label: 'Created By', value: selectedEntry.createdBy),
-                _Line(label: 'Description', value: selectedEntry.description.isEmpty ? '-' : selectedEntry.description),
-                ProofIndicator(proofPath: selectedEntry.proofPath),
-              ]),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(selectedEntry.title,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 10),
+                    Wrap(spacing: 8, runSpacing: 8, children: [
+                      LedgerTypeBadge(type: selectedEntry.entryType),
+                      LedgerDirectionBadge(direction: selectedEntry.direction),
+                      Chip(label: Text(selectedEntry.status.label))
+                    ]),
+                    const SizedBox(height: 12),
+                    _Line(
+                        label: 'Amount',
+                        value: CurrencyFormatter.pkr(selectedEntry.amount)),
+                    _Line(label: 'Member', value: member?.fullName ?? '-'),
+                    _Line(
+                        label: 'Payment Method',
+                        value: selectedEntry.paymentMethod?.label ?? '-'),
+                    _Line(
+                        label: 'Entry Date',
+                        value: DateFormatter.display(selectedEntry.entryDate)),
+                    _Line(label: 'Created By', value: selectedEntry.createdBy),
+                    _Line(
+                        label: 'Description',
+                        value: selectedEntry.description.isEmpty
+                            ? '-'
+                            : selectedEntry.description),
+                    ProofIndicator(proofPath: selectedEntry.proofPath),
+                  ]),
             ),
           ),
           const SizedBox(height: 12),
           OutlinedButton(
-            onPressed: () => SnackbarHelper.showInfo(context, 'Advanced ledger corrections will be available in future phases.'),
+            onPressed: () => SnackbarHelper.showInfo(context,
+                'Advanced ledger corrections will be available in future phases.'),
             child: const Text('Reverse Entry'),
           ),
           TextButton.icon(
@@ -87,8 +112,13 @@ class _Line extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(width: 130, child: Text(label, style: const TextStyle(color: Colors.black54))),
-          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w800))),
+          SizedBox(
+              width: 130,
+              child:
+                  Text(label, style: const TextStyle(color: Colors.black54))),
+          Expanded(
+              child: Text(value,
+                  style: const TextStyle(fontWeight: FontWeight.w800))),
         ]),
       );
 }

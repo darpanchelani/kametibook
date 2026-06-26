@@ -19,7 +19,12 @@ class AppLoadingView extends StatelessWidget {
 }
 
 class AppEmptyState extends StatelessWidget {
-  const AppEmptyState({required this.icon, required this.title, this.message, this.action, super.key});
+  const AppEmptyState(
+      {required this.icon,
+      required this.title,
+      this.message,
+      this.action,
+      super.key});
   final IconData icon;
   final String title;
   final String? message;
@@ -30,12 +35,23 @@ class AppEmptyState extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          CircleAvatar(radius: 42, backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1), child: Icon(icon, size: 38)),
+          CircleAvatar(
+              radius: 42,
+              backgroundColor:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              child: Icon(icon, size: 38)),
           const SizedBox(height: 16),
-          Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          Text(title,
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
           if (message != null) ...[
             const SizedBox(height: 8),
-            Text(message!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.black54)),
+            Text(message!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.black54)),
           ],
           if (action != null) ...[const SizedBox(height: 18), action!],
         ]),
@@ -54,7 +70,9 @@ class AppErrorState extends StatelessWidget {
       icon: Icons.error_outline,
       title: 'Something went wrong',
       message: message,
-      action: onRetry == null ? null : FilledButton(onPressed: onRetry, child: const Text('Try Again')),
+      action: onRetry == null
+          ? null
+          : FilledButton(onPressed: onRetry, child: const Text('Try Again')),
     );
   }
 }
@@ -64,7 +82,8 @@ class AppSuccessState extends StatelessWidget {
   final String title;
   final String? message;
   @override
-  Widget build(BuildContext context) => AppEmptyState(icon: Icons.check_circle_outline, title: title, message: message);
+  Widget build(BuildContext context) => AppEmptyState(
+      icon: Icons.check_circle_outline, title: title, message: message);
 }
 
 class AppPermissionDeniedView extends StatelessWidget {
@@ -95,7 +114,8 @@ class AppOfflineBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(10),
       color: Colors.orange.withValues(alpha: 0.14),
-      child: const Text('Offline changes will sync when internet is available.', textAlign: TextAlign.center),
+      child: const Text('Offline changes will sync when internet is available.',
+          textAlign: TextAlign.center),
     );
   }
 }

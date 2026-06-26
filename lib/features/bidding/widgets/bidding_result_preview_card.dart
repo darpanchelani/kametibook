@@ -27,11 +27,17 @@ class BiddingResultPreviewCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Winner Preview', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                Text('Winner Preview',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 8),
                 Text('Winner: ${preview.winningBid.memberName}'),
-                Text('Winning Bid: ${CurrencyFormatter.pkr(preview.winningBid.bidAmount)}'),
-                Text('Discount: ${CurrencyFormatter.pkr(preview.discountAmount)}'),
+                Text(
+                    'Winning Bid: ${CurrencyFormatter.pkr(preview.winningBid.bidAmount)}'),
+                Text(
+                    'Discount: ${CurrencyFormatter.pkr(preview.discountAmount)}'),
               ],
             ),
           ),
@@ -42,7 +48,10 @@ class BiddingResultPreviewCard extends StatelessWidget {
           discount: preview.discountAmount,
           adjustments: preview.adjustments,
         ),
-        FilledButton.icon(onPressed: onComplete, icon: const Icon(Icons.lock_outline), label: const Text('Complete Bidding')),
+        FilledButton.icon(
+            onPressed: onComplete,
+            icon: const Icon(Icons.lock_outline),
+            label: const Text('Complete Bidding')),
       ],
     );
   }

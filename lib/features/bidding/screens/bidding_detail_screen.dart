@@ -25,10 +25,14 @@ class BiddingDetailScreen extends ConsumerWidget {
     final memberController = ref.read(memberControllerProvider.notifier);
     final session = biddingController.getSession(sessionId);
     if (session == null) {
-      return Scaffold(appBar: AppBar(title: const Text('Bidding Detail')), body: const Center(child: Text('Bidding session not found')));
+      return Scaffold(
+          appBar: AppBar(title: const Text('Bidding Detail')),
+          body: const Center(child: Text('Bidding session not found')));
     }
-    final kameti = _findKameti(ref.watch(kametiControllerProvider), session.kametiId);
-    final cycle = ref.read(paymentControllerProvider.notifier).getCycle(session.cycleId);
+    final kameti =
+        _findKameti(ref.watch(kametiControllerProvider), session.kametiId);
+    final cycle =
+        ref.read(paymentControllerProvider.notifier).getCycle(session.cycleId);
     final winner = memberController.getMember(session.winnerMemberId);
     final bids = biddingController.getBidsBySessionId(session.id);
     final adjustments = biddingController.getAdjustmentsBySessionId(session.id);
@@ -45,26 +49,51 @@ class BiddingDetailScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(kameti?.name ?? 'Kameti', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                    Text(kameti?.name ?? 'Kameti',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w900)),
                     const SizedBox(height: 10),
                     BiddingStatusBadge(status: session.status),
                     const SizedBox(height: 12),
-                    _Line(label: 'Cycle', value: 'Month ${session.cycleNumber} - ${cycle?.monthLabel ?? ''}'),
+                    _Line(
+                        label: 'Cycle',
+                        value:
+                            'Month ${session.cycleNumber} - ${cycle?.monthLabel ?? ''}'),
                     _Line(label: 'Winner', value: winner?.fullName ?? '-'),
                     _Line(label: 'Winner Phone', value: winner?.phone ?? '-'),
-                    _Line(label: 'Winning Amount', value: CurrencyFormatter.pkr(session.winningAmount)),
-                    _Line(label: 'Total Pool', value: CurrencyFormatter.pkr(session.totalPoolAmount)),
-                    _Line(label: 'Discount', value: CurrencyFormatter.pkr(session.discountAmount)),
-                    _Line(label: 'Distribution', value: session.discountDistributionType.label),
+                    _Line(
+                        label: 'Winning Amount',
+                        value: CurrencyFormatter.pkr(session.winningAmount)),
+                    _Line(
+                        label: 'Total Pool',
+                        value: CurrencyFormatter.pkr(session.totalPoolAmount)),
+                    _Line(
+                        label: 'Discount',
+                        value: CurrencyFormatter.pkr(session.discountAmount)),
+                    _Line(
+                        label: 'Distribution',
+                        value: session.discountDistributionType.label),
                     _Line(label: 'Created By', value: session.createdBy),
-                    if (session.startTime != null) _Line(label: 'Start Time', value: DateFormatter.display(session.startTime!)),
-                    if (session.endTime != null) _Line(label: 'End Time', value: DateFormatter.display(session.endTime!)),
+                    if (session.startTime != null)
+                      _Line(
+                          label: 'Start Time',
+                          value: DateFormatter.display(session.startTime!)),
+                    if (session.endTime != null)
+                      _Line(
+                          label: 'End Time',
+                          value: DateFormatter.display(session.endTime!)),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 12),
-            Text('All Bids', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+            Text('All Bids',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             if (bids.isEmpty)
               const Text('No bids submitted.')
             else
@@ -76,11 +105,16 @@ class BiddingDetailScreen extends ConsumerWidget {
                     onWithdraw: () {},
                   )),
             const SizedBox(height: 12),
-            Text('Discount Adjustments', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+            Text('Discount Adjustments',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900)),
             if (adjustments.isEmpty)
               const Text('No discount adjustments.')
             else
-              ...adjustments.map((adjustment) => DiscountAdjustmentCard(adjustment: adjustment)),
+              ...adjustments.map((adjustment) =>
+                  DiscountAdjustmentCard(adjustment: adjustment)),
             const SizedBox(height: 12),
             ...['Payout Proof', 'Ledger Entry', 'PDF Report'].map(
               (title) => Card(
@@ -118,8 +152,13 @@ class _Line extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 140, child: Text(label, style: const TextStyle(color: Colors.black54))),
-          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w800))),
+          SizedBox(
+              width: 140,
+              child:
+                  Text(label, style: const TextStyle(color: Colors.black54))),
+          Expanded(
+              child: Text(value,
+                  style: const TextStyle(fontWeight: FontWeight.w800))),
         ],
       ),
     );

@@ -55,9 +55,12 @@ class _GroupLedgerScreenState extends ConsumerState<GroupLedgerScreen> {
     ref.watch(memberControllerProvider);
     final ledgerController = ref.read(ledgerControllerProvider.notifier);
     final memberController = ref.read(memberControllerProvider.notifier);
-    final summary = ledgerController.calculateGroupLedgerSummary(widget.kametiId);
+    final summary =
+        ledgerController.calculateGroupLedgerSummary(widget.kametiId);
     final query = _searchController.text.trim().toLowerCase();
-    var entries = ledgerController.getLedgerEntriesByKametiId(widget.kametiId).where((entry) {
+    var entries = ledgerController
+        .getLedgerEntriesByKametiId(widget.kametiId)
+        .where((entry) {
       final member = memberController.getMember(entry.memberId);
       final matchesFilter = _filter == null || entry.entryType == _filter;
       final matchesSearch = query.isEmpty ||
@@ -78,30 +81,71 @@ class _GroupLedgerScreenState extends ConsumerState<GroupLedgerScreen> {
             LedgerSummaryCard(summary: summary),
             const SizedBox(height: 12),
             Row(children: [
-              Expanded(child: AppButton(label: 'Sync Ledger', icon: Icons.sync, onPressed: () {
-                _sync();
-                SnackbarHelper.showSuccess(context, 'Ledger synced successfully.');
-              })),
+              Expanded(
+                  child: AppButton(
+                      label: 'Sync Ledger',
+                      icon: Icons.sync,
+                      onPressed: () {
+                        _sync();
+                        SnackbarHelper.showSuccess(
+                            context, 'Ledger synced successfully.');
+                      })),
               const SizedBox(width: 10),
-              Expanded(child: AppButton(label: 'Add Manual Entry', icon: Icons.add, isOutlined: true, onPressed: () => Navigator.of(context).pushNamed(AppRoutes.manualLedgerEntry, arguments: widget.kametiId))),
+              Expanded(
+                  child: AppButton(
+                      label: 'Add Manual Entry',
+                      icon: Icons.add,
+                      isOutlined: true,
+                      onPressed: () => Navigator.of(context).pushNamed(
+                          AppRoutes.manualLedgerEntry,
+                          arguments: widget.kametiId))),
             ]),
             const SizedBox(height: 12),
-            TextField(controller: _searchController, onChanged: (_) => setState(() {}), decoration: const InputDecoration(labelText: 'Search ledger', prefixIcon: Icon(Icons.search))),
+            TextField(
+                enableSuggestions: false,
+                autocorrect: false,
+                autofillHints: const <String>[],
+                smartDashesType: SmartDashesType.disabled,
+                smartQuotesType: SmartQuotesType.disabled,
+                controller: _searchController,
+                onChanged: (_) => setState(() {}),
+                decoration: const InputDecoration(
+                    labelText: 'Search ledger',
+                    prefixIcon: Icon(Icons.search))),
             const SizedBox(height: 12),
             Wrap(spacing: 8, runSpacing: 8, children: [
-              FilterChip(label: const Text('All'), selected: _filter == null, onSelected: (_) => setState(() => _filter = null)),
-              for (final type in [LedgerEntryType.contribution, LedgerEntryType.payout, LedgerEntryType.discountGenerated, LedgerEntryType.penalty, LedgerEntryType.correction])
-                FilterChip(label: Text(type.label), selected: _filter == type, onSelected: (_) => setState(() => _filter = type)),
-              FilterChip(label: Text(_newestFirst ? 'Newest first' : 'Oldest first'), selected: true, onSelected: (_) => setState(() => _newestFirst = !_newestFirst)),
+              FilterChip(
+                  label: const Text('All'),
+                  selected: _filter == null,
+                  onSelected: (_) => setState(() => _filter = null)),
+              for (final type in [
+                LedgerEntryType.contribution,
+                LedgerEntryType.payout,
+                LedgerEntryType.discountGenerated,
+                LedgerEntryType.penalty,
+                LedgerEntryType.correction
+              ])
+                FilterChip(
+                    label: Text(type.label),
+                    selected: _filter == type,
+                    onSelected: (_) => setState(() => _filter = type)),
+              FilterChip(
+                  label: Text(_newestFirst ? 'Newest first' : 'Oldest first'),
+                  selected: true,
+                  onSelected: (_) =>
+                      setState(() => _newestFirst = !_newestFirst)),
             ]),
             const SizedBox(height: 12),
             if (entries.isEmpty)
-              const EmptyState(icon: Icons.menu_book_outlined, title: 'No ledger entries yet.')
+              const EmptyState(
+                  icon: Icons.menu_book_outlined,
+                  title: 'No ledger entries yet.')
             else
               ...entries.map((entry) => LedgerEntryCard(
                     entry: entry,
                     member: memberController.getMember(entry.memberId),
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.ledgerDetail, arguments: entry.id),
+                    onTap: () => Navigator.of(context)
+                        .pushNamed(AppRoutes.ledgerDetail, arguments: entry.id),
                   )),
           ],
         ),

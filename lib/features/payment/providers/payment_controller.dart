@@ -49,7 +49,8 @@ class PaymentController extends StateNotifier<PaymentState> {
   final DateFormat _monthFormat = DateFormat('MMMM yyyy');
 
   List<PaymentCycleModel> getCyclesByKametiId(String kametiId) {
-    final cycles = state.cycles.where((cycle) => cycle.kametiId == kametiId).toList();
+    final cycles =
+        state.cycles.where((cycle) => cycle.kametiId == kametiId).toList();
     cycles.sort((a, b) => a.cycleNumber.compareTo(b.cycleNumber));
     return cycles;
   }
@@ -62,11 +63,15 @@ class PaymentController extends StateNotifier<PaymentState> {
   }
 
   List<MemberPaymentModel> getPaymentsByCycleId(String cycleId) {
-    return state.payments.where((payment) => payment.cycleId == cycleId).toList();
+    return state.payments
+        .where((payment) => payment.cycleId == cycleId)
+        .toList();
   }
 
   List<MemberPaymentModel> getPaymentsByMemberId(String memberId) {
-    final payments = state.payments.where((payment) => payment.memberId == memberId).toList();
+    final payments = state.payments
+        .where((payment) => payment.memberId == memberId)
+        .toList();
     payments.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return payments;
   }
@@ -93,7 +98,9 @@ class PaymentController extends StateNotifier<PaymentState> {
     if (getCyclesByKametiId(kameti.id).isNotEmpty) return;
 
     final activeMembers = members
-        .where((member) => member.kametiId == kameti.id && member.status == MemberStatus.active)
+        .where((member) =>
+            member.kametiId == kameti.id &&
+            member.status == MemberStatus.active)
         .toList();
     if (activeMembers.isEmpty) return;
 
@@ -101,10 +108,12 @@ class PaymentController extends StateNotifier<PaymentState> {
     final cycles = <PaymentCycleModel>[];
     final payments = <MemberPaymentModel>[];
     for (var index = 0; index < kameti.durationMonths; index++) {
-      final monthDate = DateTime(kameti.startDate.year, kameti.startDate.month + index);
+      final monthDate =
+          DateTime(kameti.startDate.year, kameti.startDate.month + index);
       final dueDate = DateTime(monthDate.year, monthDate.month, kameti.dueDay);
       final cycleId = '${kameti.id}-cycle-${index + 1}';
-      final status = index == 0 ? PaymentCycleStatus.current : PaymentCycleStatus.upcoming;
+      final status =
+          index == 0 ? PaymentCycleStatus.current : PaymentCycleStatus.upcoming;
       cycles.add(
         PaymentCycleModel(
           id: cycleId,
@@ -156,7 +165,8 @@ class PaymentController extends StateNotifier<PaymentState> {
   }) {
     final now = DateTime.now();
     final additions = <MemberPaymentModel>[];
-    for (final member in members.where((member) => member.status == MemberStatus.active)) {
+    for (final member
+        in members.where((member) => member.status == MemberStatus.active)) {
       final paymentId = '${cycle.id}-${member.id}';
       final exists = state.payments.any((payment) => payment.id == paymentId);
       if (exists) continue;
@@ -184,13 +194,21 @@ class PaymentController extends StateNotifier<PaymentState> {
     recalculateCycleSummary(cycle.id);
   }
 
-  double getCycleExpectedAmount(String cycleId) => getCycle(cycleId)?.expectedAmount ?? 0;
-  double getCycleCollectedAmount(String cycleId) => getCycle(cycleId)?.collectedAmount ?? 0;
-  double getCyclePendingAmount(String cycleId) => getCycle(cycleId)?.pendingAmount ?? 0;
-  int getPaidMembersCount(String cycleId) => _count(cycleId, PaymentStatus.paid) + _count(cycleId, PaymentStatus.waived);
-  int getPendingMembersCount(String cycleId) => _count(cycleId, PaymentStatus.pending);
-  int getLateMembersCount(String cycleId) => _count(cycleId, PaymentStatus.late);
-  int getRejectedMembersCount(String cycleId) => _count(cycleId, PaymentStatus.rejected);
+  double getCycleExpectedAmount(String cycleId) =>
+      getCycle(cycleId)?.expectedAmount ?? 0;
+  double getCycleCollectedAmount(String cycleId) =>
+      getCycle(cycleId)?.collectedAmount ?? 0;
+  double getCyclePendingAmount(String cycleId) =>
+      getCycle(cycleId)?.pendingAmount ?? 0;
+  int getPaidMembersCount(String cycleId) =>
+      _count(cycleId, PaymentStatus.paid) +
+      _count(cycleId, PaymentStatus.waived);
+  int getPendingMembersCount(String cycleId) =>
+      _count(cycleId, PaymentStatus.pending);
+  int getLateMembersCount(String cycleId) =>
+      _count(cycleId, PaymentStatus.late);
+  int getRejectedMembersCount(String cycleId) =>
+      _count(cycleId, PaymentStatus.rejected);
 
   void markPaymentPaid(String paymentId, MarkPaymentPaidData data) {
     _updatePayment(
@@ -302,8 +320,13 @@ class PaymentController extends StateNotifier<PaymentState> {
   String? completeCycle(String cycleId) {
     final payments = getPaymentsByCycleId(cycleId);
     final hasOpenPayments = payments.any((payment) => !payment.countsAsPaid);
-    if (hasOpenPayments) return 'Complete all member payments before closing this cycle.';
-    _replaceCycle(cycleId, (cycle) => cycle.copyWith(status: PaymentCycleStatus.completed, updatedAt: DateTime.now()));
+    if (hasOpenPayments) {
+      return 'Complete all member payments before closing this cycle.';
+    }
+    _replaceCycle(
+        cycleId,
+        (cycle) => cycle.copyWith(
+            status: PaymentCycleStatus.completed, updatedAt: DateTime.now()));
     return null;
   }
 
@@ -313,9 +336,12 @@ class PaymentController extends StateNotifier<PaymentState> {
     state = state.copyWith(
       cycles: [
         for (final cycle in state.cycles)
-          if (cycle.kametiId == target.kametiId && cycle.status != PaymentCycleStatus.completed)
+          if (cycle.kametiId == target.kametiId &&
+              cycle.status != PaymentCycleStatus.completed)
             cycle.copyWith(
-              status: cycle.id == cycleId ? PaymentCycleStatus.current : PaymentCycleStatus.upcoming,
+              status: cycle.id == cycleId
+                  ? PaymentCycleStatus.current
+                  : PaymentCycleStatus.upcoming,
               updatedAt: DateTime.now(),
             )
           else
@@ -328,8 +354,10 @@ class PaymentController extends StateNotifier<PaymentState> {
     final cycle = getCycle(cycleId);
     if (cycle == null) return;
     final payments = getPaymentsByCycleId(cycleId);
-    final expected = payments.fold<double>(0, (total, payment) => total + payment.amountDue);
-    final collected = payments.fold<double>(0, (total, payment) => total + payment.amountPaid);
+    final expected =
+        payments.fold<double>(0, (total, payment) => total + payment.amountDue);
+    final collected = payments.fold<double>(
+        0, (total, payment) => total + payment.amountPaid);
     final pending = (expected - collected).clamp(0, expected).toDouble();
     _replaceCycle(
       cycleId,
@@ -344,7 +372,8 @@ class PaymentController extends StateNotifier<PaymentState> {
 
   int pendingPaymentsInCurrentCycles(List<KametiModel> kametis) {
     var count = 0;
-    for (final kameti in kametis.where((item) => item.status == KametiStatus.active)) {
+    for (final kameti
+        in kametis.where((item) => item.status == KametiStatus.active)) {
       final cycle = getCurrentCycle(kameti.id);
       if (cycle == null) continue;
       count += getPaymentsByCycleId(cycle.id).where((payment) {
@@ -358,7 +387,8 @@ class PaymentController extends StateNotifier<PaymentState> {
 
   double collectedInCurrentCycles(List<KametiModel> kametis) {
     var total = 0.0;
-    for (final kameti in kametis.where((item) => item.status == KametiStatus.active)) {
+    for (final kameti
+        in kametis.where((item) => item.status == KametiStatus.active)) {
       final cycle = getCurrentCycle(kameti.id);
       if (cycle == null) continue;
       total += cycle.collectedAmount;
@@ -366,7 +396,8 @@ class PaymentController extends StateNotifier<PaymentState> {
     return total;
   }
 
-  void _updatePayment(String paymentId, MemberPaymentModel Function(MemberPaymentModel payment) update) {
+  void _updatePayment(String paymentId,
+      MemberPaymentModel Function(MemberPaymentModel payment) update) {
     String? cycleId;
     state = state.copyWith(
       payments: [
@@ -380,7 +411,8 @@ class PaymentController extends StateNotifier<PaymentState> {
     if (cycleId != null) recalculateCycleSummary(cycleId!);
   }
 
-  void _replaceCycle(String cycleId, PaymentCycleModel Function(PaymentCycleModel cycle) update) {
+  void _replaceCycle(String cycleId,
+      PaymentCycleModel Function(PaymentCycleModel cycle) update) {
     state = state.copyWith(
       cycles: [
         for (final cycle in state.cycles)
@@ -390,7 +422,9 @@ class PaymentController extends StateNotifier<PaymentState> {
   }
 
   int _count(String cycleId, PaymentStatus status) {
-    return getPaymentsByCycleId(cycleId).where((payment) => payment.paymentStatus == status).length;
+    return getPaymentsByCycleId(cycleId)
+        .where((payment) => payment.paymentStatus == status)
+        .length;
   }
 }
 
