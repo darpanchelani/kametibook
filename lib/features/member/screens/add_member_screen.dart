@@ -189,11 +189,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
       if (FirebaseBootstrap.isInitialized) {
         await _saveCloudMembership(kameti, member);
       }
-      final validationError =
-          memberController.addMemberForKameti(kameti: kameti, member: member);
-      if (validationError != null) {
-        throw StateError(validationError);
-      }
+      memberController.addMember(member);
       ref
           .read(kametiControllerProvider.notifier)
           .addMemberUser(kameti.id, profile.id);
@@ -227,23 +223,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
         .collection('joinedKametis')
         .doc(kameti.id);
 
-    batch.set(memberRef, {
-      'id': member.id,
-      'kametiId': member.kametiId,
-      'userId': member.userId,
-      'fullName': member.fullName,
-      'phone': member.phone,
-      'city': member.city,
-      'email': member.email,
-      'profilePhotoUrl': member.profilePhotoUrl,
-      'role': member.role.name,
-      'status': member.status.name,
-      'inviteStatus': member.inviteStatus.name,
-      'joinedByApp': member.joinedByApp,
-      'joinedAt': member.joinedAt.millisecondsSinceEpoch,
-      'createdAt': member.createdAt.millisecondsSinceEpoch,
-      'updatedAt': member.updatedAt.millisecondsSinceEpoch,
-    });
+    batch.set(memberRef, member.toFirestore());
     batch.set(joinedRef, {
       'kametiId': kameti.id,
       'role': member.role.name,

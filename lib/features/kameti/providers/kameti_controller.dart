@@ -30,8 +30,14 @@ class KametiController extends StateNotifier<List<KametiModel>> {
   final Ref _ref;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _joinedSubscription;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _ownedSubscription;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _memberArraySubscription;
   final Map<String, StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>>
       _kametiSubscriptions = {};
+  final Set<String> _joinedKametiIds = <String>{};
+  final Set<String> _ownedKametiIds = <String>{};
+  final Set<String> _memberArrayKametiIds = <String>{};
   String _syncedUserId = '';
 
   Future<void> createKameti(KametiModel kameti) async {
@@ -59,9 +65,13 @@ class KametiController extends StateNotifier<List<KametiModel>> {
             .where((doc) => (doc.data()['status'] ?? 'active') == 'active')
             .map((doc) => doc.id)
             .toSet();
+        _joinedKametiIds
+          ..clear()
+          ..addAll(activeIds);
 
         for (final kametiId in _kametiSubscriptions.keys.toList()) {
-          if (!activeIds.contains(kametiId)) {
+          if (!activeIds.contains(kametiId) &&
+              !_isVisibleFromAnyCloudSource(kametiId)) {
             _kametiSubscriptions.remove(kametiId)?.cancel();
             _removeKameti(kametiId);
           }
@@ -75,10 +85,41 @@ class KametiController extends StateNotifier<List<KametiModel>> {
         debugPrint('KametiBook joined kametis sync failed: $error');
       },
     );
+
+    _ownedSubscription = _firestore
+        .collection('kametis')
+        .where('ownerUserId', isEqualTo: userId)
+        .snapshots()
+        .listen(
+      (snapshot) => _handleKametiQuerySnapshot(
+        snapshot,
+        sourceIds: _ownedKametiIds,
+        userId: userId,
+      ),
+      onError: (Object error) {
+        debugPrint('KametiBook owned kametis sync failed: $error');
+      },
+    );
+
+    _memberArraySubscription = _firestore
+        .collection('kametis')
+        .where('memberUserIds', arrayContains: userId)
+        .snapshots()
+        .listen(
+      (snapshot) => _handleKametiQuerySnapshot(
+        snapshot,
+        sourceIds: _memberArrayKametiIds,
+        userId: userId,
+      ),
+      onError: (Object error) {
+        debugPrint('KametiBook member kametis sync failed: $error');
+      },
+    );
   }
 
   Future<void> clearUserData() async {
     _syncedUserId = '';
+    _joinedKametiIds.clear();
     await _cancelCloudSubscriptions();
     state = const [];
   }
@@ -97,7 +138,8 @@ class KametiController extends StateNotifier<List<KametiModel>> {
         .where(
           (kameti) =>
               kameti.ownerUserId == userId ||
-              kameti.memberUserIds.contains(userId),
+              kameti.memberUserIds.contains(userId) ||
+              _isVisibleFromAnyCloudSource(kameti.id),
         )
         .toList();
   }
@@ -106,7 +148,8 @@ class KametiController extends StateNotifier<List<KametiModel>> {
     final kameti = byId(kametiId);
     if (kameti == null || userId.isEmpty) return false;
     return kameti.ownerUserId == userId ||
-        kameti.memberUserIds.contains(userId);
+        kameti.memberUserIds.contains(userId) ||
+        _isVisibleFromAnyCloudSource(kameti.id);
   }
 
   bool canManageKameti(String kametiId, String userId) {
@@ -304,15 +347,70 @@ class KametiController extends StateNotifier<List<KametiModel>> {
         }
         final data = snapshot.data();
         if (data == null) return;
-        _upsertKameti(KametiModel.fromFirestore({
+        final kameti = KametiModel.fromFirestore({
           ...data,
           'id': data['id'] ?? snapshot.id,
-        }));
+        });
+        if (_syncedUserId.isNotEmpty &&
+            _joinedKametiIds.contains(kameti.id) &&
+            !kameti.memberUserIds.contains(_syncedUserId)) {
+          _upsertKameti(
+            kameti.copyWith(
+              memberUserIds: [...kameti.memberUserIds, _syncedUserId],
+            ),
+          );
+          return;
+        }
+        _upsertKameti(kameti);
       },
       onError: (Object error) {
         debugPrint('KametiBook kameti sync failed for $kametiId: $error');
       },
     );
+  }
+
+  void _handleKametiQuerySnapshot(
+    QuerySnapshot<Map<String, dynamic>> snapshot, {
+    required Set<String> sourceIds,
+    required String userId,
+  }) {
+    final previousIds = Set<String>.from(sourceIds);
+    final incomingIds = <String>{};
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final kameti = KametiModel.fromFirestore({
+        ...data,
+        'id': data['id'] ?? doc.id,
+      });
+      incomingIds.add(kameti.id);
+
+      final normalizedKameti =
+          userId.isNotEmpty && !kameti.memberUserIds.contains(userId)
+              ? kameti.copyWith(
+                  memberUserIds: [...kameti.memberUserIds, userId],
+                )
+              : kameti;
+      _upsertKameti(normalizedKameti);
+      _listenToKameti(kameti.id);
+    }
+
+    sourceIds
+      ..clear()
+      ..addAll(incomingIds);
+
+    for (final removedId in previousIds.difference(incomingIds)) {
+      if (!_isVisibleFromAnyCloudSource(removedId)) {
+        _kametiSubscriptions.remove(removedId)?.cancel();
+        _removeKameti(removedId);
+      }
+    }
+  }
+
+  bool _isVisibleFromAnyCloudSource(String kametiId) {
+    return _joinedKametiIds.contains(kametiId) ||
+        _ownedKametiIds.contains(kametiId) ||
+        _memberArrayKametiIds.contains(kametiId);
   }
 
   void _removeKameti(String kametiId) {
@@ -321,7 +419,14 @@ class KametiController extends StateNotifier<List<KametiModel>> {
 
   Future<void> _cancelCloudSubscriptions() async {
     await _joinedSubscription?.cancel();
+    await _ownedSubscription?.cancel();
+    await _memberArraySubscription?.cancel();
     _joinedSubscription = null;
+    _ownedSubscription = null;
+    _memberArraySubscription = null;
+    _joinedKametiIds.clear();
+    _ownedKametiIds.clear();
+    _memberArrayKametiIds.clear();
     for (final subscription in _kametiSubscriptions.values) {
       await subscription.cancel();
     }

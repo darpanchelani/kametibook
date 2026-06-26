@@ -148,4 +148,109 @@ class MemberModel {
       linkedAt: linkedAt ?? this.linkedAt,
     );
   }
+
+  Map<String, Object?> toFirestore() {
+    return {
+      'id': id,
+      'kametiId': kametiId,
+      'fullName': fullName,
+      'phone': phone,
+      'city': city,
+      'cnic': cnic,
+      'whatsappNumber': whatsappNumber,
+      'email': email,
+      'notes': notes,
+      'profilePhotoUrl': profilePhotoUrl,
+      'role': role.name,
+      'status': status.name,
+      'hasReceivedKameti': hasReceivedKameti,
+      'joinedAt': joinedAt.millisecondsSinceEpoch,
+      'createdAt': createdAt.millisecondsSinceEpoch,
+      'updatedAt': updatedAt.millisecondsSinceEpoch,
+      'receivedCycleId': receivedCycleId,
+      'receivedCycleNumber': receivedCycleNumber,
+      'receivedAt': receivedAt?.millisecondsSinceEpoch,
+      'receivedAmount': receivedAmount,
+      'receivedVia': receivedVia,
+      'userId': userId,
+      'invitedBy': invitedBy,
+      'inviteStatus': inviteStatus.name,
+      'joinedByApp': joinedByApp,
+      'linkedAt': linkedAt?.millisecondsSinceEpoch,
+    };
+  }
+
+  factory MemberModel.fromFirestore(Map<String, Object?> data) {
+    return MemberModel(
+      id: _stringValue(data['id']),
+      kametiId: _stringValue(data['kametiId']),
+      fullName: _stringValue(data['fullName']),
+      phone: _stringValue(data['phone']),
+      city: _stringValue(data['city']),
+      cnic: _stringValue(data['cnic']),
+      whatsappNumber: _stringValue(data['whatsappNumber']),
+      email: _stringValue(data['email']),
+      notes: _stringValue(data['notes']),
+      profilePhotoUrl: _stringValue(data['profilePhotoUrl']),
+      role: _enumValue(MemberRole.values, data['role'], MemberRole.member),
+      status:
+          _enumValue(MemberStatus.values, data['status'], MemberStatus.active),
+      hasReceivedKameti: _boolValue(data['hasReceivedKameti']),
+      joinedAt: _dateValue(data['joinedAt']),
+      createdAt: _dateValue(data['createdAt']),
+      updatedAt: _dateValue(data['updatedAt']),
+      receivedCycleId: _stringValue(data['receivedCycleId']),
+      receivedCycleNumber: data['receivedCycleNumber'] == null
+          ? null
+          : _intValue(data['receivedCycleNumber']),
+      receivedAt:
+          data['receivedAt'] == null ? null : _dateValue(data['receivedAt']),
+      receivedAmount: _doubleValue(data['receivedAmount']),
+      receivedVia: _stringValue(data['receivedVia']),
+      userId: _stringValue(data['userId']),
+      invitedBy: _stringValue(data['invitedBy']),
+      inviteStatus: _enumValue(
+        MemberInviteStatus.values,
+        data['inviteStatus'],
+        MemberInviteStatus.none,
+      ),
+      joinedByApp: _boolValue(data['joinedByApp']),
+      linkedAt: data['linkedAt'] == null ? null : _dateValue(data['linkedAt']),
+    );
+  }
+}
+
+String _stringValue(Object? value) => value == null ? '' : '$value';
+
+bool _boolValue(Object? value, {bool fallback = false}) {
+  if (value is bool) return value;
+  return fallback;
+}
+
+double _doubleValue(Object? value, {double fallback = 0}) {
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? fallback;
+  return fallback;
+}
+
+int _intValue(Object? value, {int fallback = 0}) {
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? fallback;
+  return fallback;
+}
+
+DateTime _dateValue(Object? value) {
+  if (value is DateTime) return value;
+  if (value is num) return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+  if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+  return DateTime.now();
+}
+
+T _enumValue<T extends Enum>(List<T> values, Object? value, T fallback) {
+  final name = value?.toString();
+  if (name == null || name.isEmpty) return fallback;
+  for (final item in values) {
+    if (item.name == name) return item;
+  }
+  return fallback;
 }

@@ -192,19 +192,11 @@ class FirebaseMemberRepository implements MemberRepository {
 
   @override
   Future<void> addMember(MemberModel member) => _firestore
-          .collection('kametis')
-          .doc(member.kametiId)
-          .collection('members')
-          .doc(member.id)
-          .set({
-        'id': member.id,
-        'userId': member.userId,
-        'fullName': member.fullName,
-        'phone': member.phone,
-        'profilePhotoUrl': member.profilePhotoUrl,
-        'role': member.role.name,
-        'status': member.status.name
-      });
+      .collection('kametis')
+      .doc(member.kametiId)
+      .collection('members')
+      .doc(member.id)
+      .set(member.toFirestore());
 
   @override
   Future<KametiInviteModel> inviteMember(KametiInviteModel invite) async {

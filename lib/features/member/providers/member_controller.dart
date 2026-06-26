@@ -1,7 +1,14 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/firebase_bootstrap.dart';
 import '../../auth/models/user_model.dart';
+import '../../auth/providers/auth_controller.dart';
 import '../../kameti/models/kameti_model.dart';
+import '../../kameti/providers/kameti_controller.dart';
 import '../models/member_model.dart';
 
 class StartKametiCheck {
@@ -19,13 +26,33 @@ class StartKametiCheck {
 }
 
 class MemberController extends StateNotifier<List<MemberModel>> {
-  MemberController() : super(const []);
+  MemberController(this._ref) : super(const []) {
+    _ref.listen<AuthState>(authControllerProvider, (previous, next) {
+      if (next.status == AuthStatus.unauthenticated ||
+          next.status == AuthStatus.profileMissing ||
+          next.status == AuthStatus.blocked) {
+        clearUserData();
+      }
+    });
+    _ref.listen<List<KametiModel>>(kametiControllerProvider, (previous, next) {
+      _syncVisibleKametiMembers(next);
+    });
+    _syncVisibleKametiMembers(_ref.read(kametiControllerProvider));
+  }
+
+  final Ref _ref;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final Map<String, StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>
+      _memberSubscriptions = {};
 
   List<MemberModel> getMembersByKametiId(String kametiId) {
-    final members = state.where((member) => member.kametiId == kametiId).toList();
+    final members =
+        state.where((member) => member.kametiId == kametiId).toList();
     members.sort((a, b) {
       if (a.role != b.role) return a.role == MemberRole.organizer ? -1 : 1;
-      if (a.status != b.status) return a.status == MemberStatus.removed ? 1 : -1;
+      if (a.status != b.status) {
+        return a.status == MemberStatus.removed ? 1 : -1;
+      }
       return a.joinedAt.compareTo(b.joinedAt);
     });
     return members;
@@ -39,10 +66,13 @@ class MemberController extends StateNotifier<List<MemberModel>> {
   }
 
   int getActiveMembersCount(String kametiId) {
-    return getMembersByKametiId(kametiId).where((member) => member.isActiveForCount).length;
+    return getMembersByKametiId(kametiId)
+        .where((member) => member.isActiveForCount)
+        .length;
   }
 
-  bool hasDuplicatePhone(String kametiId, String phone, {String? ignoreMemberId}) {
+  bool hasDuplicatePhone(String kametiId, String phone,
+      {String? ignoreMemberId}) {
     final normalized = _normalizePhone(phone);
     return state.any(
       (member) =>
@@ -57,17 +87,23 @@ class MemberController extends StateNotifier<List<MemberModel>> {
     required KametiModel kameti,
     required UserModel? currentUser,
   }) {
+    final organizerId = currentUser?.id.isNotEmpty == true
+        ? currentUser!.id
+        : '${kameti.id}-organizer';
     final hasOrganizer = state.any(
-      (member) => member.kametiId == kameti.id && member.role == MemberRole.organizer,
+      (member) =>
+          member.kametiId == kameti.id && member.role == MemberRole.organizer,
     );
     if (hasOrganizer) return;
 
     final now = DateTime.now();
     addMember(
       MemberModel(
-        id: '${kameti.id}-organizer',
+        id: organizerId,
         kametiId: kameti.id,
-        fullName: currentUser?.fullName.trim().isNotEmpty == true ? currentUser!.fullName : kameti.organizerName,
+        fullName: currentUser?.fullName.trim().isNotEmpty == true
+            ? currentUser!.fullName
+            : kameti.organizerName,
         phone: currentUser?.phone ?? '',
         city: currentUser?.city ?? 'Pakistan',
         cnic: '',
@@ -102,7 +138,7 @@ class MemberController extends StateNotifier<List<MemberModel>> {
   }
 
   void addMember(MemberModel member) {
-    state = [member, ...state];
+    _upsertMember(member);
   }
 
   String? updateMember({
@@ -110,12 +146,16 @@ class MemberController extends StateNotifier<List<MemberModel>> {
     required String memberId,
     required MemberModel updatedMember,
   }) {
-    if (hasDuplicatePhone(kametiId, updatedMember.phone, ignoreMemberId: memberId)) {
+    if (hasDuplicatePhone(kametiId, updatedMember.phone,
+        ignoreMemberId: memberId)) {
       return 'A member with this phone number already exists.';
     }
     state = [
       for (final member in state)
-        if (member.id == memberId) updatedMember.copyWith(updatedAt: DateTime.now()) else member,
+        if (member.id == memberId)
+          updatedMember.copyWith(updatedAt: DateTime.now())
+        else
+          member,
     ];
     return null;
   }
@@ -126,8 +166,12 @@ class MemberController extends StateNotifier<List<MemberModel>> {
   }) {
     final member = getMember(memberId);
     if (member == null) return 'Member not found.';
-    if (member.role == MemberRole.organizer) return 'Organizer cannot be removed.';
-    if (kameti.status != KametiStatus.draft) return 'Cannot remove members after kameti has started.';
+    if (member.role == MemberRole.organizer) {
+      return 'Organizer cannot be removed.';
+    }
+    if (kameti.status != KametiStatus.draft) {
+      return 'Cannot remove members after kameti has started.';
+    }
 
     state = [
       for (final item in state)
@@ -146,11 +190,18 @@ class MemberController extends StateNotifier<List<MemberModel>> {
   }) {
     final member = getMember(memberId);
     if (member == null) return 'Member not found.';
-    if (member.role == MemberRole.organizer) return 'Organizer cannot be blocked.';
+    if (member.role == MemberRole.organizer) {
+      return 'Organizer cannot be blocked.';
+    }
     state = [
       for (final item in state)
         if (item.id == memberId)
-          item.copyWith(status: MemberStatus.blocked, notes: reason.isEmpty ? item.notes : '${item.notes}\nBlocked: $reason', updatedAt: DateTime.now())
+          item.copyWith(
+              status: MemberStatus.blocked,
+              notes: reason.isEmpty
+                  ? item.notes
+                  : '${item.notes}\nBlocked: $reason',
+              updatedAt: DateTime.now())
         else
           item,
     ];
@@ -164,7 +215,10 @@ class MemberController extends StateNotifier<List<MemberModel>> {
     if (member == null) return 'Member not found.';
     state = [
       for (final item in state)
-        if (item.id == memberId) item.copyWith(status: MemberStatus.active, updatedAt: DateTime.now()) else item,
+        if (item.id == memberId)
+          item.copyWith(status: MemberStatus.active, updatedAt: DateTime.now())
+        else
+          item,
     ];
     return null;
   }
@@ -233,7 +287,8 @@ class MemberController extends StateNotifier<List<MemberModel>> {
         canStart: false,
         activeMembersCount: activeMembersCount,
         remainingMembersCount: remaining,
-        message: 'Please add $remaining more members before starting this kameti.',
+        message:
+            'Please add $remaining more members before starting this kameti.',
       );
     }
     return StartKametiCheck(
@@ -243,10 +298,77 @@ class MemberController extends StateNotifier<List<MemberModel>> {
     );
   }
 
-  static String _normalizePhone(String phone) => phone.replaceAll(RegExp(r'\D'), '');
+  static String _normalizePhone(String phone) =>
+      phone.replaceAll(RegExp(r'\D'), '');
+
+  Future<void> clearUserData() async {
+    for (final subscription in _memberSubscriptions.values) {
+      await subscription.cancel();
+    }
+    _memberSubscriptions.clear();
+    state = const [];
+  }
+
+  void _syncVisibleKametiMembers(List<KametiModel> kametis) {
+    if (!FirebaseBootstrap.isInitialized) return;
+    final visibleIds = kametis.map((kameti) => kameti.id).toSet();
+
+    for (final kametiId in _memberSubscriptions.keys.toList()) {
+      if (!visibleIds.contains(kametiId)) {
+        _memberSubscriptions.remove(kametiId)?.cancel();
+        state = state.where((member) => member.kametiId != kametiId).toList();
+      }
+    }
+
+    for (final kametiId in visibleIds) {
+      if (_memberSubscriptions.containsKey(kametiId)) continue;
+      _memberSubscriptions[kametiId] = _firestore
+          .collection('kametis')
+          .doc(kametiId)
+          .collection('members')
+          .snapshots()
+          .listen(
+        (snapshot) {
+          final incomingMembers = snapshot.docs.map((doc) {
+            return MemberModel.fromFirestore({
+              ...doc.data(),
+              'id': doc.data()['id'] ?? doc.id,
+              'kametiId': doc.data()['kametiId'] ?? kametiId,
+            });
+          }).toList();
+          final incomingIds =
+              incomingMembers.map((member) => member.id).toSet();
+          state = [
+            for (final member in state)
+              if (member.kametiId != kametiId ||
+                  !incomingIds.contains(member.id))
+                member,
+            ...incomingMembers,
+          ];
+        },
+        onError: (Object error) {
+          debugPrint('KametiBook member sync failed for $kametiId: $error');
+        },
+      );
+    }
+  }
+
+  void _upsertMember(MemberModel member) {
+    state = [
+      member,
+      for (final item in state)
+        if (item.kametiId != member.kametiId || item.id != member.id) item,
+    ];
+  }
+
+  @override
+  void dispose() {
+    unawaited(clearUserData());
+    super.dispose();
+  }
 }
 
 final memberControllerProvider =
     StateNotifierProvider<MemberController, List<MemberModel>>((ref) {
-  return MemberController();
+  return MemberController(ref);
 });

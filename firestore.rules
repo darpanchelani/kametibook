@@ -8,8 +8,27 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(request.auth.uid)/joinedKametis/$(kametiId))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)/joinedKametis/$(kametiId)).data.status == 'active';
     }
+    function kametiDoc(kametiId) {
+      return get(/databases/$(database)/documents/kametis/$(kametiId));
+    }
+    function kametiDocExists(kametiId) {
+      return exists(/databases/$(database)/documents/kametis/$(kametiId));
+    }
+    function kametiOwnerByDoc(kametiId) {
+      return signedIn()
+        && kametiDocExists(kametiId)
+        && kametiDoc(kametiId).data.ownerUserId == request.auth.uid;
+    }
+    function kametiMemberByArray(kametiId) {
+      return signedIn()
+        && kametiDocExists(kametiId)
+        && kametiDoc(kametiId).data.keys().hasAny(['memberUserIds'])
+        && request.auth.uid in kametiDoc(kametiId).data.memberUserIds;
+    }
     function kametiMember(kametiId) {
       return joinedKameti(kametiId)
+        || kametiOwnerByDoc(kametiId)
+        || kametiMemberByArray(kametiId)
         || (signedIn() && exists(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid)));
     }
     function kametiManager(kametiId) {
@@ -66,7 +85,12 @@ service cloud.firestore {
     }
 
     match /kametis/{kametiId} {
-      allow read: if kametiMember(kametiId);
+      allow read: if joinedKameti(kametiId)
+        || (signedIn() && exists(/databases/$(database)/documents/kametis/$(kametiId)/members/$(request.auth.uid)))
+        || (signedIn() && resource.data.ownerUserId == request.auth.uid)
+        || (signedIn()
+          && resource.data.keys().hasAny(['memberUserIds'])
+          && request.auth.uid in resource.data.memberUserIds);
       allow create: if signedIn() && request.resource.data.ownerUserId == request.auth.uid;
       allow update, delete: if kametiManager(kametiId);
 

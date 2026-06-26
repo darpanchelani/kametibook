@@ -16,6 +16,8 @@ class KametiCard extends StatelessWidget {
     this.drawStatusText,
     this.biddingStatusText,
     this.receiverStatusText,
+    this.roleLabel,
+    this.roleIcon,
     super.key,
   });
 
@@ -30,6 +32,8 @@ class KametiCard extends StatelessWidget {
   final String? drawStatusText;
   final String? biddingStatusText;
   final String? receiverStatusText;
+  final String? roleLabel;
+  final IconData? roleIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -47,9 +51,22 @@ class KametiCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text(
-                      kameti.name,
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          kameti.name,
+                          style: theme.textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                        if (roleLabel != null) ...[
+                          const SizedBox(height: 8),
+                          _RoleChip(
+                            label: roleLabel!,
+                            icon: roleIcon ?? Icons.person_outline,
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                   _StatusChip(status: kameti.status),
@@ -62,29 +79,83 @@ class KametiCard extends StatelessWidget {
                 spacing: 12,
                 runSpacing: 8,
                 children: [
-                  _Meta(icon: Icons.payments_outlined, text: CurrencyFormatter.pkr(kameti.monthlyAmount)),
-                  _Meta(icon: Icons.savings_outlined, text: 'Pool: ${CurrencyFormatter.pkr(kameti.totalPoolAmount)}'),
+                  _Meta(
+                      icon: Icons.payments_outlined,
+                      text: CurrencyFormatter.pkr(kameti.monthlyAmount)),
+                  _Meta(
+                      icon: Icons.savings_outlined,
+                      text:
+                          'Pool: ${CurrencyFormatter.pkr(kameti.totalPoolAmount)}'),
                   _Meta(
                     icon: Icons.group_outlined,
-                    text: 'Members: ${activeMembersCount ?? 0} / ${kameti.totalMembers}',
+                    text:
+                        'Members: ${activeMembersCount ?? 0} / ${kameti.totalMembers}',
                   ),
-                  _Meta(icon: Icons.calendar_month_outlined, text: '${kameti.durationMonths} months'),
-                  if (currentCycleLabel != null) _Meta(icon: Icons.event_repeat_outlined, text: 'Current: $currentCycleLabel'),
+                  _Meta(
+                      icon: Icons.calendar_month_outlined,
+                      text: '${kameti.durationMonths} months'),
+                  if (currentCycleLabel != null)
+                    _Meta(
+                        icon: Icons.event_repeat_outlined,
+                        text: 'Current: $currentCycleLabel'),
                   if (paidCount != null && pendingCount != null)
-                    _Meta(icon: Icons.fact_check_outlined, text: 'Paid: $paidCount / ${(paidCount ?? 0) + (pendingCount ?? 0)}'),
+                    _Meta(
+                        icon: Icons.fact_check_outlined,
+                        text:
+                            'Paid: $paidCount / ${(paidCount ?? 0) + (pendingCount ?? 0)}'),
                   if (collectedAmount != null && expectedAmount != null)
                     _Meta(
                       icon: Icons.trending_up_outlined,
-                      text: 'Collected: ${CurrencyFormatter.pkr(collectedAmount!)} / ${CurrencyFormatter.pkr(expectedAmount!)}',
+                      text:
+                          'Collected: ${CurrencyFormatter.pkr(collectedAmount!)} / ${CurrencyFormatter.pkr(expectedAmount!)}',
                     ),
-                  if (drawStatusText != null) _Meta(icon: Icons.casino_outlined, text: drawStatusText!),
-                  if (biddingStatusText != null) _Meta(icon: Icons.gavel_outlined, text: biddingStatusText!),
-                  if (receiverStatusText != null) _Meta(icon: Icons.person_pin_circle_outlined, text: receiverStatusText!),
+                  if (drawStatusText != null)
+                    _Meta(icon: Icons.casino_outlined, text: drawStatusText!),
+                  if (biddingStatusText != null)
+                    _Meta(icon: Icons.gavel_outlined, text: biddingStatusText!),
+                  if (receiverStatusText != null)
+                    _Meta(
+                        icon: Icons.person_pin_circle_outlined,
+                        text: receiverStatusText!),
                 ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _RoleChip extends StatelessWidget {
+  const _RoleChip({required this.label, required this.icon});
+
+  final String label;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6F4EF),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFFB9DED0)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: const Color(0xFF087F5B)),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF087F5B),
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -111,7 +182,8 @@ class _StatusChip extends StatelessWidget {
       ),
       child: Text(
         status.label,
-        style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 12),
+        style:
+            TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 12),
       ),
     );
   }
@@ -125,12 +197,17 @@ class _Meta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const muted = Color(0xFF4C5A54);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 17, color: Colors.black54),
+        Icon(icon, size: 17, color: muted),
         const SizedBox(width: 5),
-        Text(text, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54)),
+        Text(text,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: muted, fontWeight: FontWeight.w600)),
       ],
     );
   }
