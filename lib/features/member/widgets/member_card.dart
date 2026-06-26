@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/date_formatter.dart';
+import '../../../core/widgets/profile_avatar.dart';
 import '../models/member_model.dart';
 import 'member_role_badge.dart';
 import 'member_status_badge.dart';
@@ -34,12 +35,9 @@ class MemberCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                  child: Text(
-                    member.fullName.isEmpty ? '?' : member.fullName[0].toUpperCase(),
-                    style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w900),
-                  ),
+                ProfileAvatar(
+                  name: member.fullName,
+                  photoUrl: member.profilePhotoUrl,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -48,11 +46,16 @@ class MemberCard extends StatelessWidget {
                     children: [
                       Text(
                         member.fullName,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 3),
-                      Text(member.phone, style: const TextStyle(color: Colors.black54)),
-                      Text(member.city, style: const TextStyle(color: Colors.black54)),
+                      Text(member.phone,
+                          style: const TextStyle(color: Colors.black54)),
+                      Text(member.city,
+                          style: const TextStyle(color: Colors.black54)),
                     ],
                   ),
                 ),
@@ -63,7 +66,8 @@ class MemberCard extends StatelessWidget {
                     if (value == 'remove') onRemove();
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'view', child: Text('View Details')),
+                    const PopupMenuItem(
+                        value: 'view', child: Text('View Details')),
                     const PopupMenuItem(value: 'edit', child: Text('Edit')),
                     PopupMenuItem(
                       value: 'remove',
@@ -82,9 +86,13 @@ class MemberCard extends StatelessWidget {
               children: [
                 MemberRoleBadge(role: member.role),
                 MemberStatusBadge(status: member.status),
-                if (trustScore != null) _SmallInfo(text: 'Trust: ${trustScore!.round()}'),
-                _SmallInfo(text: 'Received: ${member.hasReceivedKameti ? 'Yes' : 'No'}'),
-                _SmallInfo(text: 'Joined: ${DateFormatter.display(member.joinedAt)}'),
+                if (trustScore != null)
+                  _SmallInfo(text: 'Trust: ${trustScore!.round()}'),
+                _SmallInfo(
+                    text:
+                        'Received: ${member.hasReceivedKameti ? 'Yes' : 'No'}'),
+                _SmallInfo(
+                    text: 'Joined: ${DateFormatter.display(member.joinedAt)}'),
               ],
             ),
             if (member.notes.isNotEmpty) ...[
@@ -111,7 +119,8 @@ class _SmallInfo extends StatelessWidget {
         color: Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(30),
       ),
-      child: Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+      child: Text(text,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
     );
   }
 }

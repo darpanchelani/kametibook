@@ -7,6 +7,7 @@ import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/profile_avatar.dart';
 import '../../auth/providers/auth_controller.dart';
 import '../../cloud/models/user_profile_model.dart';
 import '../../kameti/models/kameti_model.dart';
@@ -158,6 +159,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
       whatsappNumber: profile.phone,
       email: profile.email,
       notes: 'Added through KametiBook account @${profile.username}',
+      profilePhotoUrl: profile.profilePhotoUrl,
       role: MemberRole.member,
       status: MemberStatus.active,
       hasReceivedKameti: false,
@@ -233,6 +235,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
       'phone': member.phone,
       'city': member.city,
       'email': member.email,
+      'profilePhotoUrl': member.profilePhotoUrl,
       'role': member.role.name,
       'status': member.status.name,
       'inviteStatus': member.inviteStatus.name,
@@ -397,11 +400,8 @@ class _UserResultCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            CircleAvatar(
-              child: Text(profile.fullName.isEmpty
-                  ? '?'
-                  : profile.fullName[0].toUpperCase()),
-            ),
+            ProfileAvatar(
+                name: profile.fullName, photoUrl: profile.profilePhotoUrl),
             const SizedBox(width: 12),
             Expanded(
               child: Column(

@@ -234,6 +234,37 @@ class AuthController extends StateNotifier<AuthState> {
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
+  Future<bool> updateProfilePhoto(String photoUrl) async {
+    final profile = state.userProfile;
+    if (profile == null || photoUrl.trim().isEmpty) return false;
+    final updated = profile.copyWith(
+      profilePhotoUrl: photoUrl.trim(),
+      updatedAt: DateTime.now(),
+    );
+    try {
+      if (FirebaseBootstrap.isInitialized) {
+        await _withTimeout(
+          _firestore.collection('users').doc(updated.id).update({
+            'profilePhotoUrl': updated.profilePhotoUrl,
+            'updatedAt': updated.updatedAt.millisecondsSinceEpoch,
+          }),
+          'Profile photo update timed out. Please try again.',
+        );
+        await _syncPublicProfileBestEffort(updated);
+      }
+      state = state.copyWith(userProfile: updated, errorMessage: '');
+      return true;
+    } catch (error) {
+      state = state.copyWith(
+        errorMessage: _withDebugDetails(
+          'Profile photo could not be updated. Please try again.',
+          error,
+        ),
+      );
+      return false;
+    }
+  }
+
   bool _isActive(UserProfileModel profile) =>
       profile.status == UserProfileStatus.active;
   String _normalizeEmail(String email) => email.trim().toLowerCase();

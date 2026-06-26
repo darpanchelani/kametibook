@@ -16,7 +16,8 @@ service firebase.storage {
     }
 
     match /users/{userId}/{fileName} {
-      allow read, write: if signedIn() && request.auth.uid == userId;
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == userId;
     }
     match /kametis/{kametiId}/payments/{cycleId}/{memberId}/{fileName} {
       allow read: if kametiMember(kametiId);

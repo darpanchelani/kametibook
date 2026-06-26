@@ -5,6 +5,7 @@ import '../../../app/routes.dart';
 import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../../core/widgets/profile_avatar.dart';
 import '../../auth/providers/auth_controller.dart';
 import '../../bidding/providers/bidding_controller.dart';
 import '../../bidding/widgets/discount_adjustment_card.dart';
@@ -58,23 +59,36 @@ class MemberDetailsScreen extends ConsumerWidget {
     final receiverController = ref.read(receiverControllerProvider.notifier);
     final ledgerController = ref.read(ledgerControllerProvider.notifier);
     final payments = paymentController.getPaymentsByMemberId(selectedMember.id);
-    final paidCycles = payments.where((payment) => payment.paymentStatus == PaymentStatus.paid).length;
-    final pendingCycles = payments.where((payment) => payment.paymentStatus == PaymentStatus.pending).length;
-    final lateCycles = payments.where((payment) => payment.paymentStatus == PaymentStatus.late).length;
-    final totalPaid = payments.fold<double>(0, (total, payment) => total + payment.amountPaid);
+    final paidCycles = payments
+        .where((payment) => payment.paymentStatus == PaymentStatus.paid)
+        .length;
+    final pendingCycles = payments
+        .where((payment) => payment.paymentStatus == PaymentStatus.pending)
+        .length;
+    final lateCycles = payments
+        .where((payment) => payment.paymentStatus == PaymentStatus.late)
+        .length;
+    final totalPaid = payments.fold<double>(
+        0, (total, payment) => total + payment.amountPaid);
     final totalPending = payments.fold<double>(
       0,
-      (total, payment) => total + (payment.countsAsPaid ? 0 : payment.amountDue),
+      (total, payment) =>
+          total + (payment.countsAsPaid ? 0 : payment.amountDue),
     );
-    final adjustments = biddingController.getAdjustmentsByMemberId(selectedMember.id);
-    final allocations = receiverController.getAllocationsByMemberId(selectedMember.id);
-    final memberLedgerSummary = ledgerController.calculateMemberLedgerSummary(selectedMember.id);
-    final memberLedgerEntries = ledgerController.getLedgerEntriesByMemberId(selectedMember.id);
-    final trustScore = ref.read(securityControllerProvider.notifier).calculateMemberTrustScore(
-          member: selectedMember,
-          payments: ref.watch(paymentControllerProvider).payments,
-          ledgerEntries: ref.watch(ledgerControllerProvider),
-        );
+    final adjustments =
+        biddingController.getAdjustmentsByMemberId(selectedMember.id);
+    final allocations =
+        receiverController.getAllocationsByMemberId(selectedMember.id);
+    final memberLedgerSummary =
+        ledgerController.calculateMemberLedgerSummary(selectedMember.id);
+    final memberLedgerEntries =
+        ledgerController.getLedgerEntriesByMemberId(selectedMember.id);
+    final trustScore =
+        ref.read(securityControllerProvider.notifier).calculateMemberTrustScore(
+              member: selectedMember,
+              payments: ref.watch(paymentControllerProvider).payments,
+              ledgerEntries: ref.watch(ledgerControllerProvider),
+            );
 
     return Scaffold(
       appBar: AppBar(
@@ -83,22 +97,29 @@ class MemberDetailsScreen extends ConsumerWidget {
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'report') {
-                Navigator.of(context).pushNamed(AppRoutes.reportUser, arguments: ReportUserArgs(kametiId: selectedMember.kametiId, memberId: selectedMember.id));
+                Navigator.of(context).pushNamed(AppRoutes.reportUser,
+                    arguments: ReportUserArgs(
+                        kametiId: selectedMember.kametiId,
+                        memberId: selectedMember.id));
               }
               if (value == 'block') {
                 _blockMember(context, ref, selectedMember);
               }
               if (value == 'unblock') {
-                ref.read(memberControllerProvider.notifier).unblockMember(memberId: selectedMember.id);
+                ref
+                    .read(memberControllerProvider.notifier)
+                    .unblockMember(memberId: selectedMember.id);
                 SnackbarHelper.showSuccess(context, 'Member unblocked.');
               }
             },
             itemBuilder: (context) => [
               const PopupMenuItem(value: 'report', child: Text('Report User')),
               if (selectedMember.status == MemberStatus.blocked)
-                const PopupMenuItem(value: 'unblock', child: Text('Unblock Member'))
+                const PopupMenuItem(
+                    value: 'unblock', child: Text('Unblock Member'))
               else
-                const PopupMenuItem(value: 'block', child: Text('Block Member')),
+                const PopupMenuItem(
+                    value: 'block', child: Text('Block Member')),
             ],
           ),
         ],
@@ -113,9 +134,24 @@ class MemberDetailsScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      selectedMember.fullName,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                    Row(
+                      children: [
+                        ProfileAvatar(
+                          name: selectedMember.fullName,
+                          photoUrl: selectedMember.profilePhotoUrl,
+                          radius: 30,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            selectedMember.fullName,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                     Wrap(spacing: 8, runSpacing: 8, children: [
@@ -123,14 +159,35 @@ class MemberDetailsScreen extends ConsumerWidget {
                       MemberStatusBadge(status: selectedMember.status),
                     ]),
                     const SizedBox(height: 12),
-                    MemberInfoTile(label: 'Phone', value: selectedMember.phone, icon: Icons.phone_outlined),
-                    MemberInfoTile(label: 'WhatsApp', value: selectedMember.whatsappNumber, icon: Icons.chat_outlined),
-                    MemberInfoTile(label: 'Email', value: selectedMember.email, icon: Icons.email_outlined),
-                    MemberInfoTile(label: 'City', value: selectedMember.city, icon: Icons.location_city_outlined),
+                    MemberInfoTile(
+                        label: 'Phone',
+                        value: selectedMember.phone,
+                        icon: Icons.phone_outlined),
+                    MemberInfoTile(
+                        label: 'WhatsApp',
+                        value: selectedMember.whatsappNumber,
+                        icon: Icons.chat_outlined),
+                    MemberInfoTile(
+                        label: 'Email',
+                        value: selectedMember.email,
+                        icon: Icons.email_outlined),
+                    MemberInfoTile(
+                        label: 'City',
+                        value: selectedMember.city,
+                        icon: Icons.location_city_outlined),
                     if (selectedMember.cnic.isNotEmpty)
-                      MemberInfoTile(label: 'CNIC', value: selectedMember.cnic, icon: Icons.badge_outlined),
-                    MemberInfoTile(label: 'Role', value: selectedMember.role.label, icon: Icons.admin_panel_settings_outlined),
-                    MemberInfoTile(label: 'Status', value: selectedMember.status.label, icon: Icons.flag_outlined),
+                      MemberInfoTile(
+                          label: 'CNIC',
+                          value: selectedMember.cnic,
+                          icon: Icons.badge_outlined),
+                    MemberInfoTile(
+                        label: 'Role',
+                        value: selectedMember.role.label,
+                        icon: Icons.admin_panel_settings_outlined),
+                    MemberInfoTile(
+                        label: 'Status',
+                        value: selectedMember.status.label,
+                        icon: Icons.flag_outlined),
                     MemberInfoTile(
                       label: 'Joined Date',
                       value: DateFormatter.display(selectedMember.joinedAt),
@@ -142,7 +199,10 @@ class MemberDetailsScreen extends ConsumerWidget {
                       icon: Icons.savings_outlined,
                     ),
                     if (selectedMember.notes.isNotEmpty)
-                      MemberInfoTile(label: 'Notes', value: selectedMember.notes, icon: Icons.notes_outlined),
+                      MemberInfoTile(
+                          label: 'Notes',
+                          value: selectedMember.notes,
+                          icon: Icons.notes_outlined),
                   ],
                 ),
               ),
@@ -150,27 +210,41 @@ class MemberDetailsScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             TrustScoreCard(
               score: trustScore,
-              onTap: () => Navigator.of(context).pushNamed(AppRoutes.trustScore, arguments: selectedMember.id),
+              onTap: () => Navigator.of(context).pushNamed(AppRoutes.trustScore,
+                  arguments: selectedMember.id),
             ),
-            if (trustScore.riskLevel == RiskLevel.risky || trustScore.riskLevel == RiskLevel.highRisk)
-              const SecurityWarningCard(message: 'This member has risk indicators. Review payment and dispute history before sensitive actions.'),
+            if (trustScore.riskLevel == RiskLevel.risky ||
+                trustScore.riskLevel == RiskLevel.highRisk)
+              const SecurityWarningCard(
+                  message:
+                      'This member has risk indicators. Review payment and dispute history before sensitive actions.'),
             const SizedBox(height: 12),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Financial Summary', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-                  LedgerSummaryCard(summary: memberLedgerSummary),
-                  Text(
-                    'Net Position: ${CurrencyFormatter.pkr(selectedMember.receivedAmount + memberLedgerSummary.totalDiscounts - memberLedgerSummary.totalContributions - memberLedgerSummary.totalPenalties)}',
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 8),
-                  if (memberLedgerEntries.isEmpty)
-                    const Text('No member ledger entries yet.')
-                  else
-                    ...memberLedgerEntries.take(5).map((entry) => LedgerEntryCard(entry: entry, member: selectedMember, onTap: () {})),
-                ]),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Financial Summary',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w900)),
+                      LedgerSummaryCard(summary: memberLedgerSummary),
+                      Text(
+                        'Net Position: ${CurrencyFormatter.pkr(selectedMember.receivedAmount + memberLedgerSummary.totalDiscounts - memberLedgerSummary.totalContributions - memberLedgerSummary.totalPenalties)}',
+                        style: const TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      if (memberLedgerEntries.isEmpty)
+                        const Text('No member ledger entries yet.')
+                      else
+                        ...memberLedgerEntries.take(5).map((entry) =>
+                            LedgerEntryCard(
+                                entry: entry,
+                                member: selectedMember,
+                                onTap: () {})),
+                    ]),
               ),
             ),
             const SizedBox(height: 12),
@@ -180,12 +254,17 @@ class MemberDetailsScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Receiver Allocation History', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                    Text('Receiver Allocation History',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w900)),
                     const SizedBox(height: 8),
                     if (allocations.isEmpty)
                       const Text('No receiver allocation history yet.')
                     else
-                      ...allocations.map((allocation) => ReceiverAllocationCard(allocation: allocation)),
+                      ...allocations.map((allocation) =>
+                          ReceiverAllocationCard(allocation: allocation)),
                   ],
                 ),
               ),
@@ -198,19 +277,28 @@ class MemberDetailsScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      selectedMember.hasReceivedKameti ? 'Kameti Received' : 'Kameti not received yet.',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                      selectedMember.hasReceivedKameti
+                          ? 'Kameti Received'
+                          : 'Kameti not received yet.',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w900),
                     ),
                     if (selectedMember.hasReceivedKameti) ...[
                       const SizedBox(height: 8),
-                      Text('Cycle: Month ${selectedMember.receivedCycleNumber ?? '-'}'),
+                      Text(
+                          'Cycle: Month ${selectedMember.receivedCycleNumber ?? '-'}'),
                       Text(
                         'Received Date: ${selectedMember.receivedAt == null ? '-' : DateFormatter.display(selectedMember.receivedAt!)}',
                       ),
-                      Text('Received Amount: ${CurrencyFormatter.pkr(selectedMember.receivedAmount)}'),
-                      Text('Received Via: ${selectedMember.receivedVia.isEmpty ? 'Lucky Draw' : selectedMember.receivedVia}'),
+                      Text(
+                          'Received Amount: ${CurrencyFormatter.pkr(selectedMember.receivedAmount)}'),
+                      Text(
+                          'Received Via: ${selectedMember.receivedVia.isEmpty ? 'Lucky Draw' : selectedMember.receivedVia}'),
                       if (selectedMember.receivedVia == 'bidding') ...[
-                        Text('Winning Bid Amount: ${CurrencyFormatter.pkr(selectedMember.receivedAmount)}'),
+                        Text(
+                            'Winning Bid Amount: ${CurrencyFormatter.pkr(selectedMember.receivedAmount)}'),
                         Text(
                           'Discount Generated: ${CurrencyFormatter.pkr(biddingController.getBiddingSessionsByKametiId(selectedMember.kametiId).where((session) => session.winnerMemberId == selectedMember.id && session.cycleId == selectedMember.receivedCycleId).fold<double>(0, (total, session) => total + session.discountAmount))}',
                         ),
@@ -229,19 +317,30 @@ class MemberDetailsScreen extends ConsumerWidget {
                   children: [
                     Text(
                       'Payment History',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w900),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 14,
                       runSpacing: 8,
                       children: [
-                        _HistoryStat(label: 'Total Cycles', value: '${payments.length}'),
-                        _HistoryStat(label: 'Paid Cycles', value: '$paidCycles'),
-                        _HistoryStat(label: 'Pending Cycles', value: '$pendingCycles'),
-                        _HistoryStat(label: 'Late Cycles', value: '$lateCycles'),
-                        _HistoryStat(label: 'Total Paid', value: CurrencyFormatter.pkr(totalPaid)),
-                        _HistoryStat(label: 'Total Pending', value: CurrencyFormatter.pkr(totalPending)),
+                        _HistoryStat(
+                            label: 'Total Cycles', value: '${payments.length}'),
+                        _HistoryStat(
+                            label: 'Paid Cycles', value: '$paidCycles'),
+                        _HistoryStat(
+                            label: 'Pending Cycles', value: '$pendingCycles'),
+                        _HistoryStat(
+                            label: 'Late Cycles', value: '$lateCycles'),
+                        _HistoryStat(
+                            label: 'Total Paid',
+                            value: CurrencyFormatter.pkr(totalPaid)),
+                        _HistoryStat(
+                            label: 'Total Pending',
+                            value: CurrencyFormatter.pkr(totalPending)),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -249,15 +348,18 @@ class MemberDetailsScreen extends ConsumerWidget {
                       const Text('No payment history yet.')
                     else
                       ...payments.map((payment) {
-                        final cycle = paymentController.getCycle(payment.cycleId);
+                        final cycle =
+                            paymentController.getCycle(payment.cycleId);
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
-                          title: Text('Cycle ${cycle?.cycleNumber ?? '-'} - ${cycle?.monthLabel ?? ''}'),
+                          title: Text(
+                              'Cycle ${cycle?.cycleNumber ?? '-'} - ${cycle?.monthLabel ?? ''}'),
                           subtitle: Text(
                             'Due: ${CurrencyFormatter.pkr(payment.amountDue)} | Paid: ${CurrencyFormatter.pkr(payment.amountPaid)}'
                             '${payment.paidAt == null ? '' : ' | ${DateFormatter.display(payment.paidAt!)}'}',
                           ),
-                          trailing: PaymentStatusBadge(status: payment.paymentStatus),
+                          trailing:
+                              PaymentStatusBadge(status: payment.paymentStatus),
                         );
                       }),
                   ],
@@ -271,12 +373,17 @@ class MemberDetailsScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Discount Adjustments', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                    Text('Discount Adjustments',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w900)),
                     const SizedBox(height: 8),
                     if (adjustments.isEmpty)
                       const Text('No discount adjustments yet.')
                     else
-                      ...adjustments.map((adjustment) => DiscountAdjustmentCard(adjustment: adjustment)),
+                      ...adjustments.map((adjustment) =>
+                          DiscountAdjustmentCard(adjustment: adjustment)),
                   ],
                 ),
               ),
@@ -298,19 +405,24 @@ class MemberDetailsScreen extends ConsumerWidget {
   }
 
   void _blockMember(BuildContext context, WidgetRef ref, MemberModel member) {
-    final kameti = ref.read(kametiControllerProvider.notifier).byId(member.kametiId);
+    final kameti =
+        ref.read(kametiControllerProvider.notifier).byId(member.kametiId);
     if (kameti == null) {
       SnackbarHelper.showError(context, 'Kameti not found.');
       return;
     }
-    final error = ref.read(memberControllerProvider.notifier).blockMember(kameti: kameti, memberId: member.id, reason: 'Blocked from member detail');
+    final error = ref.read(memberControllerProvider.notifier).blockMember(
+        kameti: kameti,
+        memberId: member.id,
+        reason: 'Blocked from member detail');
     if (error != null) {
       SnackbarHelper.showError(context, error);
     } else {
       ref.read(securityControllerProvider.notifier).createAuditLog(
             kametiId: member.kametiId,
             userId: ref.read(authControllerProvider).user?.id ?? '',
-            userName: ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
+            userName:
+                ref.read(authControllerProvider).user?.fullName ?? 'Organizer',
             userRole: 'organizer',
             actionType: AuditActionType.memberBlocked,
             entityType: AuditEntityType.member,
@@ -323,7 +435,6 @@ class MemberDetailsScreen extends ConsumerWidget {
       SnackbarHelper.showSuccess(context, 'Member blocked.');
     }
   }
-
 }
 
 class _HistoryStat extends StatelessWidget {
@@ -339,7 +450,8 @@ class _HistoryStat extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.black54, fontSize: 12)),
+          Text(label,
+              style: const TextStyle(color: Colors.black54, fontSize: 12)),
           const SizedBox(height: 2),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
         ],

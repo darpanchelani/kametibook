@@ -65,6 +65,38 @@ class UserProfileModel {
     };
   }
 
+  UserProfileModel copyWith({
+    String? id,
+    String? fullName,
+    String? username,
+    String? phone,
+    String? email,
+    String? city,
+    String? profilePhotoUrl,
+    GlobalUserRole? role,
+    UserProfileStatus? status,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? lastLoginAt,
+    String? fcmToken,
+  }) {
+    return UserProfileModel(
+      id: id ?? this.id,
+      fullName: fullName ?? this.fullName,
+      username: username ?? this.username,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      city: city ?? this.city,
+      profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
+      role: role ?? this.role,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
+      fcmToken: fcmToken ?? this.fcmToken,
+    );
+  }
+
   factory UserProfileModel.fromMap(Map<String, Object?> map) {
     return UserProfileModel(
       id: '${map['id'] ?? ''}',

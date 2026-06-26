@@ -40,6 +40,7 @@ class MemberModel {
     required this.whatsappNumber,
     required this.email,
     required this.notes,
+    this.profilePhotoUrl = '',
     required this.role,
     required this.status,
     required this.hasReceivedKameti,
@@ -67,6 +68,7 @@ class MemberModel {
   final String whatsappNumber;
   final String email;
   final String notes;
+  final String profilePhotoUrl;
   final MemberRole role;
   final MemberStatus status;
   final bool hasReceivedKameti;
@@ -85,7 +87,8 @@ class MemberModel {
   final DateTime? linkedAt;
 
   bool get isOrganizer => role == MemberRole.organizer;
-  bool get canManageGroup => role == MemberRole.organizer || role == MemberRole.coOrganizer;
+  bool get canManageGroup =>
+      role == MemberRole.organizer || role == MemberRole.coOrganizer;
   bool get isActiveForCount => status == MemberStatus.active;
 
   MemberModel copyWith({
@@ -98,6 +101,7 @@ class MemberModel {
     String? whatsappNumber,
     String? email,
     String? notes,
+    String? profilePhotoUrl,
     MemberRole? role,
     MemberStatus? status,
     bool? hasReceivedKameti,
@@ -125,6 +129,7 @@ class MemberModel {
       whatsappNumber: whatsappNumber ?? this.whatsappNumber,
       email: email ?? this.email,
       notes: notes ?? this.notes,
+      profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
       role: role ?? this.role,
       status: status ?? this.status,
       hasReceivedKameti: hasReceivedKameti ?? this.hasReceivedKameti,

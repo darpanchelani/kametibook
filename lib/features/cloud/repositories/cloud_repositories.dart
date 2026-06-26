@@ -201,6 +201,7 @@ class FirebaseMemberRepository implements MemberRepository {
         'userId': member.userId,
         'fullName': member.fullName,
         'phone': member.phone,
+        'profilePhotoUrl': member.profilePhotoUrl,
         'role': member.role.name,
         'status': member.status.name
       });
