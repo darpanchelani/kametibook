@@ -140,7 +140,7 @@ class HomeScreen extends ConsumerWidget {
               onCreateKameti: () =>
                   Navigator.of(context).pushNamed(AppRoutes.createKameti),
               onNotifications: () =>
-                  Navigator.of(context).pushNamed(AppRoutes.main, arguments: 2),
+                  Navigator.of(context).pushNamed(AppRoutes.main, arguments: 3),
               onMyKametis: () =>
                   Navigator.of(context).pushNamed(AppRoutes.main, arguments: 1),
             ),
@@ -154,7 +154,7 @@ class HomeScreen extends ConsumerWidget {
               unreadNotifications: unreadNotifications,
               urgentAlerts: urgentAlerts,
               onNotifications: () =>
-                  Navigator.of(context).pushNamed(AppRoutes.main, arguments: 2),
+                  Navigator.of(context).pushNamed(AppRoutes.main, arguments: 3),
             ),
             const SizedBox(height: 18),
             _FinanceSnapshot(
@@ -178,7 +178,7 @@ class HomeScreen extends ConsumerWidget {
                 message:
                     'Payments, payouts, receivers, or ledger records need review.',
                 onTap: () => Navigator.of(context)
-                    .pushNamed(AppRoutes.main, arguments: 2),
+                    .pushNamed(AppRoutes.main, arguments: 3),
               ),
             ],
             const SizedBox(height: 24),

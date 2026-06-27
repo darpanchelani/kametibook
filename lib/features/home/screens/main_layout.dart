@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/providers/auth_controller.dart';
 import '../../../core/widgets/app_state_views.dart';
+import '../../friends/screens/friends_screen.dart';
 import '../../kameti/screens/my_kametis_screen.dart';
 import '../../notifications/providers/notification_controller.dart';
 import '../../notifications/screens/notifications_screen.dart';
@@ -25,6 +26,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
   late final List<Widget> _screens = [
     const HomeScreen(),
     const MyKametisScreen(),
+    const FriendsScreen(),
     const NotificationsScreen(),
     const ProfileScreen(),
   ];
@@ -49,6 +51,8 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: NavigationBar(
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+        height: 72,
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) => setState(() => _currentIndex = index),
         destinations: [
@@ -60,6 +64,11 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
             icon: Icon(Icons.groups_2_outlined),
             selectedIcon: Icon(Icons.groups_2),
             label: 'My Kametis',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.people_alt_outlined),
+            selectedIcon: Icon(Icons.people_alt),
+            label: 'Friends',
           ),
           NavigationDestination(
             icon: UnreadBadge(

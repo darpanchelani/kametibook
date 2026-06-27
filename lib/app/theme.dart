@@ -144,6 +144,7 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: card,
         indicatorColor: const Color(0xFFE1F4EC),
+        height: 72,
         elevation: 8,
         shadowColor: Colors.black.withValues(alpha: 0.08),
         labelTextStyle: WidgetStateProperty.resolveWith(
@@ -152,7 +153,7 @@ class AppTheme {
             fontWeight: states.contains(WidgetState.selected)
                 ? FontWeight.w800
                 : FontWeight.w600,
-            fontSize: 12,
+            fontSize: 0,
           ),
         ),
         iconTheme: WidgetStateProperty.resolveWith(

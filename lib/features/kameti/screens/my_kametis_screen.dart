@@ -179,6 +179,7 @@ class _MyKametisScreenState extends ConsumerState<MyKametisScreen> {
       floatingActionButton: kametis.isEmpty
           ? null
           : FloatingActionButton(
+              heroTag: 'my-kametis-create-kameti-fab',
               onPressed: () =>
                   Navigator.of(context).pushNamed(AppRoutes.createKameti),
               child: const Icon(Icons.add),

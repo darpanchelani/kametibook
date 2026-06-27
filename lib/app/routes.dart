@@ -9,6 +9,9 @@ import '../features/bidding/screens/bidding_history_screen.dart';
 import '../features/bidding/screens/bidding_screen.dart';
 import '../features/cloud/screens/invite_member_screen.dart';
 import '../features/cloud/screens/join_kameti_screen.dart';
+import '../features/friends/screens/chat_screen.dart';
+import '../features/friends/screens/friend_profile_screen.dart';
+import '../features/friends/screens/friends_screen.dart';
 import '../features/home/screens/main_layout.dart';
 import '../features/kameti/screens/create_kameti_screen.dart';
 import '../features/kameti/screens/kameti_details_screen.dart';
@@ -95,6 +98,9 @@ class AppRoutes {
   static const trustScore = '/trust-score';
   static const privacySettings = '/privacy-settings';
   static const reportUser = '/report-user';
+  static const friends = '/friends';
+  static const friendProfile = '/friend-profile';
+  static const chat = '/chat';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     return MaterialPageRoute(
@@ -282,6 +288,12 @@ class AppRoutes {
           case reportUser:
             return ReportUserScreen(
                 args: settings.arguments! as ReportUserArgs);
+          case friends:
+            return const FriendsScreen();
+          case friendProfile:
+            return FriendProfileScreen(userId: settings.arguments! as String);
+          case chat:
+            return ChatScreen(chatId: settings.arguments! as String);
           default:
             return const SplashScreen();
         }

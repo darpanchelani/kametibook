@@ -58,6 +58,15 @@ service cloud.firestore {
         allow read: if ownUser(userId);
         allow write: if ownUser(userId) || kametiManager(kametiId);
       }
+      match /friends/{friendUserId} {
+        allow read: if ownUser(userId);
+        allow create, update: if ownUser(userId)
+          || (signedIn()
+            && request.auth.uid == friendUserId
+            && request.resource.data.userId == userId
+            && request.resource.data.friendUserId == request.auth.uid);
+        allow delete: if ownUser(userId);
+      }
       match /securityLogs/{logId} {
         allow read: if ownUser(userId);
         allow create: if signedIn();
@@ -171,6 +180,36 @@ service cloud.firestore {
     match /kametiInvites/{inviteId} {
       allow read: if signedIn();
       allow create, update: if signedIn();
+    }
+    match /friendRequests/{requestId} {
+      allow read: if signedIn()
+        && (resource.data.fromUserId == request.auth.uid
+          || resource.data.toUserId == request.auth.uid);
+      allow create: if signedIn()
+        && request.resource.data.fromUserId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.auth.uid in request.resource.data.participantIds;
+      allow update: if signedIn()
+        && resource.data.toUserId == request.auth.uid
+        && resource.data.status == 'pending'
+        && request.resource.data.status in ['accepted', 'rejected'];
+      allow delete: if false;
+    }
+    match /chats/{chatId} {
+      allow read: if signedIn() && request.auth.uid in resource.data.participantIds;
+      allow create: if signedIn()
+        && request.auth.uid in request.resource.data.participantIds;
+      allow update: if signedIn() && request.auth.uid in resource.data.participantIds;
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if signedIn()
+          && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds;
+        allow create: if signedIn()
+          && request.resource.data.senderId == request.auth.uid
+          && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds;
+        allow update, delete: if false;
+      }
     }
     match /deletionRequests/{requestId} {
       allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
